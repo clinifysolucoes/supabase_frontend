@@ -11,6 +11,7 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_number_field.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/choice.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
@@ -21,10 +22,12 @@ import '../domain/pricing_models.dart';
 import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
 
-/// Novo procedimento (procedure = null) ou edicao: dados, materiais x
-/// quantidade e a simulacao do preco ao vivo (PricingCalculator) com a
-/// escolha PF / PJ. Cada fator da simulacao e clicavel e pode ser alterado
-/// na hora (parametros da filial ou valor so deste procedimento).
+/// Novo procedimento (procedure = null) ou edicao: dados, especialidade,
+/// materiais x quantidade e a simulacao do preco ao vivo (PricingCalculator)
+/// com a escolha PF / PJ e o alerta do valor cobrado hoje x custo. Cada fator
+/// da simulacao e clicavel e pode ser alterado na hora (parametros da filial
+/// ou valor so deste procedimento). [initialSpecialty] ja vem escolhida no
+/// procedimento novo (botao dentro de uma especialidade).
 /// Devolve true quando salvou.
 class ProcedureFormDialog extends ConsumerStatefulWidget {
   const ProcedureFormDialog({
@@ -33,12 +36,14 @@ class ProcedureFormDialog extends ConsumerStatefulWidget {
     required this.params,
     required this.summary,
     this.readOnly = false,
+    this.initialSpecialty,
   });
 
   final Procedure? procedure;
   final PricingParams params;
   final PricingSummary summary;
   final bool readOnly;
+  final int? initialSpecialty;
 
   static Future<bool> show(
     BuildContext context, {
@@ -46,6 +51,7 @@ class ProcedureFormDialog extends ConsumerStatefulWidget {
     required PricingParams params,
     required PricingSummary summary,
     bool readOnly = false,
+    int? initialSpecialty,
   }) async {
     final saved = await showDialog<bool>(
       context: context,
@@ -54,6 +60,7 @@ class ProcedureFormDialog extends ConsumerStatefulWidget {
         params: params,
         summary: summary,
         readOnly: readOnly,
+        initialSpecialty: initialSpecialty,
       ),
     );
     return saved ?? false;
@@ -68,7 +75,7 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _code = TextEditingController(text: _p?.vcCode ?? '');
   late final _name = TextEditingController(text: _p?.vcName ?? '');
-  late final _category = TextEditingController(text: _p?.vcCategory ?? '');
+  late int? _nrSpecialty = _p?.nrSpecialty ?? widget.initialSpecialty;
   late final _minutes = TextEditingController(
     text: Numbers.toField(_p?.qtMinutes ?? 0, decimals: 0),
   );
@@ -114,7 +121,6 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     for (final c in [
       _code,
       _name,
-      _category,
       _minutes,
       _lab,
       _other,
@@ -138,7 +144,15 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     (s, m) => s + PricingCalculator.round2(m.qtUsed * m.vlUnitCost),
   );
 
-  PricingResult get _result => PricingCalculator.calculate(
+  /// Lucro padrao: o da especialidade escolhida ou, sem ele, o da filial.
+  double _defaultProfit(List<Specialty> specialties) {
+    for (final s in specialties) {
+      if (s.nrSpecialty == _nrSpecialty) return s.pcProfit ?? _params.pcProfit;
+    }
+    return _params.pcProfit;
+  }
+
+  PricingResult _result(double defaultProfit) => PricingCalculator.calculate(
     PricingInput(
       vlMaterial: _materialsCost + _num(_other),
       vlLab: _num(_lab),
@@ -150,7 +164,8 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
       pcFees: _summary.pcFees,
       itTaxRegime: _regime,
       pcTax: _params.pcTaxFor(_regime),
-      pcProfit: _numOrNull(_profit) ?? _params.pcProfit,
+      pcProfit: _numOrNull(_profit) ?? defaultProfit,
+      vlCurrentPrice: _numOrNull(_current),
     ),
   );
 
@@ -217,9 +232,7 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
       final draft = ProcedureDraft(
         vcCode: _code.text.trim().isEmpty ? null : _code.text.trim(),
         vcName: _name.text.trim(),
-        vcCategory: _category.text.trim().isEmpty
-            ? null
-            : _category.text.trim(),
+        nrSpecialty: _nrSpecialty,
         qtMinutes: _num(_minutes),
         vlLabCost: _num(_lab),
         vlMaterialOther: _num(_other),
@@ -249,6 +262,22 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     final theme = Theme.of(context);
     final isMobile = context.isMobile;
     final catalog = ref.watch(materialCatalogProvider).valueOrNull ?? const [];
+    final specialties =
+        ref.watch(specialtyCatalogProvider).valueOrNull ?? const <Specialty>[];
+    // especialidade inativa ligada ao procedimento continua visivel no combo
+    final specialtyChoices = [
+      const Choice<int>(value: null, label: Strings.noSpecialty),
+      for (final s in specialties)
+        Choice<int>(value: s.nrSpecialty, label: s.vcName),
+      if (_p?.nrSpecialty != null &&
+          !specialties.any((s) => s.nrSpecialty == _p!.nrSpecialty))
+        Choice<int>(value: _p!.nrSpecialty, label: _p!.vcSpecialty ?? '-'),
+    ];
+    Specialty? selectedSpecialty;
+    for (final s in specialties) {
+      if (s.nrSpecialty == _nrSpecialty) selectedSpecialty = s;
+    }
+    final defaultProfit = _defaultProfit(specialties);
     final canUpdateParams =
         ref.watch(canUpdateProvider(ScreenCodes.pricing)) ||
         (ref.watch(canCreateProvider(ScreenCodes.pricing)) && !_params.idSaved);
@@ -313,14 +342,17 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            label: Strings.category,
-            hint: Strings.categoryHint,
-            controller: _category,
-            maxLength: 40,
-            enabled: _canEdit,
+          SearchableDropdown<Choice<int>>(
+            label: Strings.specialty,
+            items: specialtyChoices,
+            value: specialtyChoices.firstWhere(
+              (c) => c.value == _nrSpecialty,
+              orElse: () => specialtyChoices.first,
+            ),
+            itemLabel: (c) => c.label,
             prefixIcon: Icons.category_outlined,
-            textCapitalization: TextCapitalization.words,
+            enabled: _canEdit,
+            onChanged: (c) => setState(() => _nrSpecialty = c.value),
           ),
           const SizedBox(height: AppSpacing.md),
           pair(
@@ -377,9 +409,14 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
               label: Strings.profitOverride,
               controller: _profit,
               suffixText: '%',
-              helper: Strings.defaultValue(
-                Numbers.percent(_params.pcProfit, decimals: 2),
-              ),
+              helper: selectedSpecialty?.pcProfit != null
+                  ? Strings.defaultSpecialtyValue(
+                      selectedSpecialty!.vcName,
+                      Numbers.percent(defaultProfit, decimals: 2),
+                    )
+                  : Strings.defaultValue(
+                      Numbers.percent(_params.pcProfit, decimals: 2),
+                    ),
               enabled: _canEdit,
               onChanged: (_) => setState(() {}),
             ),
@@ -447,13 +484,13 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     );
 
     final result = _ResultPanel(
-      result: _result,
+      result: _result(defaultProfit),
       regime: _regime,
       currentPrice: _numOrNull(_current),
       params: _params,
       summary: _summary,
       pcCommission: _numOrNull(_commission) ?? _params.pcCommission,
-      pcProfit: _numOrNull(_profit) ?? _params.pcProfit,
+      pcProfit: _numOrNull(_profit) ?? defaultProfit,
       onRegime: (r) => setState(() => _regime = r),
       onEditFactor: canUpdateParams && !_saving ? _editFactor : null,
     );

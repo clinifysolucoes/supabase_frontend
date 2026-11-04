@@ -63,7 +63,7 @@ abstract final class PricingExport {
     final columns = <_Col>[
       _Col(Strings.procedureCode, 10, (p) => _text(p.vcCode)),
       _Col(Strings.procedureName, 44, (p) => _text(p.vcName)),
-      _Col(Strings.category, 18, (p) => _text(p.vcCategory)),
+      _Col(Strings.specialty, 18, (p) => _text(p.vcSpecialty)),
       _Col(Strings.minutes, 11, (p) => _num(p.qtMinutes, _int)),
       _Col(
         '${Strings.materialsCost} (R\$)',
@@ -128,6 +128,18 @@ abstract final class PricingExport {
       ),
       _Col(Strings.currentPrice, 14, (p) => _num(p.vlCurrentPrice, _money)),
       _Col('${Strings.difference} (R\$)', 14, (p) => _num(p.priceDiff, _money)),
+      _Col(
+        '${Strings.currentProfit} (R\$)',
+        16,
+        (p) => _num(p.pricing?.vlCurrentProfit, _money),
+      ),
+      _Col(
+        Strings.priceCheckColumn,
+        20,
+        (p) => _text(
+          p.vlCurrentPrice == null ? null : PriceStatus.label(p.priceStatus),
+        ),
+      ),
       _Col(
         Strings.status,
         10,

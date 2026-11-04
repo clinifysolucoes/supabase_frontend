@@ -10,7 +10,8 @@ void main() {
         'nr_procedure': 1,
         'vc_code': '1.0',
         'vc_name': 'Profilaxia',
-        'vc_category': 'Clínica Geral',
+        'nr_specialty': 1,
+        'vc_specialty': 'Clínica Geral',
         'qt_minutes': 60,
         'vl_lab_cost': 0,
         'vl_material_other': 2,
@@ -47,7 +48,6 @@ void main() {
         'alerts': ['MATERIAL_NO_PRICE'],
       }),
     ],
-    categories: const ['Clínica Geral'],
     params: const PricingParams(
       nrCompany: 1,
       nrBranch: 1,

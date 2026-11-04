@@ -42,12 +42,31 @@ class MaterialDraft {
   };
 }
 
+/// Campos editaveis de uma especialidade (od.specialty_save).
+class SpecialtyDraft {
+  const SpecialtyDraft({required this.vcName, this.pcProfit, this.itStatus});
+
+  final String vcName;
+
+  /// Lucro desejado (null = padrao da filial).
+  final double? pcProfit;
+
+  /// Somente na alteracao (1 ativa | 90 inativa).
+  final int? itStatus;
+
+  Map<String, dynamic> toJson() => {
+    'vc_name': vcName,
+    'pc_profit': pcProfit,
+    if (itStatus != null) 'it_status': itStatus,
+  };
+}
+
 /// Campos editaveis de um procedimento (od.procedure_save).
 class ProcedureDraft {
   const ProcedureDraft({
     this.vcCode,
     required this.vcName,
-    this.vcCategory,
+    this.nrSpecialty,
     this.qtMinutes = 0,
     this.vlLabCost = 0,
     this.vlMaterialOther = 0,
@@ -60,7 +79,7 @@ class ProcedureDraft {
 
   final String? vcCode;
   final String vcName;
-  final String? vcCategory;
+  final int? nrSpecialty;
   final double qtMinutes;
   final double vlLabCost;
   final double vlMaterialOther;
@@ -73,7 +92,7 @@ class ProcedureDraft {
   Map<String, dynamic> toJson() => {
     'vc_code': vcCode,
     'vc_name': vcName,
-    'vc_category': vcCategory,
+    'nr_specialty': nrSpecialty,
     'qt_minutes': qtMinutes,
     'vl_lab_cost': vlLabCost,
     'vl_material_other': vlMaterialOther,
@@ -167,12 +186,59 @@ class PricingRepository {
     });
   }
 
+  Future<List<Specialty>> specialties({
+    required int nrCompany,
+    required int nrBranch,
+    bool includeInactive = false,
+  }) async {
+    final json = await _gateway.rpc('specialty_list', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'id_include_inactive': includeInactive,
+    });
+    final items = json['specialties'];
+    if (items is! List) return const [];
+    return [
+      for (final s in items)
+        Specialty.fromJson((s as Map).cast<String, dynamic>()),
+    ];
+  }
+
+  Future<int> createSpecialty({
+    required int nrCompany,
+    required int nrBranch,
+    required SpecialtyDraft draft,
+  }) async {
+    final json = await _gateway.rpc('specialty_save', {
+      'vc_action': 'I',
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      ...draft.toJson(),
+    });
+    return (json['nr_specialty'] as num).toInt();
+  }
+
+  Future<void> updateSpecialty({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrSpecialty,
+    required SpecialtyDraft draft,
+  }) async {
+    await _gateway.rpc('specialty_save', {
+      'vc_action': 'U',
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'nr_specialty': nrSpecialty,
+      ...draft.toJson(),
+    });
+  }
+
   Future<ProcedureListData> procedures({
     required int nrCompany,
     required int nrBranch,
     bool includeInactive = false,
     String? search,
-    String? category,
+    int? nrSpecialty,
     int? itTaxRegime,
   }) async {
     final json = await _gateway.rpc('procedure_list', {
@@ -180,7 +246,7 @@ class PricingRepository {
       'nr_branch': nrBranch,
       'id_include_inactive': includeInactive,
       if (search != null && search.trim().isNotEmpty) 'vc_search': search,
-      if (category != null && category.isNotEmpty) 'vc_category': category,
+      if (nrSpecialty != null) 'nr_specialty': nrSpecialty,
       if (itTaxRegime != null) 'it_tax_regime': itTaxRegime,
     });
     return ProcedureListData.fromJson(json);

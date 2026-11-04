@@ -40,6 +40,7 @@ class PricingParamsController
           fees: fees,
         );
     ref.invalidate(proceduresProvider);
+    ref.invalidate(specialtyProceduresProvider);
     await refresh();
   }
 }
@@ -98,6 +99,7 @@ class MaterialsController extends AutoDisposeAsyncNotifier<List<MaterialItem>> {
         .read(pricingRepositoryProvider)
         .createMaterial(nrCompany: nrCompany, nrBranch: nrBranch, draft: draft);
     ref.invalidate(proceduresProvider);
+    ref.invalidate(specialtyProceduresProvider);
     await refresh();
     return nr;
   }
@@ -115,6 +117,7 @@ class MaterialsController extends AutoDisposeAsyncNotifier<List<MaterialItem>> {
           draft: draft,
         );
     ref.invalidate(proceduresProvider);
+    ref.invalidate(specialtyProceduresProvider);
     await refresh();
   }
 
@@ -154,13 +157,13 @@ final materialCatalogProvider = FutureProvider.autoDispose<List<MaterialItem>>((
 class ProcedureFilters {
   const ProcedureFilters({
     this.search = '',
-    this.category,
+    this.nrSpecialty,
     this.includeInactive = false,
     this.itTaxRegime,
   });
 
   final String search;
-  final String? category;
+  final int? nrSpecialty;
   final bool includeInactive;
 
   /// Simulacao: null = regime dos parametros.
@@ -168,14 +171,14 @@ class ProcedureFilters {
 
   ProcedureFilters copyWith({
     String? search,
-    String? category,
-    bool clearCategory = false,
+    int? nrSpecialty,
+    bool clearSpecialty = false,
     bool? includeInactive,
     int? itTaxRegime,
     bool clearRegime = false,
   }) => ProcedureFilters(
     search: search ?? this.search,
-    category: clearCategory ? null : (category ?? this.category),
+    nrSpecialty: clearSpecialty ? null : (nrSpecialty ?? this.nrSpecialty),
     includeInactive: includeInactive ?? this.includeInactive,
     itTaxRegime: clearRegime ? null : (itTaxRegime ?? this.itTaxRegime),
   );
@@ -200,7 +203,7 @@ class ProceduresController
           nrBranch: nrBranch,
           includeInactive: filters.includeInactive,
           search: filters.search,
-          category: filters.category,
+          nrSpecialty: filters.nrSpecialty,
           itTaxRegime: filters.itTaxRegime,
         );
   }
@@ -222,6 +225,7 @@ class ProceduresController
           draft: draft,
         );
     ref.invalidate(materialsProvider);
+    ref.invalidate(specialtiesProvider);
     await refresh();
     return nr;
   }
@@ -239,6 +243,7 @@ class ProceduresController
           draft: draft,
         );
     ref.invalidate(materialsProvider);
+    ref.invalidate(specialtiesProvider);
     await refresh();
   }
 }
@@ -247,3 +252,96 @@ final proceduresProvider =
     AsyncNotifierProvider.autoDispose<ProceduresController, ProcedureListData?>(
       ProceduresController.new,
     );
+
+/// Aba Especialidades: mostrar as inativas tambem?
+final specialtyShowInactiveProvider = StateProvider.autoDispose<bool>(
+  (_) => false,
+);
+
+class SpecialtiesController extends AutoDisposeAsyncNotifier<List<Specialty>> {
+  @override
+  Future<List<Specialty>> build() async {
+    final nrCompany = ref.watch(currentCompanyProvider);
+    final nrBranch = ref.watch(currentBranchNumberProvider);
+    final includeInactive = ref.watch(specialtyShowInactiveProvider);
+    if (nrCompany == null || nrBranch == null) return const [];
+    return ref
+        .read(pricingRepositoryProvider)
+        .specialties(
+          nrCompany: nrCompany,
+          nrBranch: nrBranch,
+          includeInactive: includeInactive,
+        );
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<int?> create(SpecialtyDraft draft) async {
+    final nrCompany = ref.read(currentCompanyProvider);
+    final nrBranch = ref.read(currentBranchNumberProvider);
+    if (nrCompany == null || nrBranch == null) return null;
+    final nr = await ref
+        .read(pricingRepositoryProvider)
+        .createSpecialty(
+          nrCompany: nrCompany,
+          nrBranch: nrBranch,
+          draft: draft,
+        );
+    await refresh();
+    return nr;
+  }
+
+  Future<void> updateSpecialty(int nrSpecialty, SpecialtyDraft draft) async {
+    final nrCompany = ref.read(currentCompanyProvider);
+    final nrBranch = ref.read(currentBranchNumberProvider);
+    if (nrCompany == null || nrBranch == null) return;
+    await ref
+        .read(pricingRepositoryProvider)
+        .updateSpecialty(
+          nrCompany: nrCompany,
+          nrBranch: nrBranch,
+          nrSpecialty: nrSpecialty,
+          draft: draft,
+        );
+    // o lucro da especialidade muda o preco dos procedimentos dela
+    ref.invalidate(proceduresProvider);
+    await refresh();
+  }
+}
+
+final specialtiesProvider =
+    AsyncNotifierProvider.autoDispose<SpecialtiesController, List<Specialty>>(
+      SpecialtiesController.new,
+    );
+
+/// Especialidades ATIVAS (sem filtro), para escolher no procedimento.
+final specialtyCatalogProvider = FutureProvider.autoDispose<List<Specialty>>((
+  ref,
+) async {
+  final nrCompany = ref.watch(currentCompanyProvider);
+  final nrBranch = ref.watch(currentBranchNumberProvider);
+  if (nrCompany == null || nrBranch == null) return const [];
+  // recarrega quando a aba Especialidades muda (criou/alterou)
+  ref.watch(specialtiesProvider);
+  return ref
+      .read(pricingRepositoryProvider)
+      .specialties(nrCompany: nrCompany, nrBranch: nrBranch);
+});
+
+/// Todos os procedimentos ativos (sem filtro) para a aba Especialidades:
+/// contagem de alertas por especialidade e a lista ao abrir uma delas.
+final specialtyProceduresProvider =
+    FutureProvider.autoDispose<ProcedureListData?>((ref) async {
+      final nrCompany = ref.watch(currentCompanyProvider);
+      final nrBranch = ref.watch(currentBranchNumberProvider);
+      if (nrCompany == null || nrBranch == null) return null;
+      // recarrega quando as especialidades mudam (lucro altera o preco);
+      // procedimentos e parametros invalidam este provider ao salvar
+      ref.watch(specialtiesProvider);
+      return ref
+          .read(pricingRepositoryProvider)
+          .procedures(nrCompany: nrCompany, nrBranch: nrBranch);
+    });
