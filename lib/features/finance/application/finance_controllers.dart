@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../agenda/application/agenda_controllers.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../data/finance_repository.dart';
+import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
 
 /// Empresa e filial atuais (null sem sessao/filial).
@@ -122,6 +124,15 @@ final statementProvider = FutureProvider.autoDispose<Statement>((ref) async {
       );
 });
 
+/// Caixa do dia: o meu caixa, as contas caixa e as ultimas sessoes.
+final cashStatusProvider = FutureProvider.autoDispose<CashStatus>((ref) async {
+  final b = _branchOf(ref);
+  if (b == null) return const CashStatus();
+  return ref
+      .read(financeRepositoryProvider)
+      .cashStatus(nrCompany: b.company, nrBranch: b.branch);
+});
+
 /// Escritas do financeiro: chamam a RPC e recarregam tudo que mostra saldo.
 class FinanceActions {
   FinanceActions(this._ref);
@@ -145,7 +156,37 @@ class FinanceActions {
       ..invalidate(financeCatalogProvider)
       ..invalidate(entriesProvider)
       ..invalidate(cashflowProvider)
-      ..invalidate(statementProvider);
+      ..invalidate(statementProvider)
+      ..invalidate(cashStatusProvider);
+  }
+
+  /// Fechamento da consulta: gera o financeiro e atualiza a agenda (selo).
+  Future<Map<String, dynamic>> checkout(CheckoutDraft draft) async {
+    final b = _b;
+    final r = await _repo.checkout(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      draft: draft,
+    );
+    _invalidate();
+    _ref.invalidate(appointmentsProvider);
+    return r;
+  }
+
+  /// Caixa: fin_cash_open, fin_cash_close ou fin_transfer_save.
+  Future<Map<String, dynamic>> cash(
+    String rpc,
+    Map<String, dynamic> fields,
+  ) async {
+    final b = _b;
+    final r = await _repo.cashCall(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      rpc: rpc,
+      fields: fields,
+    );
+    _invalidate();
+    return r;
   }
 
   Future<void> setup() async {

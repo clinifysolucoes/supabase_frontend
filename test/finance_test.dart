@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:odonto_app/core/theme/app_theme.dart';
+import 'package:odonto_app/features/agenda/domain/agenda_models.dart';
 import 'package:odonto_app/features/finance/data/finance_repository.dart';
+import 'package:odonto_app/features/finance/domain/cash_models.dart';
 import 'package:odonto_app/features/finance/domain/finance_models.dart';
+import 'package:odonto_app/features/finance/presentation/checkout_dialog.dart';
 import 'package:odonto_app/features/finance/presentation/finance_page.dart';
 import 'package:odonto_app/features/profiles/application/profiles_controller.dart';
 import 'package:odonto_app/features/session/application/permissions.dart';
@@ -82,6 +85,9 @@ class _FakeRepo implements FinanceRepository {
   EntryDraft? created;
   final settles = <(int, String, Map<String, dynamic>)>[];
   final newCategories = <Map<String, dynamic>>[];
+  CheckoutDraft? checkedOut;
+  final cashCalls = <(String, Map<String, dynamic>)>[];
+  bool cashOpen = false;
 
   @override
   Future<void> setup({required int nrCompany, required int nrBranch}) async {
@@ -207,6 +213,93 @@ class _FakeRepo implements FinanceRepository {
     required DateTime from,
     required DateTime to,
   }) async => const Statement();
+
+  @override
+  Future<CheckoutData> checkoutGet({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAppointment,
+  }) async => CheckoutData.fromJson({
+    'appointment': {
+      'nr_appointment': nrAppointment,
+      'vc_patient': 'Paciente Um',
+      'nr_professional': 1,
+      'vc_professional': 'Dra. Ana',
+      'vc_procedure': 'Limpeza',
+      'vl_price': 300,
+      'pc_commission': 10,
+    },
+    'id_done': false,
+    'id_configured': true,
+    'entries': [],
+    'nr_category': 1,
+    'categories': [
+      {'nr_category': 1, 'vc_name': 'Tratamentos'},
+    ],
+    'accounts': _catalog['accounts'],
+    'nr_session_account': 1,
+  });
+
+  @override
+  Future<Map<String, dynamic>> checkout({
+    required int nrCompany,
+    required int nrBranch,
+    required CheckoutDraft draft,
+  }) async {
+    checkedOut = draft;
+    return {'nr_appointment': draft.nrAppointment};
+  }
+
+  @override
+  Future<CashStatus> cashStatus({
+    required int nrCompany,
+    required int nrBranch,
+  }) async => CashStatus.fromJson({
+    'mine': cashOpen
+        ? {
+            'nr_session': 1,
+            'nr_account': 1,
+            'vc_account': 'Caixa',
+            'vc_user': 'Mel',
+            'dh_open': '2026-11-04T11:00:00Z',
+            'it_status': 1,
+            'vl_open': 0,
+            'vl_in': 100,
+            'vl_out': 0,
+            'vl_transfer_in': 0,
+            'vl_transfer_out': 80,
+            'by_method': {'2': 100},
+            'vl_expected': 20,
+          }
+        : null,
+    'accounts': [
+      {
+        'nr_account': 1,
+        'vc_name': 'Caixa',
+        'vl_balance': 20,
+        'nr_session': cashOpen ? 1 : null,
+        'vc_user': cashOpen ? 'Mel' : null,
+      },
+    ],
+    'sessions': [],
+    'permission': _catalog['permission'],
+  });
+
+  @override
+  Future<Map<String, dynamic>> cashCall({
+    required int nrCompany,
+    required int nrBranch,
+    required String rpc,
+    required Map<String, dynamic> fields,
+  }) async {
+    cashCalls.add((rpc, fields));
+    if (rpc == 'fin_cash_open') cashOpen = true;
+    if (rpc == 'fin_cash_close') {
+      cashOpen = false;
+      return {'vl_difference': 5};
+    }
+    return {};
+  }
 }
 
 void main() {
@@ -231,6 +324,47 @@ void main() {
       expect(EntryStatus.label(e.itStatus, overdue: e.idOverdue), 'Vencido');
       expect(l.totals.vlOpen, 1500);
       expect(l.totals.byCostType, {1: 1500.0, 2: 20.5});
+    });
+
+    test('selo financeiro, caixa e fechamento', () {
+      final a = Appointment.fromJson({
+        'nr_appointment': 1,
+        'dh_start': '2026-11-03T12:00:00Z',
+        'dh_end': '2026-11-03T13:00:00Z',
+        'it_fin_status': 2,
+      });
+      expect(a.itFinStatus, FinSeal.open);
+      expect(FinSeal.label(FinSeal.pending), 'Financeiro pendente');
+      final s = CashSession.fromJson({
+        'nr_session': 1,
+        'nr_account': 1,
+        'vc_account': 'Caixa',
+        'vc_user': 'Mel',
+        'dh_open': '2026-11-04T11:00:00Z',
+        'by_method': {'2': '100.5', '0': 3},
+        'vl_counted': 25,
+        'vl_difference': 5,
+      });
+      expect(s.byMethod, {2: 100.5, 0: 3.0});
+      expect(s.vlDifference, 5);
+      final j = const CheckoutDraft(
+        nrAppointment: 3,
+        vlAmount: 300,
+        idPaid: true,
+        nrAccount: 1,
+        pcCommission: 10,
+      ).toJson();
+      expect(j['nr_account'], 1);
+      expect(j['pc_commission'], 10);
+      expect(j.containsKey('nr_category'), isFalse);
+      final noCommission = const CheckoutDraft(
+        nrAppointment: 3,
+        vlAmount: 1,
+        idCommission: false,
+        pcCommission: 5,
+      ).toJson();
+      expect(noCommission.containsKey('pc_commission'), isFalse);
+      expect(noCommission.containsKey('nr_account'), isFalse);
     });
 
     test('EntryDraft: parcelada, recorrente e ja paga', () {
@@ -432,6 +566,94 @@ void main() {
       await tester.tap(find.widgetWithText(Tab, Strings.tabFinRegisters));
       await tester.pumpAndSettle();
       expect(find.text(Strings.finNewCategory), findsNWidgets(2));
+    });
+
+    testWidgets('fechamento: valor da precificacao, comissao e receber agora', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            financeRepositoryProvider.overrideWithValue(repo),
+            currentCompanyProvider.overrideWith((ref) => 1),
+            currentBranchNumberProvider.overrideWith((ref) => 1),
+            canReadProvider.overrideWith((ref, code) => true),
+            canCreateProvider.overrideWith((ref, code) => true),
+            canUpdateProvider.overrideWith((ref, code) => true),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light(useGoogleFonts: false),
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => CheckoutDialog.show(context, 7),
+                  child: const Text('abrir'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      expect(find.text('Paciente Um'), findsOneWidget);
+      expect(find.text(Strings.checkoutPriceHint), findsOneWidget);
+      // comissao de 10% sobre 300
+      expect(find.textContaining('R\$ 30,00'), findsOneWidget);
+      await tester.enterText(
+        find.ancestor(
+          of: find.text(Strings.finInstallments),
+          matching: find.byType(TextField),
+        ),
+        '3',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.confirm));
+      await tester.pumpAndSettle();
+      final d = repo.checkedOut!;
+      expect(d.nrAppointment, 7);
+      expect(d.vlAmount, 300);
+      expect(d.qtInstallments, 3);
+      expect(d.idPaid, isTrue);
+      expect(d.nrAccount, 1, reason: 'caixa aberto do usuario');
+      expect(d.idCommission, isTrue);
+      expect(d.pcCommission, 10);
+      expect(d.nrCategory, 1);
+    });
+
+    testWidgets('caixa: abre, mostra o resumo e fecha', (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.cashTab));
+      await tester.pumpAndSettle();
+      expect(find.text(Strings.cashClosed), findsOneWidget);
+      await tester.tap(find.text(Strings.cashOpenAction));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.cashOpenAction).last);
+      await tester.pumpAndSettle();
+      expect(repo.cashCalls.single.$1, 'fin_cash_open');
+      expect(repo.cashCalls.single.$2['nr_account'], 1);
+      expect(find.text(Strings.cashExpected), findsOneWidget);
+      expect(find.text(PaymentMethod.label(2)), findsOneWidget);
+      expect(find.text(Strings.cashWith('Mel')), findsOneWidget);
+
+      await tester.tap(find.text(Strings.cashCloseAction));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.ancestor(
+          of: find.text(Strings.cashCounted),
+          matching: find.byType(TextField),
+        ),
+        '25',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('${Strings.cashDifference}: R\$ 5,00'), findsOneWidget);
+      await tester.tap(find.text(Strings.cashCloseAction).last);
+      await tester.pumpAndSettle();
+      expect(repo.cashCalls.last.$1, 'fin_cash_close');
+      expect(repo.cashCalls.last.$2['vl_counted'], 25);
     });
   });
 }

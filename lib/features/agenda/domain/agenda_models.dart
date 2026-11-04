@@ -253,6 +253,26 @@ abstract final class AppointmentStatus {
   static bool freesSlot(int status) => status == noShow || status == cancelled;
 }
 
+/// Selo financeiro do agendamento (ad.appointment_list.it_fin_status).
+abstract final class FinSeal {
+  static const pending = 1;
+  static const open = 2;
+  static const paid = 3;
+
+  static String label(int seal) => switch (seal) {
+    pending => Strings.finSealPending,
+    open => Strings.finSealOpen,
+    _ => Strings.finSealPaid,
+  };
+
+  /// ARGB: pendente laranja, em aberto azul, recebido verde.
+  static int color(int seal) => switch (seal) {
+    pending => 0xFFE9A23B,
+    open => 0xFF2F80ED,
+    _ => 0xFF2E9E6B,
+  };
+}
+
 /// Agendamento (consulta ou compromisso) como vem de ad.appointment_list.
 /// Datas ja convertidas para a hora local do aparelho.
 class Appointment {
@@ -276,6 +296,7 @@ class Appointment {
     this.itStatus = AppointmentStatus.scheduled,
     this.vcCreatedBy,
     this.dhCreated,
+    this.itFinStatus,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
@@ -302,6 +323,9 @@ class Appointment {
     itStatus: _int(json['it_status'] ?? 1),
     vcCreatedBy: json['vc_created_by']?.toString(),
     dhCreated: _localTime(json['dh_created']),
+    itFinStatus: json['it_fin_status'] == null
+        ? null
+        : _int(json['it_fin_status']),
   );
 
   final int nrAppointment;
@@ -325,6 +349,9 @@ class Appointment {
   final int itStatus;
   final String? vcCreatedBy;
   final DateTime? dhCreated;
+
+  /// Selo do financeiro (so para quem le o financeiro): [FinSeal].
+  final int? itFinStatus;
 
   bool get isConsultation => itType == AppointmentType.consultation;
   bool get isClinicWide => !isConsultation && nrProfessional == null;

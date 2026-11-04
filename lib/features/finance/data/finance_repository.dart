@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_gateway.dart';
 import '../../../shared/formatters/dates.dart';
+import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
 
 /// Novo lancamento (ad.fin_entry_save, vc_action I).
@@ -206,6 +207,93 @@ class FinanceRepository {
       'dt_to': Dates.toIso(to),
     }),
   );
+
+  Future<CheckoutData> checkoutGet({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAppointment,
+  }) async => CheckoutData.fromJson(
+    await _gateway.rpc('appointment_checkout_get', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'nr_appointment': nrAppointment,
+    }),
+  );
+
+  Future<Map<String, dynamic>> checkout({
+    required int nrCompany,
+    required int nrBranch,
+    required CheckoutDraft draft,
+  }) => _gateway.rpc('appointment_checkout', {
+    'nr_company': nrCompany,
+    'nr_branch': nrBranch,
+    ...draft.toJson(),
+  });
+
+  Future<CashStatus> cashStatus({
+    required int nrCompany,
+    required int nrBranch,
+  }) async => CashStatus.fromJson(
+    await _gateway.rpc('fin_cash_status', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+    }),
+  );
+
+  /// [rpc] = fin_cash_open, fin_cash_close ou fin_transfer_save.
+  Future<Map<String, dynamic>> cashCall({
+    required int nrCompany,
+    required int nrBranch,
+    required String rpc,
+    required Map<String, dynamic> fields,
+  }) => _gateway.rpc(rpc, {
+    'nr_company': nrCompany,
+    'nr_branch': nrBranch,
+    ...fields,
+  });
+}
+
+/// Fechamento da consulta (ad.appointment_checkout).
+class CheckoutDraft {
+  const CheckoutDraft({
+    required this.nrAppointment,
+    required this.vlAmount,
+    this.nrCategory,
+    this.qtInstallments = 1,
+    this.dtFirstDue,
+    this.itPaymentMethod,
+    this.idPaid = false,
+    this.nrAccount,
+    this.idCommission = true,
+    this.pcCommission,
+    this.vcNotes,
+  });
+
+  final int nrAppointment;
+  final double vlAmount;
+  final int? nrCategory;
+  final int qtInstallments;
+  final DateTime? dtFirstDue;
+  final int? itPaymentMethod;
+  final bool idPaid;
+  final int? nrAccount;
+  final bool idCommission;
+  final double? pcCommission;
+  final String? vcNotes;
+
+  Map<String, dynamic> toJson() => {
+    'nr_appointment': nrAppointment,
+    'vl_amount': vlAmount,
+    'nr_category': ?nrCategory,
+    'qt_installments': qtInstallments,
+    if (dtFirstDue != null) 'dt_first_due': Dates.toIso(dtFirstDue!),
+    'it_payment_method': ?itPaymentMethod,
+    'id_paid': idPaid,
+    if (idPaid) 'nr_account': nrAccount,
+    'id_commission': idCommission,
+    if (idCommission) 'pc_commission': ?pcCommission,
+    'vc_notes': ?vcNotes,
+  };
 }
 
 final financeRepositoryProvider = Provider<FinanceRepository>(

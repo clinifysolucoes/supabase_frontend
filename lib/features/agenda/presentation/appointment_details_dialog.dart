@@ -11,6 +11,7 @@ import '../../../shared/formatters/masks.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_confirm_dialog.dart';
 import '../../../shared/widgets/app_snack.dart';
+import '../../finance/presentation/checkout_dialog.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/agenda_controllers.dart';
@@ -41,6 +42,10 @@ class AppointmentDetailsDialog extends ConsumerStatefulWidget {
         professionals: professionals,
       ),
     );
+    if (action == 'checkout' && context.mounted) {
+      await CheckoutDialog.show(context, appointment.nrAppointment);
+      return;
+    }
     // editar abre o formulario com o contexto de quem chamou (o detalhe ja fechou)
     if (action != 'edit' || !context.mounted) return;
     final saved = await AppointmentFormDialog.show(
@@ -99,6 +104,13 @@ class _AppointmentDetailsDialogState
     final theme = Theme.of(context);
     final canUpdate = ref.watch(canUpdateProvider(ScreenCodes.agenda));
     final canPatients = ref.watch(canReadProvider(ScreenCodes.patients));
+    final canFinance = ref.watch(canReadProvider(ScreenCodes.finance));
+    final seal = _a.itFinStatus;
+    final showCheckout =
+        canFinance &&
+        _a.isConsultation &&
+        _status != AppointmentStatus.cancelled &&
+        _status != AppointmentStatus.noShow;
     final color = _a.vcProfessionalColor == null
         ? AppColors.muted
         : Color(AgendaColors.argb(_a.vcProfessionalColor!));
@@ -214,6 +226,26 @@ class _AppointmentDetailsDialogState
                   ],
                 ),
               ],
+              if (seal != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.attach_money_rounded,
+                      size: 18,
+                      color: Color(FinSeal.color(seal)),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      FinSeal.label(seal),
+                      style: TextStyle(
+                        color: Color(FinSeal.color(seal)),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               if (_a.vcCreatedBy != null && _a.dhCreated != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
@@ -229,6 +261,17 @@ class _AppointmentDetailsDialogState
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
+                  if (showCheckout)
+                    AppButton(
+                      label: seal == FinSeal.open || seal == FinSeal.paid
+                          ? Strings.checkoutView
+                          : Strings.checkoutAction,
+                      icon: Icons.point_of_sale_rounded,
+                      expanded: false,
+                      onPressed: _busy
+                          ? null
+                          : () => Navigator.of(context).pop('checkout'),
+                    ),
                   if (_a.nrPatient != null && canPatients)
                     AppButton(
                       label: Strings.openPatientRecord,

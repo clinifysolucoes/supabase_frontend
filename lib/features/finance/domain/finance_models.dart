@@ -241,6 +241,9 @@ class FinEntry {
     this.qtInstallments = 1,
     this.idRecurring = false,
     this.vcNotes,
+    this.nrProfessional,
+    this.vcProfessional,
+    this.nrAppointment,
   });
 
   factory FinEntry.fromJson(Map<String, dynamic> j) => FinEntry(
@@ -270,6 +273,13 @@ class FinEntry {
     qtInstallments: _int(j['qt_installments'] ?? 1),
     idRecurring: j['id_recurring'] == true,
     vcNotes: _str(j['vc_notes']),
+    nrProfessional: j['nr_professional'] == null
+        ? null
+        : _int(j['nr_professional']),
+    vcProfessional: _str(j['vc_professional']),
+    nrAppointment: j['nr_appointment'] == null
+        ? null
+        : _int(j['nr_appointment']),
   );
 
   final int nrEntry;
@@ -296,14 +306,19 @@ class FinEntry {
   final int qtInstallments;
   final bool idRecurring;
   final String? vcNotes;
+  final int? nrProfessional;
+  final String? vcProfessional;
+
+  /// Atendimento da agenda que gerou o lancamento (fechamento).
+  final int? nrAppointment;
 
   bool get isOpen => itStatus == EntryStatus.open;
   bool get isPaid => itStatus == EntryStatus.paid;
   bool get isCancelled => itStatus == EntryStatus.cancelled;
   bool get isGrouped => qtInstallments > 1;
 
-  /// Fornecedor (a pagar) ou paciente (a receber).
-  String? get counterpart => vcSupplier ?? vcPatient;
+  /// Fornecedor ou profissional (a pagar) ou paciente (a receber).
+  String? get counterpart => vcSupplier ?? vcProfessional ?? vcPatient;
 }
 
 class FinTotals {
