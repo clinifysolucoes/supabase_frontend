@@ -122,7 +122,44 @@ void main() {
     // simulador; cobrado 100 >= sugerido -> ok
     expect(find.text(Strings.editProcedure), findsOneWidget);
     expect(find.text(Strings.specialty), findsWidgets);
-    expect(find.text('${Strings.priceCheckTitle}: R\$ 100,00'), findsOneWidget);
+    expect(
+      find.textContaining(
+        '${Strings.priceCheckTitle}: R\$ 100,00',
+        findRichText: true,
+      ),
+      findsOneWidget,
+    );
     expect(find.text(PriceStatus.label(PriceStatus.ok)), findsWidgets);
   });
+
+  testWidgets(
+    'janela pequena: Salvar visivel sem rolar e titulo do preco inteiro',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 675);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(_app(const Size(800, 675)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Clínica Geral'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Profilaxia'));
+      await tester.pumpAndSettle();
+
+      // rodape fixo: o botao esta na tela e responde ao toque
+      expect(find.text(Strings.save).hitTestable(), findsOneWidget);
+      // o titulo do quadro do valor cobrado nao quebra letra por letra
+      final title = find.textContaining(
+        Strings.priceCheckTitle,
+        findRichText: true,
+      );
+      expect(title, findsWidgets);
+      final box = tester.getSize(title.last);
+      expect(
+        box.height,
+        lessThan(100),
+        reason: 'titulo com no maximo 3 linhas',
+      );
+    },
+  );
 }

@@ -160,183 +160,203 @@ class _MaterialFormDialogState extends ConsumerState<MaterialFormDialog> {
             ],
           );
 
+    final pad = isMobile ? AppSpacing.md : AppSpacing.xl;
     return Dialog(
       insetPadding: EdgeInsets.all(isMobile ? AppSpacing.sm : AppSpacing.xxl),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.xl),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                AppTextField(
-                  label: Strings.materialName,
-                  controller: _name,
-                  maxLength: 80,
-                  autofocus: !_isEdit,
-                  enabled: _canEdit,
-                  prefixIcon: Icons.inventory_2_outlined,
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: Validators.required(),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  label: Strings.package,
-                  hint: Strings.packageHint,
-                  controller: _package,
-                  maxLength: 40,
-                  enabled: _canEdit,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                pair(
-                  AppNumberField(
-                    label: Strings.packagePrice,
-                    controller: _price,
-                    prefixText: 'R\$ ',
-                    enabled: _canEdit,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  AppNumberField(
-                    label: Strings.yieldLabel,
-                    controller: _yield,
-                    decimals: 3,
-                    enabled: _canEdit,
-                    required: true,
-                    positive: true,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  Strings.yieldHelp,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.muted,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                pair(
-                  AppTextField(
-                    label: Strings.unit,
-                    hint: Strings.unitHint,
-                    controller: _unit,
-                    maxLength: 20,
-                    enabled: _canEdit,
-                  ),
-                  AppNumberField(
-                    label: Strings.waste,
-                    controller: _waste,
-                    suffixText: '%',
-                    helper: Strings.wasteHelp,
-                    enabled: _canEdit,
-                    onChanged: (_) => setState(() {}),
-                    validator: (v) {
-                      final n = Numbers.parse(v) ?? 0;
-                      return n >= 100 ? Strings.invalidNumber : null;
-                    },
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.mint,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Row(
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(pad, pad, pad, AppSpacing.md),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(
-                        Icons.calculate_outlined,
-                        color: AppColors.primaryDark,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      const Expanded(child: Text(Strings.unitCostPreview)),
                       Text(
-                        '${Numbers.money(_unitCost, unit: true)}'
-                        '${_unit.text.trim().isEmpty ? '' : ' / ${_unit.text.trim()}'}',
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        title,
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: AppColors.primaryDark,
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppTextField(
+                        label: Strings.materialName,
+                        controller: _name,
+                        maxLength: 80,
+                        autofocus: !_isEdit,
+                        enabled: _canEdit,
+                        prefixIcon: Icons.inventory_2_outlined,
+                        textCapitalization: TextCapitalization.sentences,
+                        validator: Validators.required(),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        label: Strings.package,
+                        hint: Strings.packageHint,
+                        controller: _package,
+                        maxLength: 40,
+                        enabled: _canEdit,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      pair(
+                        AppNumberField(
+                          label: Strings.packagePrice,
+                          controller: _price,
+                          prefixText: 'R\$ ',
+                          enabled: _canEdit,
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        AppNumberField(
+                          label: Strings.yieldLabel,
+                          controller: _yield,
+                          decimals: 3,
+                          enabled: _canEdit,
+                          required: true,
+                          positive: true,
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        Strings.yieldHelp,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.muted,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      pair(
+                        AppTextField(
+                          label: Strings.unit,
+                          hint: Strings.unitHint,
+                          controller: _unit,
+                          maxLength: 20,
+                          enabled: _canEdit,
+                        ),
+                        AppNumberField(
+                          label: Strings.waste,
+                          controller: _waste,
+                          suffixText: '%',
+                          helper: Strings.wasteHelp,
+                          enabled: _canEdit,
+                          onChanged: (_) => setState(() {}),
+                          validator: (v) {
+                            final n = Numbers.parse(v) ?? 0;
+                            return n >= 100 ? Strings.invalidNumber : null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.mint,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.calculate_outlined,
+                              color: AppColors.primaryDark,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            const Expanded(
+                              child: Text(Strings.unitCostPreview),
+                            ),
+                            Text(
+                              '${Numbers.money(_unitCost, unit: true)}'
+                              '${_unit.text.trim().isEmpty ? '' : ' / ${_unit.text.trim()}'}',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        Strings.priceSource,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          SegmentedButton<int>(
+                            showSelectedIcon: false,
+                            segments: const [
+                              ButtonSegment(
+                                value: PriceSource.manual,
+                                label: Text(Strings.priceSourceManual),
+                                icon: Icon(Icons.edit_note_rounded),
+                              ),
+                              ButtonSegment(
+                                value: PriceSource.market,
+                                label: Text(Strings.priceSourceMarket),
+                                icon: Icon(Icons.travel_explore_rounded),
+                              ),
+                            ],
+                            selected: {_priceSource},
+                            onSelectionChanged: _canEdit
+                                ? (s) => setState(() => _priceSource = s.first)
+                                : null,
+                          ),
+                          AppButton(
+                            label: Strings.lookupPrice,
+                            icon: Icons.travel_explore_rounded,
+                            variant: AppButtonVariant.secondary,
+                            expanded: false,
+                            onPressed: _canEdit ? _lookup : null,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        label: Strings.priceSourceText,
+                        controller: _source,
+                        maxLength: 200,
+                        enabled: _canEdit,
+                        prefixIcon: Icons.link_rounded,
+                      ),
+                      if (_isEdit) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(Strings.materialActive),
+                          value: _active,
+                          onChanged: _canEdit
+                              ? (v) => setState(() => _active = v)
+                              : null,
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  Strings.priceSource,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              ),
+              // rodape fixo: Salvar sempre visivel, sem rolar o formulario
+              const Divider(height: 1),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  pad,
+                  AppSpacing.md,
+                  pad,
+                  AppSpacing.md,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    SegmentedButton<int>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment(
-                          value: PriceSource.manual,
-                          label: Text(Strings.priceSourceManual),
-                          icon: Icon(Icons.edit_note_rounded),
-                        ),
-                        ButtonSegment(
-                          value: PriceSource.market,
-                          label: Text(Strings.priceSourceMarket),
-                          icon: Icon(Icons.travel_explore_rounded),
-                        ),
-                      ],
-                      selected: {_priceSource},
-                      onSelectionChanged: _canEdit
-                          ? (s) => setState(() => _priceSource = s.first)
-                          : null,
-                    ),
-                    AppButton(
-                      label: Strings.lookupPrice,
-                      icon: Icons.travel_explore_rounded,
-                      variant: AppButtonVariant.secondary,
-                      expanded: false,
-                      onPressed: _canEdit ? _lookup : null,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  label: Strings.priceSourceText,
-                  controller: _source,
-                  maxLength: 200,
-                  enabled: _canEdit,
-                  prefixIcon: Icons.link_rounded,
-                ),
-                if (_isEdit) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text(Strings.materialActive),
-                    value: _active,
-                    onChanged: _canEdit
-                        ? (v) => setState(() => _active = v)
-                        : null,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.xl),
-                Row(
+                child: Row(
                   children: [
                     Expanded(
                       child: AppButton(
@@ -359,8 +379,8 @@ class _MaterialFormDialogState extends ConsumerState<MaterialFormDialog> {
                     ],
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -411,7 +411,9 @@ class _FactorTiles extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        if (context.isMobile)
+        // janela baixa: uma linha so (rola na horizontal), senao os fatores e
+        // os filtros ocupam a altura toda e a lista de procedimentos some
+        if (context.isMobile || MediaQuery.sizeOf(context).height < 820)
           SizedBox(
             height: 66,
             child: ListView.separated(
@@ -472,6 +474,8 @@ class ProcedureTable extends StatelessWidget {
       rows: [
         for (final p in items)
           DataRow(
+            // a linha inteira abre o cadastro (o lapis pode ficar fora da tela)
+            onSelectChanged: (_) => onTap(p),
             cells: [
               DataCell(
                 Column(
