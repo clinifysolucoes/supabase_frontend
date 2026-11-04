@@ -80,6 +80,7 @@ lib/
 │   ├── users/                    # company_user_list / company_user_save / branch_list
 │   ├── logs/                     # access_log_list
 │   ├── pricing/                  # precificação: specialty_list/save (aba Especialidades), pricing_param_get/save, material_list/save, procedure_list/save (alerta cobrado x custo), procedure_suggest (auto complete do nome), export Excel
+│   ├── agenda/                   # agenda: professional_list/save (profissionais, cor, horário de atendimento)
 │   └── patients/                 # pacientes: patient_list/get/save, patient_note_save (lista, cadastro rápido, ficha com abas)
 ├── shared/
 │   ├── widgets/                  # AppTextField, AppPasswordField, AppButton, SearchableDropdown, AppShell, AppPageHeader, AppTable, AppStatusChip/AppTagChip, AppEmptyState, AppConfirmDialog, AppPagination, Choice, AppLogo, AppSnack, LoadingOverlay, SplashPage
