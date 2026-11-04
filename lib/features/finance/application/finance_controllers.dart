@@ -154,14 +154,14 @@ class FinanceActions {
     _invalidate();
   }
 
-  Future<void> saveRegister({
+  Future<int?> saveRegister({
     required String rpc,
     required String key,
     int? id,
     required Map<String, dynamic> fields,
   }) async {
     final b = _b;
-    await _repo.saveRegister(
+    final nr = await _repo.saveRegister(
       nrCompany: b.company,
       nrBranch: b.branch,
       rpc: rpc,
@@ -170,6 +170,7 @@ class FinanceActions {
       fields: fields,
     );
     _invalidate();
+    return nr;
   }
 
   Future<int> createEntry(EntryDraft draft) async {
