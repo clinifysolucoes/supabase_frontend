@@ -239,7 +239,9 @@ void main() {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(app(const AgendaPageBody()));
+      await tester.pumpWidget(app(const Scaffold(body: AgendaPageBody())));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.tabProfessionals).first);
       await tester.pumpAndSettle();
       expect(find.text('Dra. Ana Souza'), findsOneWidget);
       expect(find.text('08:00 – 12:00 · 14:00 – 18:00'), findsOneWidget);
