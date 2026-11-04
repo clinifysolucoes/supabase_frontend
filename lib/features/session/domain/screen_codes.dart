@@ -8,4 +8,5 @@ abstract final class ScreenCodes {
   static const pricing = 'PRICING';
   static const patients = 'PATIENTS';
   static const agenda = 'AGENDA';
+  static const finance = 'FINANCE';
 }
