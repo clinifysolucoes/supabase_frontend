@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/numbers.dart';
 import '../../../shared/validators/validators.dart';
+import '../../../shared/widgets/app_autocomplete_field.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_number_field.dart';
 import '../../../shared/widgets/app_snack.dart';
@@ -27,7 +28,10 @@ import 'pricing_breakdown.dart';
 /// com a escolha PF / PJ e o alerta do valor cobrado hoje x custo. Cada fator
 /// da simulacao e clicavel e pode ser alterado na hora (parametros da filial
 /// ou valor so deste procedimento). [initialSpecialty] ja vem escolhida no
-/// procedimento novo (botao dentro de uma especialidade).
+/// procedimento novo (botao dentro de uma especialidade). No procedimento
+/// novo, o nome tem auto complete: catalogo da planilha da especialidade
+/// (preenche tempo, material, laboratorio e valor cobrado) e procedimentos ja
+/// cadastrados (copia os valores e os materiais).
 /// Devolve true quando salvou.
 class ProcedureFormDialog extends ConsumerStatefulWidget {
   const ProcedureFormDialog({
@@ -187,6 +191,41 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     });
   }
 
+  /// Escolheu uma sugestao do auto complete: preenche o formulario.
+  void _applySuggestion(ProcedureSuggestion s) {
+    setState(() {
+      if (s.isTemplate) {
+        _name.text = s.vcName;
+        if (s.vcCode != null) _code.text = s.vcCode!;
+      } else {
+        // copia de um cadastrado: o nome precisa ser outro
+        _name.text = '${s.vcName} ${Strings.copySuffix}';
+        _commission.text = Numbers.toField(s.pcCommission);
+        _profit.text = Numbers.toField(s.pcProfit);
+        for (final c in _qty.values) {
+          c.dispose();
+        }
+        _qty.clear();
+        _materials = [...s.materials];
+        for (final m in _materials) {
+          _qty[m.nrMaterial] = TextEditingController(
+            text: Numbers.toField(m.qtUsed, decimals: 3),
+          );
+        }
+      }
+      _minutes.text = Numbers.toField(s.qtMinutes, decimals: 0);
+      _other.text = Numbers.toField(s.vlMaterialOther);
+      _lab.text = Numbers.toField(s.vlLabCost);
+      _current.text = Numbers.toField(s.vlPrice);
+    });
+    AppSnack.info(
+      context,
+      s.isTemplate
+          ? Strings.suggestionFilledFromSheet
+          : Strings.suggestionCopied(s.vcName),
+    );
+  }
+
   void _removeMaterial(int nrMaterial) {
     setState(() {
       _materials = _materials.where((m) => m.nrMaterial != nrMaterial).toList();
@@ -257,6 +296,15 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     }
   }
 
+  String _suggestionSubtitle(ProcedureSuggestion s) => [
+    s.isTemplate ? Strings.suggestionFromSheet : Strings.suggestionExisting,
+    if (s.vcSpecialty != null && _nrSpecialty == null) s.vcSpecialty!,
+    Numbers.minutes(s.qtMinutes),
+    if (s.vlMaterialOther > 0)
+      '${Strings.materialsCost} ${Numbers.money(s.vlMaterialOther)}',
+    if (s.vlPrice != null) '${Strings.current} ${Numbers.money(s.vlPrice)}',
+  ].join(' · ');
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -278,6 +326,10 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
       if (s.nrSpecialty == _nrSpecialty) selectedSpecialty = s;
     }
     final defaultProfit = _defaultProfit(specialties);
+    final suggestions = _isEdit
+        ? const ProcedureSuggestions()
+        : ref.watch(procedureSuggestionsProvider(_nrSpecialty)).valueOrNull ??
+              const ProcedureSuggestions();
     final canUpdateParams =
         ref.watch(canUpdateProvider(ScreenCodes.pricing)) ||
         (ref.watch(canCreateProvider(ScreenCodes.pricing)) && !_params.idSaved);
@@ -329,15 +381,32 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: AppTextField(
-                  label: Strings.procedureName,
-                  controller: _name,
-                  maxLength: 80,
-                  autofocus: !_isEdit,
-                  enabled: _canEdit,
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: Validators.required(),
-                ),
+                child: _isEdit
+                    ? AppTextField(
+                        label: Strings.procedureName,
+                        controller: _name,
+                        maxLength: 80,
+                        enabled: _canEdit,
+                        textCapitalization: TextCapitalization.sentences,
+                        validator: Validators.required(),
+                      )
+                    : AppAutocompleteField<ProcedureSuggestion>(
+                        label: Strings.procedureName,
+                        hint: Strings.procedureNameSuggestHint,
+                        controller: _name,
+                        maxLength: 80,
+                        autofocus: true,
+                        enabled: _canEdit,
+                        textCapitalization: TextCapitalization.sentences,
+                        validator: Validators.required(),
+                        suggestions: suggestions.search,
+                        optionTitle: (s) => s.displayName,
+                        optionSubtitle: _suggestionSubtitle,
+                        optionIcon: (s) => s.isTemplate
+                            ? Icons.table_view_rounded
+                            : Icons.content_copy_rounded,
+                        onSelected: _applySuggestion,
+                      ),
               ),
             ],
           ),

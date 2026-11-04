@@ -252,6 +252,21 @@ class PricingRepository {
     return ProcedureListData.fromJson(json);
   }
 
+  /// Auto complete do cadastro: catalogo da planilha ainda nao cadastrado e
+  /// procedimentos ja cadastrados (para copiar), da especialidade.
+  Future<ProcedureSuggestions> suggestProcedures({
+    required int nrCompany,
+    required int nrBranch,
+    int? nrSpecialty,
+  }) async {
+    final json = await _gateway.rpc('procedure_suggest', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      if (nrSpecialty != null) 'nr_specialty': nrSpecialty,
+    });
+    return ProcedureSuggestions.fromJson(json);
+  }
+
   Future<int> createProcedure({
     required int nrCompany,
     required int nrBranch,

@@ -130,6 +130,148 @@ class Specialty {
   bool get isActive => itStatus == 1;
 }
 
+/// Sugestao do auto complete do cadastro de procedimento (ad.procedure_suggest):
+/// item do catalogo da planilha ([isTemplate]) ou procedimento ja cadastrado
+/// na filial, cujos valores podem ser copiados.
+class ProcedureSuggestion {
+  const ProcedureSuggestion({
+    required this.isTemplate,
+    required this.vcName,
+    this.vcCode,
+    this.vcSpecialty,
+    this.qtMinutes = 0,
+    this.vlMaterialOther = 0,
+    this.vlLabCost = 0,
+    this.vlPrice,
+    this.pcCommission,
+    this.pcProfit,
+    this.materials = const [],
+  });
+
+  factory ProcedureSuggestion.template(Map<String, dynamic> json) =>
+      ProcedureSuggestion(
+        isTemplate: true,
+        vcName: _str(json['vc_name']) ?? '',
+        vcCode: _str(json['vc_code']),
+        vcSpecialty: _str(json['vc_specialty']),
+        qtMinutes: _double(json['qt_minutes'] ?? 0),
+        vlMaterialOther: _double(json['vl_material_other'] ?? 0),
+        vlLabCost: _double(json['vl_lab_cost'] ?? 0),
+        vlPrice: _doubleOrNull(json['vl_reference_price']),
+      );
+
+  factory ProcedureSuggestion.procedure(Map<String, dynamic> json) =>
+      ProcedureSuggestion(
+        isTemplate: false,
+        vcName: _str(json['vc_name']) ?? '',
+        vcCode: _str(json['vc_code']),
+        vcSpecialty: _str(json['vc_specialty']),
+        qtMinutes: _double(json['qt_minutes'] ?? 0),
+        vlMaterialOther: _double(json['vl_material_other'] ?? 0),
+        vlLabCost: _double(json['vl_lab_cost'] ?? 0),
+        vlPrice: _doubleOrNull(json['vl_current_price']),
+        pcCommission: _doubleOrNull(json['pc_commission']),
+        pcProfit: _doubleOrNull(json['pc_profit']),
+        materials: [
+          for (final m in _list(json['materials']))
+            ProcedureMaterial.fromJson(_map(m)).copyWith(),
+        ],
+      );
+
+  /// true = catalogo da planilha; false = procedimento ja cadastrado (copiar).
+  final bool isTemplate;
+  final String vcName;
+
+  /// Codigo sugerido (no catalogo vem nulo quando a filial ja usa o codigo).
+  final String? vcCode;
+  final String? vcSpecialty;
+  final double qtMinutes;
+  final double vlMaterialOther;
+  final double vlLabCost;
+
+  /// Catalogo: valor de referencia da planilha; cadastrado: valor cobrado hoje.
+  final double? vlPrice;
+  final double? pcCommission;
+  final double? pcProfit;
+  final List<ProcedureMaterial> materials;
+
+  String get displayName =>
+      vcCode == null || vcCode!.isEmpty ? vcName : '$vcCode · $vcName';
+
+  /// Casa o texto digitado com nome ou codigo, sem acento e sem maiusculas.
+  bool matches(String text) {
+    final q = foldText(text);
+    if (q.isEmpty) return false;
+    return foldText(vcName).contains(q) || foldText(vcCode ?? '').contains(q);
+  }
+}
+
+/// Resposta de ad.procedure_suggest.
+class ProcedureSuggestions {
+  const ProcedureSuggestions({
+    this.templates = const [],
+    this.procedures = const [],
+  });
+
+  factory ProcedureSuggestions.fromJson(Map<String, dynamic> json) =>
+      ProcedureSuggestions(
+        templates: [
+          for (final t in _list(json['templates']))
+            ProcedureSuggestion.template(_map(t)),
+        ],
+        procedures: [
+          for (final p in _list(json['procedures']))
+            ProcedureSuggestion.procedure(_map(p)),
+        ],
+      );
+
+  final List<ProcedureSuggestion> templates;
+  final List<ProcedureSuggestion> procedures;
+
+  /// Catalogo primeiro, depois os ja cadastrados (no maximo [limit]).
+  List<ProcedureSuggestion> search(String text, {int limit = 12}) => [
+    ...templates.where((s) => s.matches(text)),
+    ...procedures.where((s) => s.matches(text)),
+  ].take(limit).toList();
+}
+
+const _accents = {
+  'á': 'a',
+  'à': 'a',
+  'â': 'a',
+  'ã': 'a',
+  'ä': 'a',
+  'é': 'e',
+  'è': 'e',
+  'ê': 'e',
+  'ë': 'e',
+  'í': 'i',
+  'ì': 'i',
+  'î': 'i',
+  'ï': 'i',
+  'ó': 'o',
+  'ò': 'o',
+  'ô': 'o',
+  'õ': 'o',
+  'ö': 'o',
+  'ú': 'u',
+  'ù': 'u',
+  'û': 'u',
+  'ü': 'u',
+  'ç': 'c',
+  'ñ': 'n',
+};
+
+/// Minusculas e sem acento (busca "extracao" acha "EXTRAÇÃO").
+String foldText(String text) {
+  final lower = text.trim().toLowerCase();
+  final b = StringBuffer();
+  for (final ch in lower.split('')) {
+    b.write(_accents[ch] ?? ch);
+  }
+  return b.toString();
+}
+
 /// od.pricing_param (percentuais em pontos: 4 = 4%).
 class PricingParams {
   const PricingParams({
