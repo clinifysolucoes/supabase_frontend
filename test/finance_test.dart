@@ -81,6 +81,7 @@ class _FakeRepo implements FinanceRepository {
   int setups = 0;
   EntryDraft? created;
   final settles = <(int, String, Map<String, dynamic>)>[];
+  final newCategories = <Map<String, dynamic>>[];
 
   @override
   Future<void> setup({required int nrCompany, required int nrBranch}) async {
@@ -93,17 +94,29 @@ class _FakeRepo implements FinanceRepository {
     required int nrCompany,
     required int nrBranch,
     bool includeInactive = false,
-  }) async => FinCatalog.fromJson(_catalog);
+  }) async => FinCatalog.fromJson({
+    ..._catalog,
+    'categories': [...(_catalog['categories'] as List), ...newCategories],
+  });
 
   @override
-  Future<void> saveRegister({
+  Future<int?> saveRegister({
     required int nrCompany,
     required int nrBranch,
     required String rpc,
     required String key,
     int? id,
     required Map<String, dynamic> fields,
-  }) async {}
+  }) async {
+    if (rpc != 'fin_category_save' || id != null) return id;
+    newCategories.add({
+      'nr_category': 9,
+      'it_status': 1,
+      'qt_entries': 0,
+      ...fields,
+    });
+    return 9;
+  }
 
   @override
   Future<FinOverview> overview({
@@ -382,6 +395,43 @@ void main() {
       expect(action, 'PAY');
       expect(extra['nr_account'], 1);
       expect(extra['vl_paid'], 1500);
+    });
+
+    testWidgets('lancamento: + cria a categoria de despesa e ja escolhe', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.tabPayables));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.newPayable));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(Strings.finNewCategory));
+      await tester.pumpAndSettle();
+      // ja vem como despesa, tipo de custo fixo
+      expect(find.text(Strings.finCostType), findsOneWidget);
+      await tester.enterText(
+        find.ancestor(
+          of: find.text('${Strings.name} *'),
+          matching: find.byType(TextField),
+        ),
+        'Manutenção',
+      );
+      await tester.tap(find.text(Strings.save).last);
+      await tester.pumpAndSettle();
+      final c = repo.newCategories.single;
+      expect(c['vc_name'], 'Manutenção');
+      expect(c['it_kind'], EntryKind.payable);
+      expect(c['it_cost_type'], CostType.fixed);
+      // de volta ao lancamento, com a categoria nova escolhida
+      expect(find.text(Strings.newPayable), findsWidgets);
+      expect(find.text('Manutenção'), findsOneWidget);
+    });
+
+    testWidgets('cadastros: nova categoria nos dois grupos', (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.tabFinRegisters));
+      await tester.pumpAndSettle();
+      expect(find.text(Strings.finNewCategory), findsNWidgets(2));
     });
   });
 }

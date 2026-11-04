@@ -32,21 +32,22 @@ class RegistersTab extends ConsumerWidget {
     final canCreate = ref.watch(canCreateProvider(ScreenCodes.finance));
     final canUpdate = ref.watch(canUpdateProvider(ScreenCodes.finance));
 
-    Future<void> open(RegisterType type, [Object? item]) async {
+    Future<void> open(RegisterType type, {Object? item, int? kind}) async {
       final saved = await RegisterFormDialog.show(
         context,
         type: type,
         item: item,
+        kind: kind,
         readOnly: item != null && !canUpdate,
       );
-      if (saved && context.mounted) {
+      if (saved != null && context.mounted) {
         AppSnack.success(context, Strings.savedSuccess);
       }
     }
 
-    Widget add(String label, RegisterType type) => canCreate
+    Widget add(String label, RegisterType type, {int? kind}) => canCreate
         ? TextButton.icon(
-            onPressed: () => open(type),
+            onPressed: () => open(type, kind: kind),
             icon: const Icon(Icons.add_rounded),
             label: Text(label),
           )
@@ -71,7 +72,7 @@ class RegistersTab extends ConsumerWidget {
                     '${AccountType.label(a.itType)} · ${Strings.finOpening} ${Numbers.money(a.vlOpening)}',
                 trailing: Numbers.money(a.vlBalance),
                 status: a.itStatus,
-                onTap: () => open(RegisterType.account, a),
+                onTap: () => open(RegisterType.account, item: a),
               ),
           ],
         );
@@ -79,9 +80,11 @@ class RegistersTab extends ConsumerWidget {
           title: kind == EntryKind.receivable
               ? '${Strings.finCategoriesSection} · ${Strings.finRevenues}'
               : '${Strings.finCategoriesSection} · ${Strings.finExpenses}',
-          action: kind == EntryKind.receivable
-              ? add(Strings.finNewCategory, RegisterType.category)
-              : null,
+          action: add(
+            Strings.finNewCategory,
+            RegisterType.category,
+            kind: kind,
+          ),
           children: [
             for (final x in c.categoriesOf(kind))
               _Tile(
@@ -94,7 +97,7 @@ class RegistersTab extends ConsumerWidget {
                   Strings.finUsedBy(x.qtEntries),
                 ].join(' · '),
                 status: x.itStatus,
-                onTap: () => open(RegisterType.category, x),
+                onTap: () => open(RegisterType.category, item: x),
               ),
           ],
         );
@@ -114,7 +117,7 @@ class RegistersTab extends ConsumerWidget {
                   ?s.vcEmail,
                 ].join(' · '),
                 status: s.itStatus,
-                onTap: () => open(RegisterType.supplier, s),
+                onTap: () => open(RegisterType.supplier, item: s),
               ),
           ],
         );
@@ -249,26 +252,34 @@ class RegisterFormDialog extends ConsumerStatefulWidget {
     required this.type,
     this.item,
     this.readOnly = false,
+    this.kind,
   });
 
   final RegisterType type;
+
+  /// Categoria nova ja com receita/despesa escolhida.
+  final int? kind;
 
   /// FinAccount, FinCategory ou FinSupplier (null cria).
   final Object? item;
   final bool readOnly;
 
-  static Future<bool> show(
+  /// Devolve o numero gravado ou null (cancelou).
+  static Future<int?> show(
     BuildContext context, {
     required RegisterType type,
     Object? item,
+    int? kind,
     bool readOnly = false,
-  }) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (_) =>
-            RegisterFormDialog(type: type, item: item, readOnly: readOnly),
-      ) ??
-      false;
+  }) => showDialog<int>(
+    context: context,
+    builder: (_) => RegisterFormDialog(
+      type: type,
+      item: item,
+      kind: kind,
+      readOnly: readOnly,
+    ),
+  );
 
   @override
   ConsumerState<RegisterFormDialog> createState() => _RegisterFormDialogState();
@@ -298,6 +309,10 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
   @override
   void initState() {
     super.initState();
+    if (widget.kind != null) {
+      _kind = widget.kind!;
+      if (_kind == EntryKind.receivable) _costType = null;
+    }
     switch (widget.item) {
       case final FinAccount a:
         _name.text = a.vcName;
@@ -364,10 +379,10 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
       RegisterType.supplier => ('fin_supplier_save', 'nr_supplier'),
     };
     try {
-      await ref
+      final nr = await ref
           .read(financeActionsProvider)
           .saveRegister(rpc: rpc, key: key, id: _id, fields: fields);
-      if (mounted) Navigator.of(context).pop(true);
+      if (mounted) Navigator.of(context).pop(nr);
     } catch (e) {
       if (mounted) AppSnack.error(context, describeError(e));
     } finally {
@@ -515,7 +530,7 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
           child: Text(widget.readOnly ? Strings.close : Strings.cancel),
         ),
         if (!widget.readOnly)

@@ -95,19 +95,23 @@ class FinanceRepository {
 
   /// Cadastro de conta, categoria ou fornecedor: [rpc] = fin_account_save,
   /// fin_category_save ou fin_supplier_save; [key] = nr_account etc. (null cria).
-  Future<void> saveRegister({
+  /// Devolve o numero gravado (o novo, na criacao).
+  Future<int?> saveRegister({
     required int nrCompany,
     required int nrBranch,
     required String rpc,
     required String key,
     int? id,
     required Map<String, dynamic> fields,
-  }) => _gateway.rpc(rpc, {
-    ..._branch(nrCompany, nrBranch),
-    'vc_action': id == null ? 'I' : 'U',
-    if (id != null) key: id,
-    ...fields,
-  });
+  }) async {
+    final json = await _gateway.rpc(rpc, {
+      ..._branch(nrCompany, nrBranch),
+      'vc_action': id == null ? 'I' : 'U',
+      if (id != null) key: id,
+      ...fields,
+    });
+    return (json[key] as num?)?.toInt() ?? id;
+  }
 
   Future<FinOverview> overview({
     required int nrCompany,

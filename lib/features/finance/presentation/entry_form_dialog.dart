@@ -14,9 +14,12 @@ import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
 import '../../agenda/presentation/patient_picker_dialog.dart';
+import '../../session/application/permissions.dart';
+import '../../session/domain/screen_codes.dart';
 import '../application/finance_controllers.dart';
 import '../data/finance_repository.dart';
 import '../domain/finance_models.dart';
+import 'registers_tab.dart';
 
 enum _Repeat { once, installments, monthly }
 
@@ -62,6 +65,9 @@ class EntryFormDialog extends ConsumerStatefulWidget {
 
 class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
   final _formKey = GlobalKey<FormState>();
+
+  /// Catalogo do momento (recarregado ao criar categoria aqui mesmo).
+  late FinCatalog _catalog = widget.catalog;
   late final TextEditingController _description;
   late final TextEditingController _amount;
   late final TextEditingController _due;
@@ -182,6 +188,22 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
     }
   }
 
+  /// Cria a categoria sem sair do lancamento e ja a escolhe.
+  Future<void> _newCategory() async {
+    final nr = await RegisterFormDialog.show(
+      context,
+      type: RegisterType.category,
+      kind: widget.kind,
+    );
+    if (nr == null || !mounted) return;
+    final catalog = await ref.read(financeCatalogProvider.future);
+    if (!mounted) return;
+    setState(() {
+      _catalog = catalog;
+      _category = nr;
+    });
+  }
+
   Future<void> _pickPatient() async {
     final p = await PatientPickerDialog.show(context);
     if (p != null) {
@@ -199,7 +221,7 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
   Widget build(BuildContext context) {
     final isMobile = context.isMobile;
     final pad = isMobile ? AppSpacing.md : AppSpacing.lg;
-    final c = widget.catalog;
+    final c = _catalog;
     final e = widget.entry;
     final categories = [
       for (final x in c.categoriesOf(widget.kind))
@@ -280,15 +302,31 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
         validator: (v) => (v ?? '').trim().isEmpty ? Strings.required : null,
       ),
       const SizedBox(height: AppSpacing.sm),
-      SearchableDropdown<FinCategory>(
-        label: '${Strings.finCategory} *',
-        items: categories,
-        value: category,
-        enabled: enabled,
-        itemLabel: (x) => x.vcName,
-        itemSubtitle: (x) =>
-            x.itCostType == null ? null : CostType.label(x.itCostType),
-        onChanged: (x) => setState(() => _category = x.nrCategory),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: SearchableDropdown<FinCategory>(
+              label: '${Strings.finCategory} *',
+              items: categories,
+              value: category,
+              enabled: enabled,
+              itemLabel: (x) => x.vcName,
+              itemSubtitle: (x) =>
+                  x.itCostType == null ? null : CostType.label(x.itCostType),
+              onChanged: (x) => setState(() => _category = x.nrCategory),
+            ),
+          ),
+          if (enabled && ref.watch(canCreateProvider(ScreenCodes.finance)))
+            Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.xs, top: 4),
+              child: IconButton.filledTonal(
+                tooltip: Strings.finNewCategory,
+                icon: const Icon(Icons.add_rounded),
+                onPressed: _newCategory,
+              ),
+            ),
+        ],
       ),
       const SizedBox(height: AppSpacing.md),
       if (_isNew) ...[
