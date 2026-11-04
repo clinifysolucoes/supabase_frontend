@@ -10,7 +10,7 @@ import '../../features/session/presentation/branch_selection_dialog.dart';
 import '../../l10n/strings.dart';
 import 'app_logo.dart';
 
-enum AppSection { dashboard, patients, pricing, users, profiles, logs }
+enum AppSection { dashboard, agenda, patients, pricing, users, profiles, logs }
 
 class _Destination {
   const _Destination({
@@ -40,6 +40,15 @@ const _dashboard = _Destination(
 );
 
 /// Telas de negocio: ficam no menu principal, abaixo do Dashboard.
+const _agenda = _Destination(
+  section: AppSection.agenda,
+  code: ScreenCodes.agenda,
+  icon: Icons.calendar_month_outlined,
+  selectedIcon: Icons.calendar_month_rounded,
+  label: Strings.agenda,
+  route: '/agenda',
+);
+
 const _patients = _Destination(
   section: AppSection.patients,
   code: ScreenCodes.patients,
@@ -58,7 +67,7 @@ const _pricing = _Destination(
   route: '/precificacao',
 );
 
-const _mainItems = [_dashboard, _patients, _pricing];
+const _mainItems = [_dashboard, _agenda, _patients, _pricing];
 
 /// Itens do quadrado de administracao (ao lado do Dashboard).
 const _adminItems = [

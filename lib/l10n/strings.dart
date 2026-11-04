@@ -449,6 +449,47 @@ abstract final class Strings {
 
   // Pacientes
   static const patients = 'Pacientes';
+
+  // Agenda: profissionais e horario de atendimento
+  static const agenda = 'Agenda';
+  static const agendaSubtitle =
+      'Profissionais, cores e horário de atendimento de cada um na agenda.';
+  static const professionals = 'Profissionais';
+  static const professional = 'Profissional';
+  static const newProfessional = 'Novo profissional';
+  static const editProfessional = 'Editar profissional';
+  static const professionalName = 'Nome na agenda';
+  static const professionalNameHint = 'Ex.: Dra. Ana Souza';
+  static const professionalCouncil = 'Registro no conselho';
+  static const professionalCouncilHint = 'Ex.: CRO-PR 12345';
+  static const slotMinutes = 'Intervalo dos horários';
+  static const linkedUser = 'Usuário do sistema';
+  static const noLinkedUser = 'Nenhum';
+  static const agendaColor = 'Cor na agenda';
+  static const workingHours = 'Horário de atendimento';
+  static const workingHoursHelp =
+      'Fora destas faixas a agenda mostra o horário como indisponível.';
+  static const copyMondayToWeekdays = 'Copiar segunda para terça a sexta';
+  static const addRange = 'Faixa';
+  static const dayOff = 'Não atende';
+  static const scheduleStart = 'Início da faixa';
+  static const scheduleEnd = 'Fim da faixa';
+  static const scheduleInvalid = 'O fim da faixa precisa ser depois do início.';
+  static String scheduleOverlap(String day) =>
+      'Faixas sobrepostas em $day. Ajuste antes de salvar.';
+  static const professionalActive = 'Profissional ativo';
+  static const noProfessionals =
+      'Nenhum profissional cadastrado. Cadastre quem atende para montar a agenda.';
+  static const noWorkingHours = 'Sem horário de atendimento';
+  static String weeklyHours(double h) =>
+      '${h == h.roundToDouble() ? h.round() : h.toStringAsFixed(1).replaceAll('.', ',')} h por semana';
+  static const weekdaySunday = 'Domingo';
+  static const weekdayMonday = 'Segunda';
+  static const weekdayTuesday = 'Terça';
+  static const weekdayWednesday = 'Quarta';
+  static const weekdayThursday = 'Quinta';
+  static const weekdayFriday = 'Sexta';
+  static const weekdaySaturday = 'Sábado';
   static const patientsSubtitle =
       'Busque, cadastre e acompanhe os pacientes da sua clínica.';
   static const newPatient = 'Novo paciente';
@@ -732,6 +773,25 @@ abstract final class Strings {
     'PROCEDURE_SPECIALTY_INVALID': 'Especialidade inválida ou inativa.',
     'PROCEDURE_REQUIRED': 'Procedimento não informado.',
     'PROCEDURE_NOT_FOUND': 'Procedimento não encontrado.',
+    'AGENDA_BRANCH_REQUIRED': 'Escolha a filial.',
+    'AGENDA_FORBIDDEN': 'Você não tem acesso à agenda desta filial.',
+    'PROFESSIONAL_ACTION_INVALID': 'Ação inválida.',
+    'PROFESSIONAL_FORBIDDEN':
+        'Você não tem permissão para alterar profissionais.',
+    'PROFESSIONAL_NAME_REQUIRED': 'Informe o nome do profissional.',
+    'PROFESSIONAL_NAME_IN_USE': 'Já existe um profissional chamado {Name}.',
+    'PROFESSIONAL_COLOR_INVALID': 'Cor inválida.',
+    'PROFESSIONAL_SLOT_INVALID':
+        'O intervalo deve ficar entre 5 e 240 minutos.',
+    'PROFESSIONAL_USER_INVALID': 'Usuário inválido ou inativo na empresa.',
+    'PROFESSIONAL_USER_IN_USE': 'Este usuário já está vinculado a {Name}.',
+    'PROFESSIONAL_STATUS_INVALID': 'Situação inválida.',
+    'PROFESSIONAL_SCHEDULES_INVALID': 'Horário de atendimento inválido.',
+    'PROFESSIONAL_SCHEDULE_INVALID': 'Faixa de horário inválida.',
+    'PROFESSIONAL_SCHEDULE_OVERLAP':
+        'Faixas de horário sobrepostas no mesmo dia.',
+    'PROFESSIONAL_REQUIRED': 'Profissional não informado.',
+    'PROFESSIONAL_NOT_FOUND': 'Profissional não encontrado.',
     'SPECIALTY_ACTION_INVALID': 'Ação inválida.',
     'SPECIALTY_FORBIDDEN':
         'Você não tem permissão para alterar especialidades.',
