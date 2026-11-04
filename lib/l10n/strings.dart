@@ -223,6 +223,15 @@ abstract final class Strings {
   static const unitCost = 'Custo unitário';
   static const lineCost = 'Custo';
   static const procedureActive = 'Procedimento ativo';
+  static const procedureNameSuggestHint =
+      'Digite para ver os procedimentos da planilha e os já cadastrados';
+  static const suggestionFromSheet = 'Da planilha';
+  static const suggestionExisting = 'Já cadastrado · copiar valores';
+  static const suggestionFilledFromSheet =
+      'Campos preenchidos com os dados da planilha. Confira e salve.';
+  static String suggestionCopied(String name) =>
+      'Valores e materiais copiados de $name. Ajuste o nome e salve.';
+  static const copySuffix = '(cópia)';
   static const noProcedures = 'Nenhum procedimento cadastrado.';
   static const searchProceduresHint = 'Código, nome ou especialidade';
   static const time = 'Tempo';

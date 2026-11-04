@@ -345,3 +345,21 @@ final specialtyProceduresProvider =
           .read(pricingRepositoryProvider)
           .procedures(nrCompany: nrCompany, nrBranch: nrBranch);
     });
+
+/// Sugestoes do auto complete do cadastro de procedimento, por especialidade
+/// (null = sem especialidade: catalogo inteiro e todos os cadastrados).
+final procedureSuggestionsProvider = FutureProvider.autoDispose
+    .family<ProcedureSuggestions, int?>((ref, nrSpecialty) async {
+      final nrCompany = ref.watch(currentCompanyProvider);
+      final nrBranch = ref.watch(currentBranchNumberProvider);
+      if (nrCompany == null || nrBranch == null) {
+        return const ProcedureSuggestions();
+      }
+      return ref
+          .read(pricingRepositoryProvider)
+          .suggestProcedures(
+            nrCompany: nrCompany,
+            nrBranch: nrBranch,
+            nrSpecialty: nrSpecialty,
+          );
+    });
