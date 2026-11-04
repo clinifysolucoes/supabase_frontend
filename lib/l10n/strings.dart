@@ -490,6 +490,79 @@ abstract final class Strings {
   static const weekdayThursday = 'Quinta';
   static const weekdayFriday = 'Sexta';
   static const weekdaySaturday = 'Sábado';
+
+  // Agenda: grade, consultas e compromissos
+  static const tabCalendar = 'Agenda';
+  static const _months = [
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro',
+  ];
+  static String monthName(int month) => _months[(month - 1) % 12];
+  static const tabProfessionals = 'Profissionais';
+  static const today = 'Hoje';
+  static const previous = 'Anterior';
+  static const next = 'Próximo';
+  static const viewDay = 'Dia';
+  static const viewWeek = 'Semana';
+  static const viewMonth = 'Mês';
+  static const newItem = 'Novo';
+  static const newConsultation = 'Nova consulta';
+  static const newCommitment = 'Novo compromisso';
+  static const editConsultation = 'Editar consulta';
+  static const editCommitment = 'Editar compromisso';
+  static const consultation = 'Consulta';
+  static const commitment = 'Compromisso';
+  static const patient = 'Paciente';
+  static const choosePatient = 'Escolher paciente';
+  static const chooseProfessional = 'Escolha o profissional.';
+  static const searchPatientHint = 'Nome, CPF ou celular';
+  static const noPatientsFound = 'Nenhum paciente encontrado.';
+  static const commitmentTitle = 'Título do compromisso';
+  static const commitmentTitleHint = 'Ex.: Reunião, almoço, curso';
+  static const consultationReason = 'Motivo (opcional)';
+  static const forWholeClinic = 'Clínica toda';
+  static const forProfessional = 'Profissional';
+  static const date = 'Data';
+  static const startTime = 'Início';
+  static const duration = 'Duração';
+  static const allDay = 'Dia inteiro';
+  static const fitIn = 'Encaixe (pode sobrepor outro horário)';
+  static const plannedProcedure = 'Procedimento previsto (opcional)';
+  static const noProcedure = 'Nenhum';
+  static const notes = 'Observações';
+  static const appointmentStatus = 'Situação';
+  static const cancelAppointment = 'Cancelar agendamento';
+  static const cancelAppointmentConfirm =
+      'O horário fica livre e o agendamento some da agenda. Continuar?';
+  static const openPatientRecord = 'Abrir ficha do paciente';
+  static String scheduledBy(String who, String when) =>
+      'Agendado por $who em $when';
+  static const professionalsFilter = 'Profissionais';
+  static const returnAlerts = 'Alertas de retorno';
+  static const noReturnAlerts = 'Nenhum retorno no período.';
+  static const noAppointmentsDay = 'Nenhum agendamento neste dia.';
+  static const noActiveProfessionals =
+      'Cadastre os profissionais na aba Profissionais para montar a agenda.';
+  static String patientsCount(int n) => n == 1 ? '1 paciente' : '$n pacientes';
+  static String moreItems(int n) => '+$n';
+  static const statusScheduled = 'Agendado';
+  static const statusConfirmed = 'Confirmado';
+  static const statusWaiting = 'Em espera';
+  static const statusInService = 'Em atendimento';
+  static const statusDone = 'Atendido';
+  static const statusLate = 'Atrasado';
+  static const statusNoShow = 'Faltou';
+  static const statusCancelled = 'Cancelado';
   static const patientsSubtitle =
       'Busque, cadastre e acompanhe os pacientes da sua clínica.';
   static const newPatient = 'Novo paciente';
@@ -501,7 +574,6 @@ abstract final class Strings {
   static const noPatients = 'Nenhum paciente cadastrado.';
   static const noPatientsSubtitle =
       'Cadastre o primeiro paciente para começar.';
-  static const noPatientsFound = 'Nenhum paciente encontrado.';
   static const noPatientsFoundSubtitle =
       'Confira a grafia ou use % antes do sobrenome.';
   static const backToPatients = 'Voltar para Pacientes';
@@ -775,6 +847,24 @@ abstract final class Strings {
     'PROCEDURE_NOT_FOUND': 'Procedimento não encontrado.',
     'AGENDA_BRANCH_REQUIRED': 'Escolha a filial.',
     'AGENDA_FORBIDDEN': 'Você não tem acesso à agenda desta filial.',
+    'APPOINTMENT_LIST_PERIOD_INVALID': 'Período da agenda inválido.',
+    'APPOINTMENT_ACTION_INVALID': 'Ação inválida.',
+    'APPOINTMENT_FORBIDDEN': 'Você não tem permissão para alterar a agenda.',
+    'APPOINTMENT_REQUIRED': 'Agendamento não informado.',
+    'APPOINTMENT_NOT_FOUND': 'Agendamento não encontrado.',
+    'APPOINTMENT_VALUE_INVALID': 'Dados do agendamento inválidos.',
+    'APPOINTMENT_TYPE_INVALID': 'Tipo de agendamento inválido.',
+    'APPOINTMENT_PATIENT_REQUIRED': 'Escolha o paciente.',
+    'APPOINTMENT_PATIENT_INVALID': 'Paciente inválido ou inativo.',
+    'APPOINTMENT_PROFESSIONAL_REQUIRED': 'Escolha o profissional.',
+    'APPOINTMENT_PROFESSIONAL_INVALID': 'Profissional inválido ou inativo.',
+    'APPOINTMENT_PROCEDURE_INVALID': 'Procedimento inválido ou inativo.',
+    'APPOINTMENT_TITLE_REQUIRED': 'Informe o título do compromisso.',
+    'APPOINTMENT_PERIOD_INVALID':
+        'O fim precisa ser depois do início (no máximo 1 dia).',
+    'APPOINTMENT_STATUS_INVALID': 'Situação inválida.',
+    'APPOINTMENT_CONFLICT':
+        'Já existe um agendamento neste horário ({Time}). Marque "Encaixe" para agendar mesmo assim.',
     'PROFESSIONAL_ACTION_INVALID': 'Ação inválida.',
     'PROFESSIONAL_FORBIDDEN':
         'Você não tem permissão para alterar profissionais.',

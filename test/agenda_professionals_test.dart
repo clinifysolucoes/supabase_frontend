@@ -55,6 +55,31 @@ class _FakeRepo implements AgendaRepository {
   }
 
   @override
+  Future<AppointmentListData> appointments({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    List<int>? professionals,
+    bool includeCancelled = false,
+  }) async => const AppointmentListData();
+
+  @override
+  Future<int> createAppointment({
+    required int nrCompany,
+    required int nrBranch,
+    required AppointmentDraft draft,
+  }) async => 1;
+
+  @override
+  Future<void> updateAppointment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAppointment,
+    required Map<String, dynamic> changes,
+  }) async {}
+
+  @override
   Future<void> updateProfessional({
     required int nrCompany,
     required int nrBranch,
