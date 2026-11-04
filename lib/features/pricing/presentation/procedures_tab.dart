@@ -27,7 +27,8 @@ import 'pricing_breakdown.dart';
 import 'procedure_form_dialog.dart';
 
 /// Aba Procedimentos: fatores do preco (clicaveis), lista com o preco
-/// calculado no banco, filtros, simulacao do regime (PF x PJ) e cadastro.
+/// calculado no banco e a situacao do valor cobrado hoje, filtros (inclusive
+/// por especialidade), simulacao do regime (PF x PJ) e cadastro.
 class ProceduresTab extends ConsumerStatefulWidget {
   const ProceduresTab({super.key});
 
@@ -68,6 +69,9 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
       params: data.params,
       summary: data.summary,
       readOnly: p != null && !canUpdate,
+      initialSpecialty: p == null
+          ? ref.read(procedureFiltersProvider).nrSpecialty
+          : null,
     );
     if (saved && mounted) AppSnack.success(context, Strings.savedSuccess);
   }
@@ -103,10 +107,12 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
     final data = async.valueOrNull;
     final isMobile = context.isMobile;
 
-    final categoryChoices = [
-      const Choice<String>(value: null, label: Strings.allCategories),
-      for (final c in data?.categories ?? const <String>[])
-        Choice<String>(value: c, label: c),
+    final specialties =
+        ref.watch(specialtyCatalogProvider).valueOrNull ?? const [];
+    final specialtyChoices = [
+      const Choice<int>(value: null, label: Strings.allSpecialties),
+      for (final s in specialties)
+        Choice<int>(value: s.nrSpecialty, label: s.vcName),
     ];
 
     return Column(
@@ -139,18 +145,18 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
             ),
             SizedBox(
               width: isMobile ? double.infinity : 220,
-              child: SearchableDropdown<Choice<String>>(
-                label: Strings.category,
-                items: categoryChoices,
-                value: categoryChoices.firstWhere(
-                  (c) => c.value == filters.category,
-                  orElse: () => categoryChoices.first,
+              child: SearchableDropdown<Choice<int>>(
+                label: Strings.specialty,
+                items: specialtyChoices,
+                value: specialtyChoices.firstWhere(
+                  (c) => c.value == filters.nrSpecialty,
+                  orElse: () => specialtyChoices.first,
                 ),
                 itemLabel: (c) => c.label,
                 onChanged: (c) => _setFilters(
                   c.value == null
-                      ? filters.copyWith(clearCategory: true)
-                      : filters.copyWith(category: c.value),
+                      ? filters.copyWith(clearSpecialty: true)
+                      : filters.copyWith(nrSpecialty: c.value),
                 ),
               ),
             ),
@@ -201,11 +207,11 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
                 );
               }
               return ResponsiveBuilder(
-                mobile: (_) => _ProcedureCards(
+                mobile: (_) => ProcedureCards(
                   items: d.procedures,
                   onTap: (p) => _openForm(d, p),
                 ),
-                desktop: (_) => _ProcedureTable(
+                desktop: (_) => ProcedureTable(
                   items: d.procedures,
                   onTap: (p) => _openForm(d, p),
                 ),
@@ -433,16 +439,24 @@ Color _diffColor(double? diff) => diff == null
 String _diffText(double? diff) =>
     diff == null ? '-' : '${diff >= 0 ? '+' : ''}${Numbers.money(diff)}';
 
-class _ProcedureTable extends StatelessWidget {
-  const _ProcedureTable({required this.items, required this.onTap});
+/// Lista de procedimentos no desktop (aba Procedimentos e especialidade aberta).
+/// [showSpecialty] = false quando todos sao da mesma especialidade.
+class ProcedureTable extends StatelessWidget {
+  const ProcedureTable({
+    super.key,
+    required this.items,
+    required this.onTap,
+    this.showSpecialty = true,
+  });
 
   final List<Procedure> items;
   final ValueChanged<Procedure> onTap;
+  final bool showSpecialty;
 
   @override
   Widget build(BuildContext context) {
     return AppTable(
-      minWidth: 1000,
+      minWidth: 1100,
       columns: const [
         DataColumn(label: Text(Strings.procedureName)),
         DataColumn(label: Text(Strings.time)),
@@ -451,6 +465,7 @@ class _ProcedureTable extends StatelessWidget {
         DataColumn(label: Text(Strings.suggestedPrice), numeric: true),
         DataColumn(label: Text(Strings.current), numeric: true),
         DataColumn(label: Text(Strings.difference), numeric: true),
+        DataColumn(label: Text(Strings.priceCheckColumn)),
         DataColumn(label: Text(Strings.status)),
         DataColumn(label: Text(Strings.actions)),
       ],
@@ -467,20 +482,23 @@ class _ProcedureTable extends StatelessWidget {
                       p.displayName,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    if (p.vcCategory != null || p.alerts.isNotEmpty)
+                    if ((showSpecialty && p.vcSpecialty != null) ||
+                        p.setupAlerts.isNotEmpty)
                       Row(
                         children: [
-                          if (p.vcCategory != null)
+                          if (showSpecialty && p.vcSpecialty != null)
                             Text(
-                              p.vcCategory!,
+                              p.vcSpecialty!,
                               style: const TextStyle(
                                 color: AppColors.muted,
                                 fontSize: 12,
                               ),
                             ),
-                          if (p.vcCategory != null && p.alerts.isNotEmpty)
+                          if (showSpecialty &&
+                              p.vcSpecialty != null &&
+                              p.setupAlerts.isNotEmpty)
                             const SizedBox(width: AppSpacing.sm),
-                          ProcedureAlertChips(alerts: p.alerts),
+                          ProcedureAlertChips(alerts: p.setupAlerts),
                         ],
                       ),
                   ],
@@ -510,6 +528,12 @@ class _ProcedureTable extends StatelessWidget {
                   ),
                 ),
               ),
+              DataCell(
+                p.vlCurrentPrice == null
+                    ? const Text('-')
+                    : PriceStatusChip(status: p.priceStatus),
+                onTap: () => onTap(p),
+              ),
               DataCell(AppStatusChip(status: p.itStatus, compact: true)),
               DataCell(
                 IconButton(
@@ -525,11 +549,18 @@ class _ProcedureTable extends StatelessWidget {
   }
 }
 
-class _ProcedureCards extends StatelessWidget {
-  const _ProcedureCards({required this.items, required this.onTap});
+/// Lista de procedimentos no mobile (cards).
+class ProcedureCards extends StatelessWidget {
+  const ProcedureCards({
+    super.key,
+    required this.items,
+    required this.onTap,
+    this.showSpecialty = true,
+  });
 
   final List<Procedure> items;
   final ValueChanged<Procedure> onTap;
+  final bool showSpecialty;
 
   @override
   Widget build(BuildContext context) {
@@ -568,7 +599,8 @@ class _ProcedureCards extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     [
-                      if (p.vcCategory != null) p.vcCategory!,
+                      if (showSpecialty && p.vcSpecialty != null)
+                        p.vcSpecialty!,
                       Numbers.minutes(p.qtMinutes),
                       '${Strings.directCost} ${Numbers.money(p.pricing?.vlDirectCost)}',
                       '${Strings.minPrice} ${Numbers.money(p.pricing?.vlPriceMin)}',
@@ -587,14 +619,19 @@ class _ProcedureCards extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                  if (p.alerts.isNotEmpty || !p.isActive) ...[
+                  if (p.alerts.isNotEmpty ||
+                      !p.isActive ||
+                      p.vlCurrentPrice != null) ...[
                     const SizedBox(height: AppSpacing.xs),
                     Wrap(
                       spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
                       children: [
+                        if (p.vlCurrentPrice != null)
+                          PriceStatusChip(status: p.priceStatus),
                         if (!p.isActive)
                           AppStatusChip(status: p.itStatus, compact: true),
-                        ProcedureAlertChips(alerts: p.alerts),
+                        ProcedureAlertChips(alerts: p.setupAlerts),
                       ],
                     ),
                   ],

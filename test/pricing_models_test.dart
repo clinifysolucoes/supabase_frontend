@@ -93,7 +93,8 @@ void main() {
       'nr_procedure': 1,
       'vc_code': '1.0',
       'vc_name': 'Restauração 1 face',
-      'vc_category': 'Clínica Geral',
+      'nr_specialty': 2,
+      'vc_specialty': 'Clínica Geral',
       'qt_minutes': 30,
       'vl_lab_cost': 20,
       'vl_material_other': 2,
@@ -128,18 +129,33 @@ void main() {
         'pc_total': 50,
         'it_tax_regime': 2,
         'id_valid': true,
+        'vl_current_price': 150,
+        'vl_current_profit': 19.45,
+        'pc_current_profit': 12.97,
+        'vl_current_diff': -32.5,
+        'it_price_status': 2,
       },
-      'alerts': ['NO_TIME'],
+      'alerts': ['NO_TIME', 'PRICE_BELOW_SUGGESTED'],
     };
 
     test('parse, displayName, priceDiff e alertas', () {
       final p = Procedure.fromJson(json);
       expect(p.displayName, '1.0 · Restauração 1 face');
-      expect(p.priceDiff, 32.5);
+      expect(p.priceDiff, -32.5);
+      expect(p.nrSpecialty, 2);
+      expect(p.vcSpecialty, 'Clínica Geral');
+      expect(p.priceStatus, PriceStatus.belowSuggested);
+      expect(p.pricing!.vlCurrentDiff, -32.5);
+      expect(p.setupAlerts, ['NO_TIME']);
+      expect(PriceStatus.isAlert(p.priceStatus), isTrue);
       expect(p.pcCommission, isNull);
       expect(p.materials.single.vlLineCost, 6);
       expect(p.pricing!.vlPrice, 182.5);
-      expect(p.alerts, ['NO_TIME']);
+      expect(p.alerts, ['NO_TIME', 'PRICE_BELOW_SUGGESTED']);
+      expect(
+        ProcedureAlert.label('PRICE_BELOW_COST'),
+        'Cobrado abaixo do custo',
+      );
       expect(ProcedureAlert.label('NO_TIME'), 'Sem tempo');
     });
 
@@ -153,9 +169,39 @@ void main() {
       expect(p.priceDiff, isNull);
     });
 
+    test('Specialty e SpecialtyDraft', () {
+      final s = Specialty.fromJson({
+        'nr_specialty': 3,
+        'vc_name': 'Implante',
+        'pc_profit': '20.00',
+        'it_status': 1,
+        'qt_procedures': 4,
+      });
+      expect(s.pcProfit, 20);
+      expect(s.qtProcedures, 4);
+      expect(s.isActive, isTrue);
+      expect(
+        Specialty.fromJson({'nr_specialty': 1, 'vc_name': 'X'}).pcProfit,
+        isNull,
+      );
+      expect(const SpecialtyDraft(vcName: 'HOF').toJson(), {
+        'vc_name': 'HOF',
+        'pc_profit': null,
+      });
+      expect(
+        const SpecialtyDraft(
+          vcName: 'HOF',
+          pcProfit: 20,
+          itStatus: 90,
+        ).toJson(),
+        {'vc_name': 'HOF', 'pc_profit': 20, 'it_status': 90},
+      );
+    });
+
     test('ProcedureDraft e MaterialDraft para o save', () {
       final draft = ProcedureDraft(
         vcName: 'X',
+        nrSpecialty: 5,
         qtMinutes: 30,
         materials: [
           ProcedureMaterial.fromMaterial(
@@ -169,6 +215,7 @@ void main() {
       ]);
       expect(draft.containsKey('it_status'), isFalse);
       expect(draft['vc_code'], isNull);
+      expect(draft['nr_specialty'], 5);
 
       final m = const MaterialDraft(
         vcName: 'Luva',

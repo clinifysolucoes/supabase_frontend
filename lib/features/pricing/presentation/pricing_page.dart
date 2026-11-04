@@ -11,8 +11,10 @@ import '../../session/domain/screen_codes.dart';
 import 'materials_tab.dart';
 import 'params_tab.dart';
 import 'procedures_tab.dart';
+import 'specialties_tab.dart';
 
-/// Precificacao: Procedimentos (preco calculado), Materiais (custo por
+/// Precificacao: Especialidades (procedimentos agrupados, lucro por
+/// especialidade e alerta do valor cobrado), Procedimentos (preco calculado), Materiais (custo por
 /// unidade de uso, preco manual ou de mercado) e Parametros (custos da
 /// clinica, estrutura, percentuais, regime PF/PJ, taxas adicionais).
 class PricingPage extends ConsumerWidget {
@@ -37,7 +39,7 @@ class PricingPage extends ConsumerWidget {
     return AppShell(
       section: AppSection.pricing,
       child: DefaultTabController(
-        length: 3,
+        length: 4,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
@@ -78,6 +80,10 @@ class PricingPage extends ConsumerWidget {
                     ),
                     tabs: const [
                       _CompactTab(
+                        icon: Icons.category_outlined,
+                        label: Strings.tabSpecialties,
+                      ),
+                      _CompactTab(
                         icon: Icons.medical_services_outlined,
                         label: Strings.tabProcedures,
                       ),
@@ -96,7 +102,12 @@ class PricingPage extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               const Expanded(
                 child: TabBarView(
-                  children: [ProceduresTab(), MaterialsTab(), ParamsTab()],
+                  children: [
+                    SpecialtiesTab(),
+                    ProceduresTab(),
+                    MaterialsTab(),
+                    ParamsTab(),
+                  ],
                 ),
               ),
             ],

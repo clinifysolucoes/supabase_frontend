@@ -68,6 +68,46 @@ void main() {
       expect((r.vlTax! - 0.275 * base).abs(), lessThan(0.02));
     });
 
+    // Mesmo exemplo de tests/08_specialties.sql: custo direto 150, preco 250,
+    // minimo 187,50 (PJ 10%, cartao + comissao 10%, lucro 20%).
+    PricingResult current(double? price, {int regime = TaxRegime.pj}) =>
+        PricingCalculator.calculate(
+          PricingInput(
+            vlMaterial: 30,
+            qtMinutes: 60,
+            vlStructureHour: 60,
+            vlProfessionalHour: 60,
+            pcCard: 4,
+            pcCommission: 6,
+            itTaxRegime: regime,
+            pcTax: regime == TaxRegime.pj ? 10 : 27.5,
+            pcProfit: 20,
+            vlCurrentPrice: price,
+          ),
+        );
+
+    test('valor cobrado: situacao e lucro atual', () {
+      final ok = current(260);
+      expect(ok.vlPrice, 250);
+      expect(ok.vlPriceMin, 187.5);
+      expect(ok.itPriceStatus, PriceStatus.ok);
+      expect(ok.vlCurrentDiff, 10);
+      expect(ok.vlCurrentProfit, 58);
+      expect(ok.pcCurrentProfit, 22.31);
+
+      expect(current(250).itPriceStatus, PriceStatus.ok);
+      expect(current(200).itPriceStatus, PriceStatus.belowSuggested);
+      expect(current(160).itPriceStatus, PriceStatus.belowMin);
+      final loss = current(120);
+      expect(loss.itPriceStatus, PriceStatus.belowCost);
+      expect(loss.vlCurrentProfit, -54);
+      // PF: IR sobre o lucro, que e negativo -> IR zero
+      expect(current(120, regime: TaxRegime.pf).vlCurrentProfit, -42);
+      final none = current(null);
+      expect(none.itPriceStatus, PriceStatus.none);
+      expect(none.vlCurrentProfit, isNull);
+    });
+
     test('percentuais >= 100% invalidam o preco', () {
       final r = PricingCalculator.calculate(
         const PricingInput(

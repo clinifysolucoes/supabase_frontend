@@ -35,9 +35,6 @@ class PricingBreakdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final r = result;
-    final diff = currentPrice == null || r.vlPrice == null
-        ? null
-        : r.vlPrice! - currentPrice!;
     final taxLabel = r.itTaxRegime == TaxRegime.pj
         ? '${Strings.incomeTax} (${Strings.taxRegimePjShort})'
         : '${Strings.incomeTax} (${Strings.taxRegimePfShort})';
@@ -170,14 +167,10 @@ class PricingBreakdown extends StatelessWidget {
               ],
             ),
           ),
-          if (diff != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            _Line(
-              '${Strings.diffToCurrent} (${Numbers.money(currentPrice)})',
-              '${diff >= 0 ? '+' : ''}${Numbers.money(diff)}',
-              color: diff >= 0 ? AppColors.success : AppColors.danger,
-            ),
-          ],
+        ],
+        if (currentPrice != null && r.vlCurrentPrice != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          PriceCheckPanel(result: r),
         ],
       ],
     );
@@ -257,6 +250,128 @@ class _Line extends StatelessWidget {
         hoverColor: AppColors.mint,
         onTap: onTap,
         child: row,
+      ),
+    );
+  }
+}
+
+/// Cor de cada situacao do valor cobrado (verde, amarelo, laranja, vermelho).
+Color priceStatusColor(int status) => switch (status) {
+  PriceStatus.ok => AppColors.success,
+  PriceStatus.belowSuggested => AppColors.warning,
+  PriceStatus.belowMin => const Color(0xFFE07B2E),
+  PriceStatus.belowCost => AppColors.danger,
+  _ => AppColors.muted,
+};
+
+IconData priceStatusIcon(int status) => switch (status) {
+  PriceStatus.ok => Icons.check_circle_rounded,
+  PriceStatus.belowSuggested => Icons.info_rounded,
+  PriceStatus.belowMin => Icons.warning_amber_rounded,
+  PriceStatus.belowCost => Icons.error_rounded,
+  _ => Icons.remove_circle_outline_rounded,
+};
+
+/// Valor cobrado hoje x calculo: situacao, explicacao, lucro que sobra e a
+/// diferenca para o preco sugerido. E o alerta que o dentista ve no
+/// procedimento.
+class PriceCheckPanel extends StatelessWidget {
+  const PriceCheckPanel({super.key, required this.result});
+
+  final PricingResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = result;
+    final status = r.itPriceStatus;
+    final color = priceStatusColor(status);
+    final help = PriceStatus.help(status);
+    final diff = r.vlCurrentDiff;
+    final profit = r.vlCurrentProfit;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(priceStatusIcon(status), color: color, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  '${Strings.priceCheckTitle}: ${Numbers.money(r.vlCurrentPrice)}',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+              PriceStatusChip(status: status),
+            ],
+          ),
+          if (help != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              help,
+              style: const TextStyle(color: AppColors.muted, fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          if (profit != null)
+            _Line(
+              r.pcCurrentProfit == null
+                  ? Strings.currentProfit
+                  : '${Strings.currentProfit} (${Numbers.percent(r.pcCurrentProfit)})',
+              Numbers.money(profit),
+              strong: true,
+              color: profit < 0 ? AppColors.danger : AppColors.ink,
+            ),
+          if (diff != null)
+            _Line(
+              Strings.diffToSuggested,
+              '${diff >= 0 ? '+' : ''}${Numbers.money(diff)}',
+              color: diff >= 0 ? AppColors.success : AppColors.danger,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Chip com a situacao do valor cobrado hoje.
+class PriceStatusChip extends StatelessWidget {
+  const PriceStatusChip({super.key, required this.status});
+
+  final int status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = priceStatusColor(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(priceStatusIcon(status), size: 13, color: color),
+          const SizedBox(width: 4),
+          Text(
+            PriceStatus.label(status),
+            style: TextStyle(
+              color: Color.alphaBlend(
+                Colors.black.withValues(alpha: 0.25),
+                color,
+              ),
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }

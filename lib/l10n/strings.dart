@@ -185,6 +185,7 @@ abstract final class Strings {
   static const pricingTitle = 'Precificação de procedimentos';
   static const pricingSubtitle =
       'Custos da clínica, materiais, tempo e margens: o preço certo de cada procedimento.';
+  static const tabSpecialties = 'Especialidades';
   static const tabProcedures = 'Procedimentos';
   static const tabMaterials = 'Materiais';
   static const tabParams = 'Parâmetros';
@@ -196,9 +197,9 @@ abstract final class Strings {
   static const viewProcedure = 'Procedimento';
   static const procedureCode = 'Código';
   static const procedureName = 'Procedimento';
-  static const category = 'Categoria';
-  static const categoryHint = 'Ex.: Clínica Geral, Ortodontia, Implante';
-  static const allCategories = 'Todas as categorias';
+  static const specialty = 'Especialidade';
+  static const noSpecialty = 'Sem especialidade';
+  static const allSpecialties = 'Todas as especialidades';
   static const minutes = 'Tempo (min)';
   static const minutesHelp =
       'Tempo de cadeira. Define o custo da estrutura e a hora do profissional.';
@@ -207,11 +208,14 @@ abstract final class Strings {
   static const materialOtherHelp =
       'Materiais sem cadastro, valor informado direto.';
   static const currentPrice = 'Valor cobrado hoje (R\$)';
-  static const currentPriceHelp = 'Só para comparar com o preço sugerido.';
+  static const currentPriceHelp =
+      'Comparado com o custo, o preço mínimo e o sugerido para gerar o alerta.';
   static const commissionOverride = 'Comissão própria (%)';
   static const profitOverride = 'Lucro próprio (%)';
   static String defaultValue(String value) =>
       'Vazio = padrão da filial ($value)';
+  static String defaultSpecialtyValue(String specialty, String value) =>
+      'Vazio = padrão de $specialty ($value)';
   static const materialsUsed = 'Materiais utilizados';
   static const addMaterial = 'Adicionar material';
   static const noMaterialsInProcedure = 'Nenhum material adicionado.';
@@ -220,7 +224,7 @@ abstract final class Strings {
   static const lineCost = 'Custo';
   static const procedureActive = 'Procedimento ativo';
   static const noProcedures = 'Nenhum procedimento cadastrado.';
-  static const searchProceduresHint = 'Código, nome ou categoria';
+  static const searchProceduresHint = 'Código, nome ou especialidade';
   static const time = 'Tempo';
   static const current = 'Atual';
   static const difference = 'Diferença';
@@ -243,6 +247,7 @@ abstract final class Strings {
   static const profit = 'Lucro';
   static const profitReal = 'Lucro real';
   static const diffToCurrent = 'Em relação ao valor cobrado hoje';
+  static const diffToSuggested = 'Diferença para o preço sugerido';
   static const priceInvalid =
       'Os percentuais somam 100% ou mais: não existe preço possível. Ajuste nos parâmetros.';
 
@@ -270,6 +275,45 @@ abstract final class Strings {
   static const alertNoMaterial = 'Sem materiais';
   static const alertMaterialNoPrice = 'Material sem preço';
   static const alertPercentTooHigh = 'Percentuais ≥ 100%';
+  static const alertPriceBelowCost = 'Cobrado abaixo do custo';
+  static const alertPriceBelowMin = 'Cobrado abaixo do mínimo';
+  static const alertPriceBelowSuggested = 'Cobrado abaixo do sugerido';
+
+  // Valor cobrado x custo (it_price_status)
+  static const priceCheckTitle = 'Valor cobrado hoje';
+  static const priceStatusNone = 'Sem valor cobrado';
+  static const priceStatusOk = 'Valor adequado';
+  static const priceStatusBelowSuggested = 'Abaixo do sugerido';
+  static const priceStatusBelowMin = 'Abaixo do mínimo';
+  static const priceStatusBelowCost = 'Abaixo do custo';
+  static const priceStatusOkHelp =
+      'O valor cobrado cobre os custos, as taxas e o lucro desejado.';
+  static const priceStatusBelowSuggestedHelp =
+      'Cobre custos e taxas, mas o lucro fica menor que o desejado.';
+  static const priceStatusBelowMinHelp =
+      'Paga o custo direto, mas não cobre cartão, comissão e impostos.';
+  static const priceStatusBelowCostHelp =
+      'Não paga nem o custo direto: cada atendimento dá prejuízo.';
+  static const currentProfit = 'Lucro com o valor cobrado';
+  static const priceCheckColumn = 'Situação do preço';
+
+  // Especialidades
+  static const newSpecialty = 'Nova especialidade';
+  static const editSpecialty = 'Editar especialidade';
+  static const specialtyName = 'Nome da especialidade';
+  static const specialtyNameHint = 'Ex.: Clínica Geral, Implante, HOF';
+  static const specialtyProfit = 'Lucro desejado (%)';
+  static const specialtyActive = 'Especialidade ativa';
+  static const noSpecialties =
+      'Nenhuma especialidade cadastrada. Crie a primeira para organizar os procedimentos.';
+  static const specialtiesHint =
+      'Clique numa especialidade para ver e cadastrar os procedimentos dela.';
+  static const backToSpecialties = 'Especialidades';
+  static const noProceduresInSpecialty =
+      'Nenhum procedimento nesta especialidade.';
+  static const proceduresWithoutSpecialty = 'Procedimentos sem especialidade';
+  static String proceduresCount(int n) =>
+      n == 1 ? '1 procedimento' : '$n procedimentos';
 
   // Materiais
   static const newMaterial = 'Novo material';
@@ -676,8 +720,18 @@ abstract final class Strings {
     'PROCEDURE_MATERIAL_INVALID': 'Material inválido ou inativo: {Material}.',
     'PROCEDURE_QUANTITY_INVALID':
         'Informe a quantidade do material {Material}.',
+    'PROCEDURE_SPECIALTY_INVALID': 'Especialidade inválida ou inativa.',
     'PROCEDURE_REQUIRED': 'Procedimento não informado.',
     'PROCEDURE_NOT_FOUND': 'Procedimento não encontrado.',
+    'SPECIALTY_ACTION_INVALID': 'Ação inválida.',
+    'SPECIALTY_FORBIDDEN':
+        'Você não tem permissão para alterar especialidades.',
+    'SPECIALTY_NAME_REQUIRED': 'Informe o nome da especialidade.',
+    'SPECIALTY_NAME_IN_USE': 'Já existe uma especialidade chamada {Name}.',
+    'SPECIALTY_PERCENT_INVALID': 'O lucro deve ficar entre 0% e 100%.',
+    'SPECIALTY_STATUS_INVALID': 'Situação inválida.',
+    'SPECIALTY_REQUIRED': 'Especialidade não informada.',
+    'SPECIALTY_NOT_FOUND': 'Especialidade não encontrada.',
     // Edge Function material-price-lookup
     'MATERIAL_LOOKUP_UNAUTHORIZED': 'Sessão inválida. Entre de novo.',
     'MATERIAL_LOOKUP_METHOD': 'Requisição inválida.',

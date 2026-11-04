@@ -41,14 +41,93 @@ abstract final class ProcedureAlert {
   static const noMaterial = 'NO_MATERIAL';
   static const materialNoPrice = 'MATERIAL_NO_PRICE';
   static const percentTooHigh = 'PERCENT_TOO_HIGH';
+  static const priceBelowCost = 'PRICE_BELOW_COST';
+  static const priceBelowMin = 'PRICE_BELOW_MIN';
+  static const priceBelowSuggested = 'PRICE_BELOW_SUGGESTED';
+
+  /// Alertas do valor cobrado: a tela mostra no chip de situacao do preco.
+  static const priceAlerts = {
+    priceBelowCost,
+    priceBelowMin,
+    priceBelowSuggested,
+  };
 
   static String label(String code) => switch (code) {
     noTime => Strings.alertNoTime,
     noMaterial => Strings.alertNoMaterial,
     materialNoPrice => Strings.alertMaterialNoPrice,
     percentTooHigh => Strings.alertPercentTooHigh,
+    priceBelowCost => Strings.alertPriceBelowCost,
+    priceBelowMin => Strings.alertPriceBelowMin,
+    priceBelowSuggested => Strings.alertPriceBelowSuggested,
     _ => code,
   };
+}
+
+/// Situacao do valor cobrado hoje x calculo (od.fn_pricing_calc.it_price_status).
+abstract final class PriceStatus {
+  /// Sem valor cobrado informado.
+  static const none = 0;
+
+  /// Cobrado >= preco sugerido.
+  static const ok = 1;
+
+  /// Cobre custos e taxas, mas o lucro e menor que o desejado.
+  static const belowSuggested = 2;
+
+  /// Paga o custo direto, mas nao cobre cartao, comissao e impostos.
+  static const belowMin = 3;
+
+  /// Nao paga nem o custo direto (prejuizo).
+  static const belowCost = 4;
+
+  static String label(int status) => switch (status) {
+    ok => Strings.priceStatusOk,
+    belowSuggested => Strings.priceStatusBelowSuggested,
+    belowMin => Strings.priceStatusBelowMin,
+    belowCost => Strings.priceStatusBelowCost,
+    _ => Strings.priceStatusNone,
+  };
+
+  static String? help(int status) => switch (status) {
+    ok => Strings.priceStatusOkHelp,
+    belowSuggested => Strings.priceStatusBelowSuggestedHelp,
+    belowMin => Strings.priceStatusBelowMinHelp,
+    belowCost => Strings.priceStatusBelowCostHelp,
+    _ => null,
+  };
+
+  /// Status que pedem atencao do dentista.
+  static bool isAlert(int status) => status >= belowSuggested;
+}
+
+/// od.specialty (aba Especialidades).
+class Specialty {
+  const Specialty({
+    required this.nrSpecialty,
+    required this.vcName,
+    this.pcProfit,
+    this.itStatus = 1,
+    this.qtProcedures = 0,
+  });
+
+  factory Specialty.fromJson(Map<String, dynamic> json) => Specialty(
+    nrSpecialty: _int(json['nr_specialty']),
+    vcName: _str(json['vc_name']) ?? '',
+    pcProfit: _doubleOrNull(json['pc_profit']),
+    itStatus: _int(json['it_status'] ?? 1),
+    qtProcedures: _int(json['qt_procedures'] ?? 0),
+  );
+
+  final int nrSpecialty;
+  final String vcName;
+
+  /// Lucro desejado da especialidade (null = padrao da filial).
+  final double? pcProfit;
+  final int itStatus;
+  final int qtProcedures;
+
+  bool get isActive => itStatus == 1;
 }
 
 /// od.pricing_param (percentuais em pontos: 4 = 4%).
@@ -485,6 +564,11 @@ class PricingResult {
     this.pcTotal = 0,
     this.itTaxRegime = TaxRegime.pf,
     this.idValid = true,
+    this.vlCurrentPrice,
+    this.vlCurrentProfit,
+    this.pcCurrentProfit,
+    this.vlCurrentDiff,
+    this.itPriceStatus = PriceStatus.none,
   });
 
   factory PricingResult.fromJson(Map<String, dynamic> json) => PricingResult(
@@ -504,6 +588,11 @@ class PricingResult {
     pcTotal: _double(json['pc_total'] ?? 0),
     itTaxRegime: _int(json['it_tax_regime'] ?? TaxRegime.pf),
     idValid: json['id_valid'] != false,
+    vlCurrentPrice: _doubleOrNull(json['vl_current_price']),
+    vlCurrentProfit: _doubleOrNull(json['vl_current_profit']),
+    pcCurrentProfit: _doubleOrNull(json['pc_current_profit']),
+    vlCurrentDiff: _doubleOrNull(json['vl_current_diff']),
+    itPriceStatus: _int(json['it_price_status'] ?? PriceStatus.none),
   );
 
   final double vlMaterial;
@@ -522,6 +611,17 @@ class PricingResult {
   final double pcTotal;
   final int itTaxRegime;
   final bool idValid;
+
+  /// Valor cobrado hoje e o lucro que sobra com ele.
+  final double? vlCurrentPrice;
+  final double? vlCurrentProfit;
+  final double? pcCurrentProfit;
+
+  /// Cobrado - sugerido (negativo = cobra menos que o sugerido).
+  final double? vlCurrentDiff;
+
+  /// [PriceStatus] do valor cobrado.
+  final int itPriceStatus;
 }
 
 /// od.procedure com materiais, preco calculado e alertas.
@@ -530,7 +630,8 @@ class Procedure {
     required this.nrProcedure,
     this.vcCode,
     required this.vcName,
-    this.vcCategory,
+    this.nrSpecialty,
+    this.vcSpecialty,
     this.qtMinutes = 0,
     this.vlLabCost = 0,
     this.vlMaterialOther = 0,
@@ -547,7 +648,10 @@ class Procedure {
     nrProcedure: _int(json['nr_procedure']),
     vcCode: _str(json['vc_code']),
     vcName: _str(json['vc_name']) ?? '',
-    vcCategory: _str(json['vc_category']),
+    nrSpecialty: json['nr_specialty'] == null
+        ? null
+        : _int(json['nr_specialty']),
+    vcSpecialty: _str(json['vc_specialty']),
     qtMinutes: _double(json['qt_minutes'] ?? 0),
     vlLabCost: _double(json['vl_lab_cost'] ?? 0),
     vlMaterialOther: _double(json['vl_material_other'] ?? 0),
@@ -568,7 +672,8 @@ class Procedure {
   final int nrProcedure;
   final String? vcCode;
   final String vcName;
-  final String? vcCategory;
+  final int? nrSpecialty;
+  final String? vcSpecialty;
   final double qtMinutes;
   final double vlLabCost;
   final double vlMaterialOther;
@@ -582,12 +687,22 @@ class Procedure {
 
   bool get isActive => itStatus == 1;
 
-  /// Preco sugerido - valor atual (null quando algum dos dois falta).
+  /// [PriceStatus] do valor cobrado hoje.
+  int get priceStatus => pricing?.itPriceStatus ?? PriceStatus.none;
+
+  /// Alertas tecnicos (sem os do valor cobrado, que viram o chip de situacao).
+  List<String> get setupAlerts => [
+    for (final a in alerts)
+      if (!ProcedureAlert.priceAlerts.contains(a)) a,
+  ];
+
+  /// Valor cobrado - preco sugerido (negativo = cobra menos que o sugerido;
+  /// null quando algum dos dois falta).
   double? get priceDiff {
     final price = pricing?.vlPrice;
     final current = vlCurrentPrice;
     if (price == null || current == null) return null;
-    return price - current;
+    return current - price;
   }
 
   String get displayName =>
@@ -598,7 +713,6 @@ class Procedure {
 class ProcedureListData {
   const ProcedureListData({
     required this.procedures,
-    required this.categories,
     required this.params,
     required this.summary,
   });
@@ -609,13 +723,11 @@ class ProcedureListData {
           for (final p in _list(json['procedures']))
             Procedure.fromJson(_map(p)),
         ],
-        categories: [for (final c in _list(json['categories'])) c.toString()],
         params: PricingParams.fromJson(_map(json['params'])),
         summary: PricingSummary.fromJson(_map(json['summary'])),
       );
 
   final List<Procedure> procedures;
-  final List<String> categories;
   final PricingParams params;
   final PricingSummary summary;
 }

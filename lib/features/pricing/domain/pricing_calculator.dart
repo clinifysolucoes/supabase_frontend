@@ -14,6 +14,7 @@ class PricingInput {
     this.itTaxRegime = TaxRegime.pf,
     this.pcTax = 0,
     this.pcProfit = 0,
+    this.vlCurrentPrice,
   });
 
   final double vlMaterial;
@@ -27,6 +28,9 @@ class PricingInput {
   final int itTaxRegime;
   final double pcTax;
   final double pcProfit;
+
+  /// Valor cobrado hoje (opcional): gera o lucro atual e o [PriceStatus].
+  final double? vlCurrentPrice;
 }
 
 /// Copia fiel de `od.fn_pricing_calc` para a simulacao ao vivo na tela.
@@ -41,6 +45,9 @@ class PricingInput {
 ///   PJ: preco = custo / (1 - s - r - m)                 (IR sobre o faturamento)
 ///   PF: preco = (1 - r) x custo / ((1 - r)(1 - s) - m)  (IR sobre o lucro)
 ///   preco minimo = mesma formula com m = 0
+///   valor cobrado C: lucro atual = C - custo - C x s - IR(C)
+///     IR(C) PJ = C x r    PF = r x max(0, C - custo - C x s)
+///     situacao: abaixo do custo < abaixo do minimo < abaixo do sugerido < ok
 abstract final class PricingCalculator {
   static PricingResult calculate(PricingInput i) {
     final regime = i.itTaxRegime == TaxRegime.pj ? TaxRegime.pj : TaxRegime.pf;
@@ -66,6 +73,7 @@ abstract final class PricingCalculator {
     final pcTotal = round2((s + m + r) * 100);
 
     if (div <= 0 || divMin <= 0) {
+      final cur = _current(i.vlCurrentPrice, vlDirect, s, r, regime);
       return PricingResult(
         vlMaterial: round2(i.vlMaterial),
         vlLab: round2(i.vlLab),
@@ -75,6 +83,12 @@ abstract final class PricingCalculator {
         pcTotal: pcTotal,
         itTaxRegime: regime,
         idValid: false,
+        vlCurrentPrice: cur.price,
+        vlCurrentProfit: cur.profit,
+        pcCurrentProfit: cur.pcProfit,
+        itPriceStatus: cur.price != null && cur.price! < vlDirect
+            ? PriceStatus.belowCost
+            : PriceStatus.none,
       );
     }
 
@@ -97,6 +111,18 @@ abstract final class PricingCalculator {
       price - vlDirect - vlCard - vlCommission - vlFees - vlTax,
     );
 
+    final cur = _current(i.vlCurrentPrice, vlDirect, s, r, regime);
+    final c = cur.price;
+    final status = c == null
+        ? PriceStatus.none
+        : c < vlDirect
+        ? PriceStatus.belowCost
+        : c < priceMin
+        ? PriceStatus.belowMin
+        : c < price
+        ? PriceStatus.belowSuggested
+        : PriceStatus.ok;
+
     return PricingResult(
       vlMaterial: round2(i.vlMaterial),
       vlLab: round2(i.vlLab),
@@ -114,8 +140,36 @@ abstract final class PricingCalculator {
       pcTotal: pcTotal,
       itTaxRegime: regime,
       idValid: true,
+      vlCurrentPrice: c,
+      vlCurrentProfit: cur.profit,
+      pcCurrentProfit: cur.pcProfit,
+      vlCurrentDiff: c == null ? null : round2(c - price),
+      itPriceStatus: status,
     );
   }
+
+  /// Lucro que sobra com o valor cobrado hoje (mesma conta do banco).
+  static ({double? price, double? profit, double? pcProfit}) _current(
+    double? current,
+    double vlDirect,
+    double s,
+    double r,
+    int regime,
+  ) {
+    if (current == null) return (price: null, profit: null, pcProfit: null);
+    final c = round2(current);
+    final tax = regime == TaxRegime.pj
+        ? round2(c * r)
+        : round2(r * _max0(c - vlDirect - c * s));
+    final profit = round2(round2(c - vlDirect - c * s) - tax);
+    return (
+      price: c,
+      profit: profit,
+      pcProfit: c == 0 ? null : round2(profit / c * 100),
+    );
+  }
+
+  static double _max0(double x) => x < 0 ? 0 : x;
 
   /// Custo por unidade de uso = preco da embalagem / (rendimento x (1 - perda)).
   static double unitCost(double packagePrice, double yield, double pcWaste) {
