@@ -447,6 +447,7 @@ class AppointmentBlock extends StatelessWidget {
         a.headline,
         if (consult) AppointmentStatus.label(a.itStatus),
         if (a.isClinicWide) Strings.forWholeClinic,
+        if (a.itFinStatus != null) FinSeal.label(a.itFinStatus!),
       ].join(' · '),
       child: Material(
         color: consult
@@ -496,6 +497,15 @@ class AppointmentBlock extends StatelessWidget {
                   ),
                 ),
               ),
+              if (a.itFinStatus != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2, right: 2),
+                  child: Icon(
+                    Icons.attach_money_rounded,
+                    size: 14,
+                    color: Color(FinSeal.color(a.itFinStatus!)),
+                  ),
+                ),
             ],
           ),
         ),

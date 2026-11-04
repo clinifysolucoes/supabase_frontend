@@ -880,6 +880,69 @@ abstract final class Strings {
   static const previousMonth = 'Mês anterior';
   static const nextMonth = 'Próximo mês';
 
+  // Financeiro, fase 2: fechamento da consulta, selo, caixa do dia
+  static const finSealPending = 'Financeiro pendente';
+  static const finSealOpen = 'Recebimento em aberto';
+  static const finSealPaid = 'Recebido';
+  static const checkoutAction = 'Fechar atendimento';
+  static const checkoutView = 'Ver financeiro';
+  static const checkoutTitle = 'Fechamento do atendimento';
+  static const checkoutDone = 'Atendimento fechado.';
+  static const checkoutAlreadyDone =
+      'Este atendimento já tem recebimento. Para refazer, cancele as parcelas em aberto em A receber.';
+  static const checkoutNotConfigured =
+      'Configure o financeiro da filial antes de fechar atendimentos.';
+  static const checkoutAmount = 'Valor a receber';
+  static const checkoutPriceHint = 'Valor cobrado hoje na precificação.';
+  static const checkoutNoPrice =
+      'Procedimento sem valor cobrado na precificação: informe o valor.';
+  static const checkoutReceiveNow = 'Receber agora (1ª parcela)';
+  static const checkoutCommission = 'Gerar comissão do profissional';
+  static String checkoutCommissionPreview(String value, String due) =>
+      'Comissão de $value a pagar em $due.';
+  static const checkoutCommissionPc = 'Comissão';
+  static const checkoutEntries = 'Lançamentos deste atendimento';
+  static const cashTab = 'Caixa';
+  static const cashMine = 'Meu caixa';
+  static const cashClosed = 'Seu caixa está fechado.';
+  static const cashOpenAction = 'Abrir caixa';
+  static const cashOpenTitle = 'Abrir caixa';
+  static const cashCloseAction = 'Fechar caixa';
+  static const cashCloseTitle = 'Fechar caixa';
+  static const cashOpened = 'Caixa aberto.';
+  static String cashClosedDiff(String diff) =>
+      'Caixa fechado. Diferença: $diff.';
+  static const cashAccount = 'Conta caixa';
+  static const cashOpenValue = 'Valor na gaveta (abertura)';
+  static const cashOpenValueHelper = 'Em branco = saldo atual da conta.';
+  static const cashCounted = 'Valor contado';
+  static const cashExpected = 'Esperado';
+  static const cashDifference = 'Diferença';
+  static const cashOpening = 'Abertura';
+  static const cashIn = 'Entradas';
+  static const cashOut = 'Saídas';
+  static const cashMoves = 'Sangrias e suprimentos';
+  static const cashByMethod = 'Entradas por forma de pagamento';
+  static const cashNoMethod = 'Sem forma';
+  static const cashAccounts = 'Caixas da filial';
+  static const cashFree = 'Livre';
+  static String cashWith(String who) => 'Com $who';
+  static const cashHistory = 'Últimos caixas';
+  static const cashNoHistory = 'Nenhum caixa fechado ainda.';
+  static const cashNoCashAccount =
+      'Cadastre uma conta do tipo Caixa em Cadastros para abrir o caixa.';
+  static String cashOpenedAt(String when) => 'Aberto em $when';
+  static String cashClosedAt(String when) => 'Fechado em $when';
+  static const cashWithdrawal = 'Sangria';
+  static const cashSupply = 'Suprimento';
+  static const cashTransfer = 'Transferência';
+  static const cashMoveTitle = 'Movimentar entre contas';
+  static const cashFrom = 'Da conta';
+  static const cashTo = 'Para a conta';
+  static const cashMoved = 'Movimento registrado.';
+  static const cashMoveHint =
+      'Sangria tira dinheiro do caixa; suprimento coloca. Não é receita nem despesa.';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -1147,6 +1210,37 @@ abstract final class Strings {
     'FIN_SETTLE_ACTION_INVALID': 'Ação inválida.',
     'FIN_SETTLE_STATUS_INVALID':
         'Esta ação não vale para a situação atual do lançamento.',
+    // Backend: financeiro fase 2
+    'FIN_ENTRY_PROFESSIONAL_INVALID': 'Profissional inválido ou inativo.',
+    'CHECKOUT_APPOINTMENT_REQUIRED': 'Atendimento não informado.',
+    'CHECKOUT_APPOINTMENT_NOT_FOUND': 'Atendimento não encontrado.',
+    'CHECKOUT_APPOINTMENT_INVALID':
+        'Só consultas que não foram canceladas nem faltas podem ser fechadas.',
+    'CHECKOUT_ALREADY_DONE':
+        'Este atendimento já tem recebimento. Cancele as parcelas em aberto para refazer.',
+    'CHECKOUT_NOT_CONFIGURED':
+        'Configure o financeiro da filial antes de fechar atendimentos.',
+    'CHECKOUT_COMMISSION_INVALID': 'A comissão deve ficar entre 0% e 100%.',
+    'FIN_CASH_FORBIDDEN': 'Você não tem permissão para operar o caixa.',
+    'FIN_CASH_VALUE_INVALID': 'Valor inválido.',
+    'FIN_CASH_ACCOUNT_INVALID': 'Escolha uma conta ativa do tipo Caixa.',
+    'FIN_CASH_ACCOUNT_IN_USE':
+        'O caixa {Account} já está aberto com outra pessoa.',
+    'FIN_CASH_USER_HAS_OPEN': 'Você já tem um caixa aberto. Feche-o antes.',
+    'FIN_CASH_SESSION_NOT_FOUND': 'Caixa não encontrado.',
+    'FIN_CASH_SESSION_CLOSED':
+        'O caixa deste movimento já foi fechado: não dá para desfazer.',
+    'FIN_TRANSFER_ACTION_INVALID': 'Ação inválida.',
+    'FIN_TRANSFER_FORBIDDEN': 'Você não tem permissão para movimentar contas.',
+    'FIN_TRANSFER_VALUE_INVALID': 'Dados do movimento inválidos.',
+    'FIN_TRANSFER_TYPE_INVALID': 'Tipo de movimento inválido.',
+    'FIN_TRANSFER_ACCOUNT_INVALID':
+        'Contas inválidas (sangria sai de um caixa; suprimento entra num caixa).',
+    'FIN_TRANSFER_SAME_ACCOUNT': 'Escolha contas diferentes.',
+    'FIN_TRANSFER_AMOUNT_INVALID': 'Informe um valor maior que zero.',
+    'FIN_TRANSFER_REQUIRED': 'Movimento não informado.',
+    'FIN_TRANSFER_NOT_FOUND': 'Movimento não encontrado.',
+    'FIN_TRANSFER_STATUS_INVALID': 'Este movimento já foi cancelado.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

@@ -112,21 +112,21 @@ class _FinanceOverviewTabState extends ConsumerState<FinanceOverviewTab> {
                         ? AppColors.danger
                         : AppColors.primaryDark,
                     caption: Dates.format(DateTime.now()),
-                    onTap: () => widget.onOpenTab?.call(3),
+                    onTap: () => widget.onOpenTab?.call(4),
                   ),
                   FinKpiCard(
                     label: Strings.finTodayReceivable,
                     value: o.todayReceivable,
                     icon: Icons.south_west_rounded,
                     color: AppColors.success,
-                    onTap: () => widget.onOpenTab?.call(2),
+                    onTap: () => widget.onOpenTab?.call(3),
                   ),
                   FinKpiCard(
                     label: Strings.finTodayPayable,
                     value: o.todayPayable,
                     icon: Icons.north_east_rounded,
                     color: AppColors.danger,
-                    onTap: () => widget.onOpenTab?.call(1),
+                    onTap: () => widget.onOpenTab?.call(2),
                   ),
                   FinKpiCard(
                     label: Strings.finOverdueReceivable,
@@ -136,7 +136,7 @@ class _FinanceOverviewTabState extends ConsumerState<FinanceOverviewTab> {
                         ? AppColors.warning
                         : AppColors.muted,
                     caption: Strings.finOverdueCount(o.overdueReceivableQt),
-                    onTap: () => _openOverdue(EntryKind.receivable, 2),
+                    onTap: () => _openOverdue(EntryKind.receivable, 3),
                   ),
                   FinKpiCard(
                     label: Strings.finOverduePayable,
@@ -146,7 +146,7 @@ class _FinanceOverviewTabState extends ConsumerState<FinanceOverviewTab> {
                         ? AppColors.danger
                         : AppColors.muted,
                     caption: Strings.finOverdueCount(o.overduePayableQt),
-                    onTap: () => _openOverdue(EntryKind.payable, 1),
+                    onTap: () => _openOverdue(EntryKind.payable, 2),
                   ),
                 ],
               ),

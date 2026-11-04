@@ -10,6 +10,7 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
+import 'cash_tab.dart';
 import 'cashflow_tab.dart';
 import 'entries_tab.dart';
 import 'finance_overview_tab.dart';
@@ -47,10 +48,11 @@ class FinancePageBody extends ConsumerStatefulWidget {
 
 class _FinancePageBodyState extends ConsumerState<FinancePageBody>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 6, vsync: this);
+  late final TabController _tabs = TabController(length: 7, vsync: this);
 
   static const _items = [
     (Icons.space_dashboard_outlined, Strings.tabFinOverview),
+    (Icons.point_of_sale_rounded, Strings.cashTab),
     (Icons.north_east_rounded, Strings.tabPayables),
     (Icons.south_west_rounded, Strings.tabReceivables),
     (Icons.list_alt_rounded, Strings.tabStatement),
@@ -125,6 +127,7 @@ class _FinancePageBodyState extends ConsumerState<FinancePageBody>
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
                       FinanceOverviewTab(onOpenTab: _tabs.animateTo),
+                      const CashTab(),
                       const EntriesTab(kind: EntryKind.payable),
                       const EntriesTab(kind: EntryKind.receivable),
                       const StatementTab(),
