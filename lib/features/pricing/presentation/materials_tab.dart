@@ -192,6 +192,8 @@ class _MaterialTable extends StatelessWidget {
       rows: [
         for (final m in items)
           DataRow(
+            // a linha inteira abre o cadastro (o lapis pode ficar fora da tela)
+            onSelectChanged: (_) => onTap(m),
             cells: [
               DataCell(
                 Column(

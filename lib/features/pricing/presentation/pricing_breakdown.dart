@@ -298,18 +298,35 @@ class PriceCheckPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(priceStatusIcon(status), color: color, size: 20),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  '${Strings.priceCheckTitle}: ${Numbers.money(r.vlCurrentPrice)}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+          // titulo em linha propria (quebra normal) e chip embaixo: no painel
+          // estreito do formulario o titulo nao pode ficar espremido ao lado
+          // do chip, senao quebra letra por letra e empurra o Salvar
+          Text.rich(
+            TextSpan(
+              children: [
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
+                    child: Icon(
+                      priceStatusIcon(status),
+                      color: color,
+                      size: 20,
+                    ),
+                  ),
                 ),
-              ),
-              PriceStatusChip(status: status),
-            ],
+                TextSpan(
+                  text:
+                      '${Strings.priceCheckTitle}: ${Numbers.money(r.vlCurrentPrice)}',
+                ),
+              ],
+            ),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: PriceStatusChip(status: status),
           ),
           if (help != null) ...[
             const SizedBox(height: AppSpacing.xs),

@@ -564,38 +564,56 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
       onEditFactor: canUpdateParams && !_saving ? _editFactor : null,
     );
 
+    final pad = isMobile ? AppSpacing.md : AppSpacing.xl;
     return Dialog(
       insetPadding: EdgeInsets.all(isMobile ? AppSpacing.sm : AppSpacing.xl),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1080),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              if (isMobile) ...[
-                form,
-                const SizedBox(height: AppSpacing.lg),
-                result,
-              ] else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(pad, pad, pad, AppSpacing.md),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(flex: 3, child: form),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(flex: 2, child: result),
+                    Text(
+                      title,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (isMobile) ...[
+                      form,
+                      const SizedBox(height: AppSpacing.lg),
+                      result,
+                    ] else
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 3, child: form),
+                          const SizedBox(width: AppSpacing.lg),
+                          Expanded(flex: 2, child: result),
+                        ],
+                      ),
                   ],
                 ),
-              const SizedBox(height: AppSpacing.xl),
-              Row(
+              ),
+            ),
+            // rodape fixo: Salvar sempre visivel, sem rolar o formulario
+            const Divider(height: 1),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                pad,
+                AppSpacing.md,
+                pad,
+                AppSpacing.md,
+              ),
+              child: Row(
                 children: [
                   Expanded(
                     child: AppButton(
@@ -618,8 +636,8 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
                   ],
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
