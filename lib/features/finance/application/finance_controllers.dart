@@ -5,6 +5,7 @@ import '../../profiles/application/profiles_controller.dart';
 import '../data/finance_repository.dart';
 import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
+import '../domain/receivable_models.dart';
 
 /// Empresa e filial atuais (null sem sessao/filial).
 ({int company, int branch})? _branchOf(Ref ref) {
@@ -133,6 +134,37 @@ final cashStatusProvider = FutureProvider.autoDispose<CashStatus>((ref) async {
       .cashStatus(nrCompany: b.company, nrBranch: b.branch);
 });
 
+/// Recebiveis: mes da previsao e situacao.
+final receivablesMonthProvider = StateProvider.autoDispose<DateTime>(
+  (_) => _thisMonth(),
+);
+
+final receivablesFilterProvider = StateProvider.autoDispose<ReceivableFilter>(
+  (_) => ReceivableFilter.all,
+);
+
+final receivablesProvider = FutureProvider.autoDispose<ReceivableList>((
+  ref,
+) async {
+  final b = _branchOf(ref);
+  if (b == null) return const ReceivableList();
+  final filter = ref.watch(receivablesFilterProvider);
+  final month = ref.watch(receivablesMonthProvider);
+  // vencidos olham para tras, como nas contas
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final overdue = filter == ReceivableFilter.overdue;
+  return ref
+      .read(financeRepositoryProvider)
+      .receivables(
+        nrCompany: b.company,
+        nrBranch: b.branch,
+        from: overdue ? today.subtract(const Duration(days: 399)) : month,
+        to: overdue ? today : monthEnd(month),
+        status: filter,
+      );
+});
+
 /// Escritas do financeiro: chamam a RPC e recarregam tudo que mostra saldo.
 class FinanceActions {
   FinanceActions(this._ref);
@@ -157,7 +189,18 @@ class FinanceActions {
       ..invalidate(entriesProvider)
       ..invalidate(cashflowProvider)
       ..invalidate(statementProvider)
-      ..invalidate(cashStatusProvider);
+      ..invalidate(cashStatusProvider)
+      ..invalidate(receivablesProvider);
+  }
+
+  Future<HealthExport> healthExport(DateTime from, DateTime to) {
+    final b = _b;
+    return _repo.healthExport(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      from: from,
+      to: to,
+    );
   }
 
   /// Fechamento da consulta: gera o financeiro e atualiza a agenda (selo).

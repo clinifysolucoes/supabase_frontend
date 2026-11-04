@@ -279,6 +279,7 @@ class _SettleDialogState extends State<SettleDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _date;
   late final TextEditingController _amount;
+  final _cardInstallments = TextEditingController(text: '1');
   int? _account;
   int? _method;
 
@@ -288,10 +289,7 @@ class _SettleDialogState extends State<SettleDialog> {
     final e = widget.entry;
     _date = TextEditingController(text: Dates.toField(DateTime.now()));
     _amount = TextEditingController(text: Numbers.toField(e.vlAmount));
-    final active = [
-      for (final a in widget.catalog.accounts)
-        if (a.isActive) a,
-    ];
+    final active = widget.catalog.payableAccounts;
     _account = e.nrAccount ?? (active.isEmpty ? null : active.first.nrAccount);
     _method = e.itPaymentMethod;
   }
@@ -300,6 +298,7 @@ class _SettleDialogState extends State<SettleDialog> {
   void dispose() {
     _date.dispose();
     _amount.dispose();
+    _cardInstallments.dispose();
     super.dispose();
   }
 
@@ -314,6 +313,8 @@ class _SettleDialogState extends State<SettleDialog> {
       'dt_paid': Dates.toIso(Dates.parseField(_date.text)!),
       'vl_paid': Numbers.parse(_amount.text),
       'it_payment_method': _method,
+      if (_method == 3 && (int.tryParse(_cardInstallments.text) ?? 1) > 1)
+        'qt_card_installments': int.tryParse(_cardInstallments.text),
     });
   }
 
@@ -343,12 +344,8 @@ class _SettleDialogState extends State<SettleDialog> {
                   labelText: '${Strings.finAccount} *',
                 ),
                 items: [
-                  for (final a in widget.catalog.accounts)
-                    if (a.isActive)
-                      DropdownMenuItem(
-                        value: a.nrAccount,
-                        child: Text(a.vcName),
-                      ),
+                  for (final a in widget.catalog.payableAccounts)
+                    DropdownMenuItem(value: a.nrAccount, child: Text(a.vcName)),
                 ],
                 onChanged: (v) => setState(() => _account = v),
               ),
@@ -388,6 +385,25 @@ class _SettleDialogState extends State<SettleDialog> {
                 ],
                 onChanged: (v) => setState(() => _method = v),
               ),
+              if (receivable && _method == 3 && widget.catalog.hasRate(3)) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppNumberField(
+                  label: Strings.cardInstallments,
+                  controller: _cardInstallments,
+                  decimals: 0,
+                  validator: (v) {
+                    final n = int.tryParse(v ?? '') ?? 0;
+                    return n < 1 || n > 24 ? '1 – 24' : null;
+                  },
+                ),
+              ],
+              if (receivable && widget.catalog.hasRate(_method)) ...[
+                const SizedBox(height: AppSpacing.xs),
+                const Text(
+                  Strings.cardRateHint,
+                  style: TextStyle(color: AppColors.muted, fontSize: 12),
+                ),
+              ],
             ],
           ),
         ),

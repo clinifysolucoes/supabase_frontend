@@ -943,6 +943,75 @@ abstract final class Strings {
   static const cashMoveHint =
       'Sangria tira dinheiro do caixa; suprimento coloca. Não é receita nem despesa.';
 
+  // Financeiro, fase 3a: recebiveis, taxas, Receita Saude
+  static const accountReceivables = 'Recebíveis';
+  static const tabReceivablesCards = 'Recebíveis';
+  static const recvStatusPending = 'A receber';
+  static const recvStatusReceived = 'Recebido';
+  static const recvFilterAll = 'Todos';
+  static const recvFilterPending = 'A receber';
+  static const recvFilterOverdue = 'Atrasados';
+  static const recvFilterReceived = 'Recebidos';
+  static const recvFilterCancelled = 'Cancelados';
+  static const recvGross = 'Bruto';
+  static const recvFee = 'Taxa';
+  static const recvNet = 'Líquido';
+  static const recvExpected = 'Previsão';
+  static const recvPendingTotal = 'A receber (líquido)';
+  static const recvReceivedTotal = 'Recebido';
+  static const recvNone = 'Nenhum recebível neste mês.';
+  static const recvNoneHint =
+      'Cadastre as taxas em Cadastros: pagamentos em cartão, boleto ou cheque passam a gerar recebíveis com a previsão.';
+  static const recvConfirm = 'Confirmar recebimento';
+  static const recvConfirmTitle = 'Confirmar recebimento';
+  static const recvConfirmHint =
+      'Informe o que caiu na conta. A diferença para o bruto vira despesa em Taxas de recebimento.';
+  static const recvReceivedOn = 'Caiu em';
+  static const recvReceivedValue = 'Valor que caiu';
+  static const recvUndo = 'Desfazer';
+  static const recvUndoConfirm =
+      'O recebível volta para a receber e a transferência e a taxa são canceladas. Continuar?';
+  static const recvConfirmed = 'Recebimento confirmado.';
+  static const recvUndone = 'Recebível voltou para a receber.';
+  static const cardInstallments = 'Parcelas no cartão';
+  static const cardRateHint =
+      'Com taxa cadastrada, o valor vai para Recebíveis até a operadora pagar.';
+  static const ratesSection = 'Taxas de recebimento';
+  static const rateNew = 'Nova taxa';
+  static const rateName = 'Nome';
+  static const rateMethod = 'Forma de pagamento';
+  static const rateInstallmentsMin = 'De (parcelas)';
+  static const rateInstallmentsMax = 'Até (parcelas)';
+  static const ratePercent = 'Taxa';
+  static const rateFixed = 'Tarifa fixa';
+  static const rateDays = 'Dias para cair';
+  static const rateAccount = 'Conta onde cai';
+  static String rateSummary(String pc, String fixed, int days) =>
+      '$pc${fixed.isEmpty ? '' : ' + $fixed'} · $days dias';
+  static String rateRange(int min, int max) =>
+      min == max ? '${min}x' : '$min a ${max}x';
+  static const healthExport = 'Receita Saúde';
+  static const healthTitle = 'Recebimentos para a Receita Saúde';
+  static const healthHint =
+      'Gera uma planilha (CSV) com os recebimentos de pacientes no período: CPF e nome de quem pagou e do paciente, data, valor e profissional. Confira antes de declarar.';
+  static const healthYear = 'Ano';
+  static const healthMonth = 'Mês';
+  static const healthWholeYear = 'Ano inteiro';
+  static const healthGenerate = 'Gerar planilha';
+  static String healthDone(int n, String total) =>
+      'Planilha gerada: $n recebimentos, total $total.';
+  static String healthMissingCpf(int n) =>
+      n == 1 ? '1 recebimento sem CPF.' : '$n recebimentos sem CPF.';
+  static const healthEmpty = 'Nenhum recebimento de paciente no período.';
+  static const healthColPayerCpf = 'CPF do pagador';
+  static const healthColPayer = 'Pagador';
+  static const healthColPatientCpf = 'CPF do paciente';
+  static const healthColPatient = 'Paciente';
+  static const healthColDate = 'Data do pagamento';
+  static const healthColValue = 'Valor';
+  static const healthColProfessional = 'Profissional';
+  static const healthColDescription = 'Descrição';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -1241,6 +1310,35 @@ abstract final class Strings {
     'FIN_TRANSFER_REQUIRED': 'Movimento não informado.',
     'FIN_TRANSFER_NOT_FOUND': 'Movimento não encontrado.',
     'FIN_TRANSFER_STATUS_INVALID': 'Este movimento já foi cancelado.',
+    // Backend: financeiro fase 3a
+    'FIN_RECEIVABLE_CONFIRMED':
+        'Este pagamento tem recebível já confirmado. Desfaça a confirmação em Recebíveis antes.',
+    'FIN_RECEIVABLE_FORBIDDEN':
+        'Você não tem permissão para confirmar recebíveis.',
+    'FIN_RECEIVABLE_REQUIRED': 'Recebível não informado.',
+    'FIN_RECEIVABLE_NOT_FOUND': 'Recebível não encontrado.',
+    'FIN_RECEIVABLE_ACTION_INVALID': 'Ação inválida.',
+    'FIN_RECEIVABLE_STATUS_INVALID':
+        'Esta ação não vale para a situação do recebível.',
+    'FIN_RECEIVABLE_VALUE_INVALID':
+        'Informe um valor maior que zero e no máximo o bruto.',
+    'FIN_RECEIVABLE_ACCOUNT_INVALID':
+        'Escolha uma conta ativa (não a de Recebíveis).',
+    'FIN_RATE_ACTION_INVALID': 'Ação inválida.',
+    'FIN_RATE_FORBIDDEN': 'Você não tem permissão para alterar taxas.',
+    'FIN_RATE_REQUIRED': 'Taxa não informada.',
+    'FIN_RATE_NOT_FOUND': 'Taxa não encontrada.',
+    'FIN_RATE_VALUE_INVALID': 'Dados da taxa inválidos.',
+    'FIN_RATE_NAME_REQUIRED': 'Informe o nome da taxa.',
+    'FIN_RATE_NAME_IN_USE': 'Já existe uma taxa chamada {Name}.',
+    'FIN_RATE_METHOD_INVALID':
+        'Taxas valem para cartão de crédito, débito, boleto ou cheque.',
+    'FIN_RATE_INSTALLMENTS_INVALID': 'Faixa de parcelas inválida (1 a 24).',
+    'FIN_RATE_FEE_INVALID':
+        'A taxa deve ficar entre 0% e 100% e a tarifa não pode ser negativa.',
+    'FIN_RATE_DAYS_INVALID': 'O prazo deve ficar entre 0 e 365 dias.',
+    'FIN_RATE_ACCOUNT_INVALID': 'Escolha a conta onde o dinheiro cai.',
+    'FIN_RATE_STATUS_INVALID': 'Situação inválida.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

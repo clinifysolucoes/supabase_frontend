@@ -18,7 +18,9 @@ import '../../session/domain/screen_codes.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
 import 'finance_overview_tab.dart' show accountIcon;
+import '../domain/receivable_models.dart';
 import 'finance_widgets.dart';
+import 'rate_form_dialog.dart';
 
 enum RegisterType { account, category, supplier }
 
@@ -121,11 +123,53 @@ class RegistersTab extends ConsumerWidget {
               ),
           ],
         );
+        Future<void> openRate([FinRate? r]) async {
+          final saved = await RateFormDialog.show(
+            context,
+            accounts: c.payableAccounts,
+            rate: r,
+            readOnly: r != null && !canUpdate,
+          );
+          if (saved && context.mounted) {
+            AppSnack.success(context, Strings.savedSuccess);
+          }
+        }
+
+        final rates = _Section(
+          title: Strings.ratesSection,
+          action: canCreate
+              ? TextButton.icon(
+                  onPressed: openRate,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text(Strings.rateNew),
+                )
+              : null,
+          children: [
+            for (final r in c.rates)
+              _Tile(
+                icon: Icons.credit_card_rounded,
+                title: r.vcName,
+                subtitle: [
+                  PaymentMethod.label(r.itPaymentMethod),
+                  if (RateMethod.installments(r.itPaymentMethod))
+                    Strings.rateRange(r.qtInstallmentsMin, r.qtInstallmentsMax),
+                  Strings.rateSummary(
+                    Numbers.percent(r.pcFee, decimals: 2),
+                    r.vlFeeFixed > 0 ? Numbers.money(r.vlFeeFixed) : '',
+                    r.qtDays,
+                  ),
+                ].join(' · '),
+                status: r.itStatus,
+                onTap: () => openRate(r),
+              ),
+          ],
+        );
         final sections = [
           accounts,
           categoryGroup(EntryKind.receivable),
           categoryGroup(EntryKind.payable),
           suppliers,
+          rates,
         ];
         if (context.isMobile) {
           return ListView(
@@ -145,6 +189,8 @@ class RegistersTab extends ConsumerWidget {
                 child: Column(
                   children: [
                     accounts,
+                    const SizedBox(height: AppSpacing.md),
+                    rates,
                     const SizedBox(height: AppSpacing.md),
                     suppliers,
                   ],

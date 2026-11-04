@@ -4,6 +4,7 @@ import '../../../core/supabase/supabase_gateway.dart';
 import '../../../shared/formatters/dates.dart';
 import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
+import '../domain/receivable_models.dart';
 
 /// Novo lancamento (ad.fin_entry_save, vc_action I).
 class EntryDraft {
@@ -240,7 +241,36 @@ class FinanceRepository {
     }),
   );
 
-  /// [rpc] = fin_cash_open, fin_cash_close ou fin_transfer_save.
+  Future<ReceivableList> receivables({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    ReceivableFilter status = ReceivableFilter.all,
+  }) async => ReceivableList.fromJson(
+    await _gateway.rpc('fin_receivable_list', {
+      ..._branch(nrCompany, nrBranch),
+      'dt_from': Dates.toIso(from),
+      'dt_to': Dates.toIso(to),
+      'vc_status': status.name,
+    }),
+  );
+
+  Future<HealthExport> healthExport({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+  }) async => HealthExport.fromJson(
+    await _gateway.rpc('fin_health_export', {
+      ..._branch(nrCompany, nrBranch),
+      'dt_from': Dates.toIso(from),
+      'dt_to': Dates.toIso(to),
+    }),
+  );
+
+  /// [rpc] = fin_cash_open, fin_cash_close, fin_transfer_save ou
+  /// fin_receivable_settle.
   Future<Map<String, dynamic>> cashCall({
     required int nrCompany,
     required int nrBranch,
@@ -267,6 +297,7 @@ class CheckoutDraft {
     this.idCommission = true,
     this.pcCommission,
     this.vcNotes,
+    this.qtCardInstallments = 1,
   });
 
   final int nrAppointment;
@@ -281,6 +312,9 @@ class CheckoutDraft {
   final double? pcCommission;
   final String? vcNotes;
 
+  /// Parcelas no cartao de credito (recebiveis), so com [idPaid].
+  final int qtCardInstallments;
+
   Map<String, dynamic> toJson() => {
     'nr_appointment': nrAppointment,
     'vl_amount': vlAmount,
@@ -290,6 +324,8 @@ class CheckoutDraft {
     'it_payment_method': ?itPaymentMethod,
     'id_paid': idPaid,
     if (idPaid) 'nr_account': nrAccount,
+    if (idPaid && qtCardInstallments > 1)
+      'qt_card_installments': qtCardInstallments,
     'id_commission': idCommission,
     if (idCommission) 'pc_commission': ?pcCommission,
     'vc_notes': ?vcNotes,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +7,7 @@ import 'package:odonto_app/core/theme/app_theme.dart';
 import 'package:odonto_app/features/agenda/domain/agenda_models.dart';
 import 'package:odonto_app/features/finance/data/finance_repository.dart';
 import 'package:odonto_app/features/finance/domain/cash_models.dart';
+import 'package:odonto_app/features/finance/domain/receivable_models.dart';
 import 'package:odonto_app/features/finance/domain/finance_models.dart';
 import 'package:odonto_app/features/finance/presentation/checkout_dialog.dart';
 import 'package:odonto_app/features/finance/presentation/finance_page.dart';
@@ -53,6 +56,20 @@ final _catalog = {
   'suppliers': [
     {'nr_supplier': 1, 'vc_name': 'Dental Sul', 'it_status': 1},
   ],
+  'rates': [
+    {
+      'nr_rate': 1,
+      'vc_name': 'Crédito 1 a 6x',
+      'it_payment_method': 3,
+      'qt_installments_min': 1,
+      'qt_installments_max': 6,
+      'pc_fee': 3.5,
+      'vl_fee_fixed': 0,
+      'qt_days': 30,
+      'nr_account': 2,
+      'it_status': 1,
+    },
+  ],
   'permission': {'id_read': true, 'id_create': true, 'id_update': true},
 };
 
@@ -88,6 +105,8 @@ class _FakeRepo implements FinanceRepository {
   CheckoutDraft? checkedOut;
   final cashCalls = <(String, Map<String, dynamic>)>[];
   bool cashOpen = false;
+  DateTime? healthFrom;
+  final savedRegisters = <(String, Map<String, dynamic>)>[];
 
   @override
   Future<void> setup({required int nrCompany, required int nrBranch}) async {
@@ -114,6 +133,7 @@ class _FakeRepo implements FinanceRepository {
     int? id,
     required Map<String, dynamic> fields,
   }) async {
+    savedRegisters.add((rpc, fields));
     if (rpc != 'fin_category_save' || id != null) return id;
     newCategories.add({
       'nr_category': 9,
@@ -300,6 +320,55 @@ class _FakeRepo implements FinanceRepository {
     }
     return {};
   }
+
+  @override
+  Future<ReceivableList> receivables({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    ReceivableFilter status = ReceivableFilter.all,
+  }) async => ReceivableList.fromJson({
+    'receivables': [
+      {
+        'nr_receivable': 5,
+        'nr_entry': 10,
+        'vc_description': 'Clareamento',
+        'vc_patient': 'Paciente Um',
+        'it_payment_method': 3,
+        'vc_rate': 'Crédito 1 a 6x',
+        'nr_installment': 1,
+        'qt_installments': 2,
+        'vl_gross': 150,
+        'vl_fee': 5.25,
+        'vl_net': 144.75,
+        'dt_expected': '2026-12-10',
+        'nr_account': 2,
+        'vc_account': 'Banco',
+        'it_status': 1,
+        'id_overdue': false,
+      },
+    ],
+    'totals': {
+      'vl_gross': 150,
+      'vl_fee': 5.25,
+      'vl_net': 144.75,
+      'vl_pending': 144.75,
+      'vl_received': 0,
+      'qt_total': 1,
+    },
+  });
+
+  @override
+  Future<HealthExport> healthExport({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    healthFrom = from;
+    return const HealthExport();
+  }
 }
 
 void main() {
@@ -365,6 +434,68 @@ void main() {
       ).toJson();
       expect(noCommission.containsKey('pc_commission'), isFalse);
       expect(noCommission.containsKey('nr_account'), isFalse);
+    });
+
+    test('taxas, recebiveis e CSV da Receita Saude', () {
+      final c = FinCatalog.fromJson(_catalog);
+      expect(c.rates.single.pcFee, 3.5);
+      expect(c.hasRate(3), isTrue);
+      expect(c.hasRate(4), isFalse);
+      expect(
+        FinCatalog.fromJson({
+          'accounts': [
+            {'nr_account': 9, 'vc_name': 'Recebíveis', 'it_type': 4},
+            {'nr_account': 2, 'vc_name': 'Banco', 'it_type': 2},
+          ],
+        }).payableAccounts.map((a) => a.nrAccount),
+        [2],
+        reason: 'conta de passagem fora das escolhas',
+      );
+      expect(AccountType.label(AccountType.receivables), 'Recebíveis');
+      final r = Receivable.fromJson({
+        'nr_receivable': 1,
+        'nr_entry': 1,
+        'it_payment_method': 4,
+        'vl_gross': '100',
+        'vl_net': '98.5',
+        'dt_expected': '2026-11-14',
+        'nr_account': 2,
+        'it_status': 1,
+        'id_overdue': true,
+      });
+      expect(r.isPending, isTrue);
+      expect(
+        ReceivableStatus.label(r.itStatus, overdue: r.idOverdue),
+        'Vencido',
+      );
+      final x = HealthExport.fromJson({
+        'rows': [
+          {
+            'dt_paid': '2026-11-10',
+            'vl_paid': 300,
+            'vc_patient': 'Ana; Souza',
+            'vc_cpf': '52998224725',
+            'vc_professional': 'Dra. Bia',
+          },
+          {
+            'dt_paid': '2026-11-11',
+            'vl_paid': 50.5,
+            'vc_patient': 'Leo',
+            'vc_payer': 'Mãe do Leo',
+            'vc_payer_cpf': '11144477735',
+          },
+        ],
+        'qt_missing_cpf': 0,
+      });
+      final lines = const LineSplitter().convert(
+        utf8.decode(x.toCsv().sublist(3)),
+      );
+      expect(lines.length, 3);
+      expect(
+        lines[1],
+        '529.982.247-25;"Ana; Souza";529.982.247-25;"Ana; Souza";10/11/2026;300,00;Dra. Bia;',
+      );
+      expect(lines[2], '111.444.777-35;Mãe do Leo;;Leo;11/11/2026;50,50;;');
     });
 
     test('EntryDraft: parcelada, recorrente e ja paga', () {
@@ -654,6 +785,99 @@ void main() {
       await tester.pumpAndSettle();
       expect(repo.cashCalls.last.$1, 'fin_cash_close');
       expect(repo.cashCalls.last.$2['vl_counted'], 25);
+    });
+
+    testWidgets('baixa de conta a pagar: sem parcelas no cartao', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.tabPayables));
+      await tester.pumpAndSettle();
+      // conta a pagar: sem campo de parcelas no cartao
+      await tester.tap(find.text('Aluguel (1/3)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.finPay));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.finPaymentMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(PaymentMethod.label(3)).last);
+      await tester.pumpAndSettle();
+      expect(find.text(Strings.cardInstallments), findsNothing);
+    });
+
+    testWidgets('recebiveis: lista e confirma o que caiu', (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.tabReceivablesCards));
+      await tester.pumpAndSettle();
+      expect(find.text('Paciente Um'), findsOneWidget);
+      expect(find.text('R\$ 144,75'), findsWidgets);
+      await tester.tap(find.byTooltip(Strings.recvConfirm));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.ancestor(
+          of: find.text(Strings.recvReceivedValue),
+          matching: find.byType(TextField),
+        ),
+        '144',
+      );
+      await tester.tap(find.text(Strings.confirm));
+      await tester.pumpAndSettle();
+      final (rpc, fields) = repo.cashCalls.single;
+      expect(rpc, 'fin_receivable_settle');
+      expect(fields['vc_action'], 'CONFIRM');
+      expect(fields['nr_receivable'], 5);
+      expect(fields['vl_received'], 144);
+      expect(fields['dt_received'], '2026-12-10');
+      expect(fields['nr_account'], 2);
+    });
+
+    testWidgets('cadastros: taxas e nova taxa', (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.tabFinRegisters));
+      await tester.pumpAndSettle();
+      expect(find.text('Crédito 1 a 6x'), findsOneWidget);
+      await tester.tap(find.text(Strings.rateNew));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.ancestor(
+          of: find.text('${Strings.rateName} *'),
+          matching: find.byType(TextField),
+        ),
+        'Débito',
+      );
+      await tester.tap(find.text(PaymentMethod.label(3)).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(PaymentMethod.label(4)).last);
+      await tester.pumpAndSettle();
+      expect(find.text(Strings.rateInstallmentsMin), findsNothing);
+      await tester.enterText(
+        find.ancestor(
+          of: find.text(Strings.ratePercent),
+          matching: find.byType(TextField),
+        ),
+        '1,5',
+      );
+      await tester.tap(find.text(Strings.save).last);
+      await tester.pumpAndSettle();
+      expect(repo.savedRegisters.single.$1, 'fin_rate_save');
+      final fields = repo.savedRegisters.single.$2;
+      expect(fields['it_payment_method'], 4);
+      expect(fields['pc_fee'], 1.5);
+      expect(fields['qt_installments_max'], 1);
+      expect(fields['nr_account'], 2, reason: 'banco sugerido');
+    });
+
+    testWidgets('extrato: exportacao Receita Saude do mes', (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(Tab, Strings.tabStatement));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.healthExport));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.healthGenerate));
+      await tester.pumpAndSettle();
+      final now = DateTime.now();
+      expect(repo.healthFrom, DateTime(now.year, now.month));
+      expect(find.text(Strings.healthEmpty), findsOneWidget);
     });
   });
 }
