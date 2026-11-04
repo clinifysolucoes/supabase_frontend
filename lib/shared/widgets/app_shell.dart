@@ -10,7 +10,16 @@ import '../../features/session/presentation/branch_selection_dialog.dart';
 import '../../l10n/strings.dart';
 import 'app_logo.dart';
 
-enum AppSection { dashboard, agenda, patients, pricing, users, profiles, logs }
+enum AppSection {
+  dashboard,
+  agenda,
+  patients,
+  finance,
+  pricing,
+  users,
+  profiles,
+  logs,
+}
 
 class _Destination {
   const _Destination({
@@ -58,6 +67,15 @@ const _patients = _Destination(
   route: '/pacientes',
 );
 
+const _finance = _Destination(
+  section: AppSection.finance,
+  code: ScreenCodes.finance,
+  icon: Icons.account_balance_wallet_outlined,
+  selectedIcon: Icons.account_balance_wallet_rounded,
+  label: Strings.finance,
+  route: '/financeiro',
+);
+
 const _pricing = _Destination(
   section: AppSection.pricing,
   code: ScreenCodes.pricing,
@@ -67,7 +85,7 @@ const _pricing = _Destination(
   route: '/precificacao',
 );
 
-const _mainItems = [_dashboard, _agenda, _patients, _pricing];
+const _mainItems = [_dashboard, _agenda, _patients, _finance, _pricing];
 
 /// Itens do quadrado de administracao (ao lado do Dashboard).
 const _adminItems = [

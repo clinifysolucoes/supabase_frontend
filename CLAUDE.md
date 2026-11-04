@@ -81,6 +81,7 @@ lib/
 │   ├── logs/                     # access_log_list
 │   ├── pricing/                  # precificação: specialty_list/save (aba Especialidades), pricing_param_get/save, material_list/save, procedure_list/save (alerta cobrado x custo), procedure_suggest (auto complete do nome), export Excel
 │   ├── agenda/                   # agenda: professional_list/save (profissionais, cor, horário) e appointment_list/save (grade dia/semana/mês, consultas, compromissos, situação)
+│   ├── finance/                  # financeiro (tela FINANCE, /financeiro): fin_setup, fin_overview, fin_entry_list/save/settle (a pagar/receber, parcelas, recorrência, baixa), fin_statement, fin_cashflow (gráfico CustomPaint), fin_catalog + fin_*_save (contas, plano de contas, fornecedores)
 │   └── patients/                 # pacientes: patient_list/get/save, patient_note_save (lista, cadastro rápido, ficha com abas)
 ├── shared/
 │   ├── widgets/                  # AppTextField, AppPasswordField, AppButton, SearchableDropdown, AppShell, AppPageHeader, AppTable, AppStatusChip/AppTagChip, AppEmptyState, AppConfirmDialog, AppPagination, Choice, AppLogo, AppSnack, LoadingOverlay, SplashPage

@@ -715,6 +715,171 @@ abstract final class Strings {
   static const requiredFieldsHint = '* obrigatório';
   static const notInformed = 'Não informado';
 
+  // Financeiro
+  static const finance = 'Financeiro';
+  static const financeSubtitle =
+      'Contas a pagar e a receber, saldo das contas, extrato e fluxo de caixa da filial.';
+  static const tabFinOverview = 'Visão geral';
+  static const tabPayables = 'A pagar';
+  static const tabReceivables = 'A receber';
+  static const tabStatement = 'Extrato';
+  static const tabCashflow = 'Fluxo de caixa';
+  static const tabFinRegisters = 'Cadastros';
+  static const finSetupTitle = 'Configure o financeiro da filial';
+  static const finSetupSubtitle =
+      'Criamos as contas Caixa e Banco e o plano de contas a partir das despesas da precificação. Depois é só ajustar em Cadastros.';
+  static const finSetupAction = 'Configurar financeiro';
+  static const finSetupDone = 'Financeiro configurado.';
+  static const finSetupNoPermission =
+      'Peça a um administrador para configurar o financeiro desta filial.';
+  static const finBalance = 'Saldo total';
+  static const finToday = 'Hoje';
+  static const finTodayReceivable = 'A receber hoje';
+  static const finTodayPayable = 'A pagar hoje';
+  static const finOverdueReceivable = 'Recebimentos vencidos';
+  static const finOverduePayable = 'Pagamentos vencidos';
+  static const finMonth = 'Este mês';
+  static const finReceived = 'Recebido';
+  static const finPaid = 'Pago';
+  static const finToReceive = 'A receber';
+  static const finToPay = 'A pagar';
+  static const finMonthResult = 'Resultado do mês';
+  static const finAccounts = 'Contas';
+  static const finNextDue = 'Próximos vencimentos';
+  static const finNoNextDue = 'Nada a vencer nos próximos dias.';
+  static String finOverdueCount(int n) =>
+      n == 1 ? '1 lançamento' : '$n lançamentos';
+  static const finStatusOpen = 'Em aberto';
+  static const finStatusOverdue = 'Vencido';
+  static const finStatusPaid = 'Pago';
+  static const finStatusCancelled = 'Cancelado';
+  static const finFilterAll = 'Todos';
+  static const finFilterOpen = 'Em aberto';
+  static const finFilterOverdue = 'Vencidos';
+  static const finFilterPaid = 'Pagos';
+  static const finFilterCancelled = 'Cancelados';
+  static const finSearchHint = 'Buscar pela descrição';
+  static const newPayable = 'Nova conta a pagar';
+  static const newReceivable = 'Nova conta a receber';
+  static const editPayable = 'Conta a pagar';
+  static const editReceivable = 'Conta a receber';
+  static const finNoEntries = 'Nenhum lançamento neste mês.';
+  static const finOverdueRange =
+      'Vencidos dos últimos 400 dias, de todos os meses.';
+  static const finNoEntriesHint =
+      'Troque o mês ou o filtro, ou cadastre um lançamento.';
+  static const finDescription = 'Descrição';
+  static const finCategory = 'Categoria';
+  static const finAccount = 'Conta';
+  static const finAllAccounts = 'Todas as contas';
+  static const finSupplier = 'Fornecedor';
+  static const finPatient = 'Paciente';
+  static const finNoSupplier = 'Sem fornecedor';
+  static const finNoPatient = 'Sem paciente';
+  static const finChoosePatient = 'Escolher paciente';
+  static const finAmount = 'Valor';
+  static const finTotalAmount = 'Valor total';
+  static const finAmountEach = 'Valor de cada mês';
+  static const finDue = 'Vencimento';
+  static const finFirstDue = 'Primeiro vencimento';
+  static const finCompetence = 'Competência';
+  static const finPaymentMethod = 'Forma de pagamento';
+  static const finPaidOn = 'Pago em';
+  static const finReceivedOn = 'Recebido em';
+  static const finPaidAmount = 'Valor pago';
+  static const finReceivedAmount = 'Valor recebido';
+  static const finRepeat = 'Repetição';
+  static const finRepeatOnce = 'Única';
+  static const finRepeatInstallments = 'Parcelada';
+  static const finRepeatMonthly = 'Mensal (recorrente)';
+  static const finInstallments = 'Parcelas';
+  static const finMonths = 'Meses';
+  static String finInstallmentsPreview(int n, String each) =>
+      '$n parcelas de $each, uma por mês.';
+  static String finRepeatPreview(int n) =>
+      'Cria $n lançamentos, um por mês, com o mesmo valor.';
+  static const finAlreadyPaid = 'Já foi pago';
+  static const finAlreadyReceived = 'Já foi recebido';
+  static String finCreated(int n) =>
+      n == 1 ? 'Lançamento criado.' : '$n lançamentos criados.';
+  static const finPaidLockedHint =
+      'Lançamento pago: só descrição, categoria e observações podem mudar. Para alterar valores, desfaça o pagamento.';
+  static const finPay = 'Pagar';
+  static const finReceive = 'Receber';
+  static const finPayTitle = 'Registrar pagamento';
+  static const finReceiveTitle = 'Registrar recebimento';
+  static const finUndoPayment = 'Desfazer pagamento';
+  static const finUndoConfirm =
+      'O lançamento volta a ficar em aberto e sai do saldo da conta. Continuar?';
+  static const finCancelEntry = 'Cancelar lançamento';
+  static const finCancelConfirm =
+      'O lançamento deixa de contar nos totais. Continuar?';
+  static const finCancelFollowing = 'Cancelar também as próximas em aberto';
+  static const finReopen = 'Reabrir';
+  static const finSettled = 'Baixa registrada.';
+  static const finUndone = 'Pagamento desfeito.';
+  static const finCancelled = 'Lançamento cancelado.';
+  static const finReopened = 'Lançamento reaberto.';
+  static String finInstallmentOf(int n, int total) => 'Parcela $n de $total';
+  static const finRecurring = 'Recorrente';
+  static const finTotalOpen = 'Em aberto';
+  static const finTotalOverdue = 'Vencido';
+  static const finTotalPaid = 'Pago no mês';
+  static const finByCostType = 'Por tipo de custo';
+  static const finStart = 'Saldo inicial';
+  static const finEnd = 'Saldo final';
+  static const finIn = 'Entradas';
+  static const finOut = 'Saídas';
+  static const finNoMovements = 'Nenhum movimento pago neste mês.';
+  static const finDate = 'Data';
+  static const finBalanceAfter = 'Saldo';
+  static const finOpeningBalance = 'Saldo anterior';
+  static const finRealized = 'Realizado';
+  static const finPlanned = 'Previsto';
+  static const finProjected = 'Saldo projetado';
+  static const finOverdueCarried =
+      'Vencidos de meses anteriores entram como previstos no dia 1.';
+  static const finDay = 'Dia';
+  static const finAccountsSection = 'Contas';
+  static const finCategoriesSection = 'Plano de contas';
+  static const finSuppliersSection = 'Fornecedores';
+  static const finNewAccount = 'Nova conta';
+  static const finNewCategory = 'Nova categoria';
+  static const finNewSupplier = 'Novo fornecedor';
+  static const finAccountType = 'Tipo da conta';
+  static const finOpening = 'Saldo inicial';
+  static const finOpeningHelper =
+      'Quanto havia na conta quando começou a usar o sistema.';
+  static const finKind = 'Tipo';
+  static const finRevenue = 'Receita';
+  static const finExpense = 'Despesa';
+  static const finRevenues = 'Receitas';
+  static const finExpenses = 'Despesas';
+  static const finCostType = 'Tipo de custo';
+  static String finUsedBy(int n) =>
+      n == 0 ? 'Sem lançamentos' : (n == 1 ? '1 lançamento' : '$n lançamentos');
+  static const finDocument = 'CPF ou CNPJ';
+  static const finNoRegisters = 'Nada cadastrado ainda.';
+  static const finChooseCategory = 'Escolha a categoria.';
+  static const finChooseAccount = 'Escolha a conta.';
+  static const costFixed = 'Fixo';
+  static const costVariable = 'Variável';
+  static const costInvestment = 'Investimento';
+  static const costOther = 'Outros';
+  static const payCash = 'Dinheiro';
+  static const payPix = 'Pix';
+  static const payCredit = 'Cartão de crédito';
+  static const payDebit = 'Cartão de débito';
+  static const payTransfer = 'Transferência';
+  static const payBoleto = 'Boleto';
+  static const payCheck = 'Cheque';
+  static const payOther = 'Outro';
+  static const accountCash = 'Caixa';
+  static const accountBank = 'Banco';
+  static const accountSafe = 'Cofre';
+  static const previousMonth = 'Mês anterior';
+  static const nextMonth = 'Próximo mês';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -922,6 +1087,66 @@ abstract final class Strings {
     'PATIENT_NOTE_FORBIDDEN': 'Você não tem permissão para alterar as notas.',
     'PATIENT_NOTE_REQUIRED': 'Escreva a nota.',
     'PATIENT_NOTE_NOT_FOUND': 'Nota não encontrada.',
+    // Backend: financeiro
+    'FINANCE_BRANCH_REQUIRED': 'Escolha a filial.',
+    'FINANCE_FORBIDDEN': 'Você não tem acesso ao financeiro desta filial.',
+    'FIN_LIST_FILTER_INVALID':
+        'Filtro ou período inválido (no máximo 400 dias).',
+    'FIN_ACCOUNT_ACTION_INVALID': 'Ação inválida.',
+    'FIN_ACCOUNT_FORBIDDEN': 'Você não tem permissão para alterar contas.',
+    'FIN_ACCOUNT_NAME_REQUIRED': 'Informe o nome da conta.',
+    'FIN_ACCOUNT_NAME_IN_USE': 'Já existe uma conta chamada {Name}.',
+    'FIN_ACCOUNT_TYPE_INVALID': 'Tipo de conta inválido.',
+    'FIN_ACCOUNT_VALUE_INVALID': 'Dados da conta inválidos.',
+    'FIN_ACCOUNT_STATUS_INVALID': 'Situação inválida.',
+    'FIN_ACCOUNT_REQUIRED': 'Conta não informada.',
+    'FIN_ACCOUNT_NOT_FOUND': 'Conta não encontrada.',
+    'FIN_CATEGORY_ACTION_INVALID': 'Ação inválida.',
+    'FIN_CATEGORY_FORBIDDEN':
+        'Você não tem permissão para alterar o plano de contas.',
+    'FIN_CATEGORY_NAME_REQUIRED': 'Informe o nome da categoria.',
+    'FIN_CATEGORY_NAME_IN_USE': 'Já existe uma categoria chamada {Name}.',
+    'FIN_CATEGORY_KIND_INVALID': 'Escolha receita ou despesa.',
+    'FIN_CATEGORY_COST_TYPE_INVALID': 'Tipo de custo inválido.',
+    'FIN_CATEGORY_STATUS_INVALID': 'Situação inválida.',
+    'FIN_CATEGORY_REQUIRED': 'Categoria não informada.',
+    'FIN_CATEGORY_NOT_FOUND': 'Categoria não encontrada.',
+    'FIN_SUPPLIER_ACTION_INVALID': 'Ação inválida.',
+    'FIN_SUPPLIER_FORBIDDEN':
+        'Você não tem permissão para alterar fornecedores.',
+    'FIN_SUPPLIER_NAME_REQUIRED': 'Informe o nome do fornecedor.',
+    'FIN_SUPPLIER_NAME_IN_USE': 'Já existe um fornecedor chamado {Name}.',
+    'FIN_SUPPLIER_DOCUMENT_INVALID': 'CPF ou CNPJ inválido.',
+    'FIN_SUPPLIER_PHONE_INVALID': 'Telefone inválido.',
+    'FIN_SUPPLIER_EMAIL_INVALID': 'E-mail inválido.',
+    'FIN_SUPPLIER_STATUS_INVALID': 'Situação inválida.',
+    'FIN_SUPPLIER_REQUIRED': 'Fornecedor não informado.',
+    'FIN_SUPPLIER_NOT_FOUND': 'Fornecedor não encontrado.',
+    'FIN_ENTRY_ACTION_INVALID': 'Ação inválida.',
+    'FIN_ENTRY_FORBIDDEN':
+        'Você não tem permissão para esta ação no financeiro.',
+    'FIN_ENTRY_VALUE_INVALID': 'Dados do lançamento inválidos.',
+    'FIN_ENTRY_KIND_INVALID': 'Escolha a pagar ou a receber.',
+    'FIN_ENTRY_CATEGORY_INVALID':
+        'Categoria inválida, inativa ou de outro tipo (receita × despesa).',
+    'FIN_ENTRY_ACCOUNT_INVALID': 'Conta inválida ou inativa.',
+    'FIN_ENTRY_SUPPLIER_INVALID': 'Fornecedor inválido ou inativo.',
+    'FIN_ENTRY_PATIENT_INVALID': 'Paciente inválido.',
+    'FIN_ENTRY_DESCRIPTION_REQUIRED': 'Informe a descrição.',
+    'FIN_ENTRY_AMOUNT_INVALID': 'Informe um valor maior que zero.',
+    'FIN_ENTRY_DUE_REQUIRED': 'Informe o vencimento.',
+    'FIN_ENTRY_METHOD_INVALID': 'Forma de pagamento inválida.',
+    'FIN_ENTRY_INSTALLMENTS_INVALID':
+        'Parcelas: de 1 a 120. Repetição mensal: de 1 a 60 meses.',
+    'FIN_ENTRY_PAID_ACCOUNT_REQUIRED': 'Escolha a conta do pagamento.',
+    'FIN_ENTRY_REQUIRED': 'Lançamento não informado.',
+    'FIN_ENTRY_NOT_FOUND': 'Lançamento não encontrado.',
+    'FIN_ENTRY_PAID_LOCKED':
+        'Lançamento pago: desfaça o pagamento para alterar valores e datas.',
+    'FIN_ENTRY_CANCELLED_LOCKED': 'Lançamento cancelado: reabra para alterar.',
+    'FIN_SETTLE_ACTION_INVALID': 'Ação inválida.',
+    'FIN_SETTLE_STATUS_INVALID':
+        'Esta ação não vale para a situação atual do lançamento.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
