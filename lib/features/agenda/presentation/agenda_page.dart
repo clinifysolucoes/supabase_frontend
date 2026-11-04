@@ -15,6 +15,7 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/agenda_controllers.dart';
 import '../domain/agenda_models.dart';
+import 'agenda_calendar_tab.dart';
 import 'professional_form_dialog.dart';
 
 /// Agenda, parte 1: profissionais (colunas da agenda) com cor, intervalo,
@@ -39,9 +40,81 @@ class AgendaPage extends ConsumerWidget {
   }
 }
 
-/// Conteudo da Agenda (sem a moldura), para reuso e testes.
-class AgendaPageBody extends ConsumerWidget {
+/// Conteudo da Agenda (sem a moldura): abas Agenda (grade) e Profissionais.
+class AgendaPageBody extends StatelessWidget {
   const AgendaPageBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DefaultTabController(
+      length: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AppPageHeader(
+              title: Strings.agenda,
+              subtitle: Strings.agendaSubtitle,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: TabBar(
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelColor: AppColors.primaryDark,
+                  unselectedLabelColor: AppColors.muted,
+                  labelStyle: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                  tabs: const [
+                    Tab(
+                      height: 44,
+                      icon: Icon(Icons.calendar_view_week_rounded, size: 18),
+                      iconMargin: EdgeInsets.zero,
+                      text: Strings.tabCalendar,
+                    ),
+                    Tab(
+                      height: 44,
+                      icon: Icon(Icons.badge_outlined, size: 18),
+                      iconMargin: EdgeInsets.zero,
+                      text: Strings.tabProfessionals,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            const Expanded(
+              child: TabBarView(
+                physics: NeverScrollableScrollPhysics(),
+                children: [AgendaCalendarTab(), ProfessionalsTab()],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Aba Profissionais: cartoes e cadastro.
+class ProfessionalsTab extends ConsumerWidget {
+  const ProfessionalsTab({super.key});
 
   Future<void> _open(
     BuildContext context,
@@ -71,15 +144,10 @@ class AgendaPageBody extends ConsumerWidget {
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const AppPageHeader(
-              title: Strings.agenda,
-              subtitle: Strings.agendaSubtitle,
-            ),
-            const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,

@@ -55,6 +55,31 @@ class _FakeRepo implements AgendaRepository {
   }
 
   @override
+  Future<AppointmentListData> appointments({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    List<int>? professionals,
+    bool includeCancelled = false,
+  }) async => const AppointmentListData();
+
+  @override
+  Future<int> createAppointment({
+    required int nrCompany,
+    required int nrBranch,
+    required AppointmentDraft draft,
+  }) async => 1;
+
+  @override
+  Future<void> updateAppointment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAppointment,
+    required Map<String, dynamic> changes,
+  }) async {}
+
+  @override
   Future<void> updateProfessional({
     required int nrCompany,
     required int nrBranch,
@@ -214,7 +239,9 @@ void main() {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(app(const AgendaPageBody()));
+      await tester.pumpWidget(app(const Scaffold(body: AgendaPageBody())));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.tabProfessionals).first);
       await tester.pumpAndSettle();
       expect(find.text('Dra. Ana Souza'), findsOneWidget);
       expect(find.text('08:00 – 12:00 · 14:00 – 18:00'), findsOneWidget);
