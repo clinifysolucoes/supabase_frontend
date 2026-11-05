@@ -1012,6 +1012,90 @@ abstract final class Strings {
   static const healthColProfessional = 'Profissional';
   static const healthColDescription = 'Descrição';
 
+  // Financeiro, fase 3b: convenios, guias e conciliacao bancaria
+  static const tabPlans = 'Convênios';
+  static const tabBank = 'Conciliação';
+  static const guideOpen = 'Aberta';
+  static const guideInvoiced = 'Faturada';
+  static const guidePaid = 'Paga';
+  static const guideFilterAll = 'Todas';
+  static const guideFilterOpen = 'A faturar';
+  static const guideFilterInvoiced = 'Faturadas';
+  static const guideFilterPaid = 'Pagas';
+  static const guideFilterCancelled = 'Canceladas';
+  static const guideNew = 'Nova guia';
+  static const guideTitle = 'Guia de convênio';
+  static const guidePlan = 'Convênio';
+  static const guideNumber = 'Número da guia';
+  static const guideCard = 'Carteirinha';
+  static const guideDate = 'Data do atendimento';
+  static const guideItems = 'Procedimentos';
+  static const guideAddItem = 'Adicionar procedimento';
+  static const guideProcedure = 'Procedimento';
+  static const guideTooth = 'Dente/região';
+  static const guideQty = 'Qtd.';
+  static const guideUnit = 'Valor';
+  static const guideTotal = 'Total da guia';
+  static const guideNoPlans =
+      'Cadastre um convênio (com a tabela de preço) em Cadastros antes de lançar guias.';
+  static const guideNone = 'Nenhuma guia neste mês.';
+  static const guideInvoice = 'Faturar';
+  static String guideInvoiceSelected(int n) =>
+      n == 1 ? 'Faturar 1 guia' : 'Faturar $n guias';
+  static const guideUninvoice = 'Desfazer faturamento';
+  static const guidePay = 'Registrar pagamento';
+  static const guidePayTitle = 'Pagamento do convênio';
+  static const guidePayHint =
+      'Informe a glosa de cada procedimento (o que o convênio não pagou). Quando todas as guias do faturamento estiverem pagas, a conta a receber é baixada.';
+  static const guideDenied = 'Glosa';
+  static const guidePaidValue = 'Valor pago';
+  static const guideUnpay = 'Desfazer pagamento';
+  static const guideCancel = 'Cancelar guia';
+  static const guideCancelConfirm = 'A guia deixa de contar. Continuar?';
+  static const guideDone = 'Guia atualizada.';
+  static const guideTotalsOpen = 'A faturar';
+  static const guideTotalsInvoiced = 'Faturado';
+  static const guideTotalsPaid = 'Recebido';
+  static const guideTotalsDenied = 'Glosado';
+  static String guideDue(String d) => 'Vence em $d';
+  static const plansSection = 'Convênios';
+  static const planNew = 'Novo convênio';
+  static const planAns = 'Registro ANS';
+  static const planDocument = 'CNPJ';
+  static const planDays = 'Prazo de repasse (dias)';
+  static const planAccount = 'Conta do repasse';
+  static const planPrices = 'Tabela de preço';
+  static const planAddPrice = 'Adicionar procedimento';
+  static const planCode = 'Código';
+  static const planPrice = 'Valor do convênio';
+  static String planPrivate(String v) => 'Particular: $v';
+  static String planSummary(int n, int days) =>
+      '$n procedimentos · repasse em $days dias';
+  static const bankAccount = 'Conta do banco';
+  static const bankChooseAccount = 'Escolha a conta para conciliar.';
+  static const bankImport = 'Importar OFX';
+  static String bankImported(int n, int dup, int matched) =>
+      '$n linhas novas ($matched conciliadas automaticamente, $dup repetidas).';
+  static const bankFileInvalid =
+      'Não encontrei transações neste arquivo. Exporte o extrato em OFX no site do banco.';
+  static const bankNone =
+      'Nenhuma linha do banco neste mês. Importe o extrato em OFX.';
+  static const bankPending = 'Pendentes';
+  static const bankMatched = 'Conciliadas';
+  static const bankIgnored = 'Ignoradas';
+  static const bankBalance = 'Movimento do banco';
+  static const bankUnmatched = 'No sistema e não no banco';
+  static const bankMatch = 'Conciliar';
+  static const bankCreate = 'Lançar';
+  static const bankCreateTitle = 'Lançar a partir do extrato';
+  static const bankIgnore = 'Ignorar';
+  static const bankUndo = 'Desfazer';
+  static String bankSuggestion(String d, int days) =>
+      days == 0 ? d : '$d (${days}d)';
+  static const bankNoSuggestion = 'Sem sugestão';
+  static const bankDone = 'Extrato atualizado.';
+  static const bankTransfer = 'Transferência';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -1339,6 +1423,62 @@ abstract final class Strings {
     'FIN_RATE_DAYS_INVALID': 'O prazo deve ficar entre 0 e 365 dias.',
     'FIN_RATE_ACCOUNT_INVALID': 'Escolha a conta onde o dinheiro cai.',
     'FIN_RATE_STATUS_INVALID': 'Situação inválida.',
+    // Backend: financeiro fase 3b
+    'FIN_BANK_RECONCILED':
+        'Já conciliado com o extrato do banco. Desfaça a conciliação antes.',
+    'FIN_BANK_FORBIDDEN': 'Você não tem permissão para a conciliação bancária.',
+    'FIN_BANK_ACCOUNT_INVALID': 'Escolha uma conta ativa.',
+    'FIN_BANK_LINES_INVALID':
+        'O arquivo não tem transações (até 2000 por vez).',
+    'FIN_BANK_LINE_INVALID': 'Transação {Line} do arquivo inválida.',
+    'FIN_BANK_ACTION_INVALID': 'Ação inválida.',
+    'FIN_BANK_LINE_REQUIRED': 'Linha do extrato não informada.',
+    'FIN_BANK_LINE_NOT_FOUND': 'Linha do extrato não encontrada.',
+    'FIN_BANK_STATUS_INVALID': 'Esta ação não vale para a situação da linha.',
+    'FIN_BANK_MATCH_INVALID':
+        'O lançamento precisa ser da mesma conta, com o mesmo valor e ainda não conciliado.',
+    'FIN_BANK_CATEGORY_INVALID':
+        'Escolha uma categoria do tipo certo (receita ou despesa).',
+    'HEALTH_PLAN_ACTION_INVALID': 'Ação inválida.',
+    'HEALTH_PLAN_FORBIDDEN': 'Você não tem permissão para alterar convênios.',
+    'HEALTH_PLAN_REQUIRED': 'Convênio não informado.',
+    'HEALTH_PLAN_NOT_FOUND': 'Convênio não encontrado.',
+    'HEALTH_PLAN_VALUE_INVALID': 'Dados do convênio inválidos.',
+    'HEALTH_PLAN_NAME_REQUIRED': 'Informe o nome do convênio.',
+    'HEALTH_PLAN_NAME_IN_USE': 'Já existe um convênio chamado {Name}.',
+    'HEALTH_PLAN_ANS_INVALID': 'O registro ANS tem 6 dígitos.',
+    'HEALTH_PLAN_DOCUMENT_INVALID': 'CNPJ inválido.',
+    'HEALTH_PLAN_DAYS_INVALID': 'O prazo deve ficar entre 0 e 365 dias.',
+    'HEALTH_PLAN_ACCOUNT_INVALID': 'Escolha a conta do repasse.',
+    'HEALTH_PLAN_STATUS_INVALID': 'Situação inválida.',
+    'HEALTH_PLAN_PRICES_INVALID': 'Tabela de preço inválida.',
+    'HEALTH_PLAN_PRICE_INVALID':
+        'Procedimento inválido, inativo ou repetido na tabela de preço.',
+    'HEALTH_GUIDE_ACTION_INVALID': 'Ação inválida.',
+    'HEALTH_GUIDE_FORBIDDEN': 'Você não tem permissão para alterar guias.',
+    'HEALTH_GUIDE_REQUIRED': 'Guia não informada.',
+    'HEALTH_GUIDE_NOT_FOUND': 'Guia não encontrada.',
+    'HEALTH_GUIDE_LOCKED': 'Só guias abertas podem ser alteradas.',
+    'HEALTH_GUIDE_VALUE_INVALID': 'Dados da guia inválidos.',
+    'HEALTH_GUIDE_PLAN_INVALID': 'Convênio inválido ou inativo.',
+    'HEALTH_GUIDE_PATIENT_INVALID': 'Paciente inválido.',
+    'HEALTH_GUIDE_PROFESSIONAL_INVALID': 'Profissional inválido.',
+    'HEALTH_GUIDE_APPOINTMENT_INVALID':
+        'Atendimento inválido para este paciente.',
+    'HEALTH_GUIDE_DATE_REQUIRED': 'Informe a data do atendimento.',
+    'HEALTH_GUIDE_ITEMS_REQUIRED': 'Adicione de 1 a 50 procedimentos.',
+    'HEALTH_GUIDE_ITEM_INVALID': 'Procedimento {Item} inválido.',
+    'HEALTH_GUIDE_PRICE_REQUIRED':
+        'O procedimento {Item} não está na tabela do convênio: informe o valor.',
+    'HEALTH_GUIDE_SETTLE_ACTION_INVALID': 'Ação inválida.',
+    'HEALTH_GUIDE_STATUS_INVALID':
+        'Esta ação não vale para a situação da guia.',
+    'HEALTH_GUIDE_PLAN_MIXED': 'Fature juntas só guias do mesmo convênio.',
+    'HEALTH_GUIDE_EMPTY': 'As guias não têm valor para faturar.',
+    'HEALTH_GUIDE_ACCOUNT_REQUIRED':
+        'Informe a conta do repasse (no convênio ou no pagamento).',
+    'HEALTH_GUIDE_ENTRY_PAID':
+        'O faturamento já tem pagamento. Desfaça o pagamento antes.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

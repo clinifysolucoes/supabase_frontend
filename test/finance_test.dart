@@ -6,10 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:odonto_app/core/theme/app_theme.dart';
 import 'package:odonto_app/features/agenda/domain/agenda_models.dart';
 import 'package:odonto_app/features/finance/data/finance_repository.dart';
+import 'package:odonto_app/features/finance/domain/bank_models.dart';
 import 'package:odonto_app/features/finance/domain/cash_models.dart';
+import 'package:odonto_app/features/finance/domain/health_models.dart';
 import 'package:odonto_app/features/finance/domain/receivable_models.dart';
 import 'package:odonto_app/features/finance/domain/finance_models.dart';
 import 'package:odonto_app/features/finance/presentation/checkout_dialog.dart';
+import 'package:odonto_app/features/finance/presentation/bank_tab.dart';
 import 'package:odonto_app/features/finance/presentation/finance_page.dart';
 import 'package:odonto_app/features/profiles/application/profiles_controller.dart';
 import 'package:odonto_app/features/session/application/permissions.dart';
@@ -106,6 +109,7 @@ class _FakeRepo implements FinanceRepository {
   final cashCalls = <(String, Map<String, dynamic>)>[];
   bool cashOpen = false;
   DateTime? healthFrom;
+  int? bankAccount;
   final savedRegisters = <(String, Map<String, dynamic>)>[];
 
   @override
@@ -369,6 +373,113 @@ class _FakeRepo implements FinanceRepository {
     healthFrom = from;
     return const HealthExport();
   }
+
+  @override
+  Future<PlanCatalog> healthPlans({
+    required int nrCompany,
+    required int nrBranch,
+  }) async => PlanCatalog.fromJson({
+    'plans': [
+      {
+        'nr_plan': 1,
+        'vc_name': 'Odonto Plus',
+        'qt_payment_days': 45,
+        'nr_account': 2,
+        'it_status': 1,
+        'prices': [
+          {
+            'nr_procedure': 1,
+            'vc_procedure': 'Limpeza',
+            'vl_price': 80,
+            'vl_private': 200,
+          },
+        ],
+      },
+    ],
+    'procedures': [
+      {'nr_procedure': 1, 'vc_name': 'Limpeza'},
+      {'nr_procedure': 2, 'vc_name': 'Restauração'},
+    ],
+    'professionals': [
+      {'nr_professional': 1, 'vc_name': 'Dra. Ana'},
+    ],
+  });
+
+  @override
+  Future<GuideList> healthGuides({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    GuideFilter status = GuideFilter.all,
+  }) async => GuideList.fromJson({
+    'guides': [
+      {
+        'nr_guide': 3,
+        'nr_plan': 1,
+        'vc_plan': 'Odonto Plus',
+        'nr_patient': 1,
+        'vc_patient': 'Paciente Convênio',
+        'dt_service': '2026-11-03',
+        'vl_total': 160,
+        'it_status': 2,
+        'items': [
+          {
+            'nr_item': 1,
+            'nr_procedure': 1,
+            'vc_procedure': 'Limpeza',
+            'qt_quantity': 2,
+            'vl_unit': 80,
+            'vl_total': 160,
+          },
+        ],
+      },
+    ],
+    'totals': {'vl_invoiced': 160},
+  });
+
+  @override
+  Future<BankList> bankLines({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAccount,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    bankAccount = nrAccount;
+    return BankList.fromJson({
+      'lines': [
+        {
+          'nr_line': 7,
+          'vc_fitid': 'F2',
+          'dt_posted': '2026-12-03',
+          'vl_amount': 500,
+          'vc_memo': 'TED RECEBIDA',
+          'it_status': 1,
+          'candidates': [
+            {
+              'it_source': 2,
+              'nr_ref': 4,
+              'dt_ref': '2026-12-02',
+              'vl_value': 500,
+              'vc_description': 'Transferência',
+              'qt_days': 1,
+            },
+          ],
+        },
+      ],
+      'totals': {'vl_bank': 500, 'qt_pending': 1},
+    });
+  }
+}
+
+/// Abas rolam: garante que a aba esta visivel antes de tocar.
+Future<void> openTab(WidgetTester tester, String label) async {
+  final tab = find.widgetWithText(Tab, label);
+  await tester.ensureVisible(tab);
+  await tester.pumpAndSettle();
+  await tester.tap(tab);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -498,6 +609,56 @@ void main() {
       expect(lines[2], '111.444.777-35;Mãe do Leo;;Leo;11/11/2026;50,50;;');
     });
 
+    test('OFX: SGML e XML, valores, datas e historico', () {
+      const sgml = '''
+OFXHEADER:100
+<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><BANKTRANLIST>
+<STMTTRN>
+<TRNTYPE>DEBIT
+<DTPOSTED>20261201120000[-3:BRT]
+<TRNAMT>-1500,00
+<FITID>F1
+<MEMO>PAG ALUGUEL &amp; CONDOMINIO
+<STMTTRN>
+<TRNTYPE>CREDIT
+<DTPOSTED>20261203
+<TRNAMT>500.00
+<FITID>F2
+<NAME>TED
+<MEMO>TED RECEBIDA
+</BANKTRANLIST></STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>''';
+      final a = OfxParser.parse(sgml);
+      expect(a.length, 2);
+      expect(a[0].fitid, 'F1');
+      expect(a[0].amount, -1500);
+      expect(a[0].posted, DateTime(2026, 12, 1));
+      expect(a[0].memo, 'PAG ALUGUEL & CONDOMINIO');
+      expect(a[1].memo, 'TED · TED RECEBIDA');
+      expect(a[1].toJson()['dt_posted'], '2026-12-03');
+      const xml =
+          '<OFX><BANKTRANLIST><STMTTRN><TRNTYPE>FEE</TRNTYPE>'
+          '<DTPOSTED>20261205</DTPOSTED><TRNAMT>-12.90</TRNAMT>'
+          '<FITID>F3</FITID><MEMO>TARIFA</MEMO></STMTTRN>'
+          '<STMTTRN><DTPOSTED>2026</DTPOSTED><TRNAMT>1</TRNAMT><FITID>X</FITID></STMTTRN>'
+          '</BANKTRANLIST></OFX>';
+      final b = OfxParser.parse(xml);
+      expect(b.single.amount, -12.9, reason: 'data invalida fica de fora');
+      expect(b.single.memo, 'TARIFA');
+      final plan = PlanCatalog.fromJson({
+        'plans': [
+          {
+            'nr_plan': 1,
+            'vc_name': 'P',
+            'prices': [
+              {'nr_procedure': 5, 'vl_price': 80},
+            ],
+          },
+        ],
+      }).plans.single;
+      expect(plan.priceOf(5), 80);
+      expect(plan.priceOf(6), isNull);
+    });
+
     test('EntryDraft: parcelada, recorrente e ja paga', () {
       final base = EntryDraft(
         itKind: 2,
@@ -600,7 +761,7 @@ void main() {
 
     testWidgets('a pagar: lista, nova parcelada e baixa', (tester) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabPayables));
+      await openTab(tester, Strings.tabPayables);
       await tester.pumpAndSettle();
       expect(find.text('Aluguel (1/3)'), findsOneWidget);
       expect(find.text(Strings.finInstallmentOf(1, 3)), findsOneWidget);
@@ -666,7 +827,7 @@ void main() {
       tester,
     ) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabPayables));
+      await openTab(tester, Strings.tabPayables);
       await tester.pumpAndSettle();
       await tester.tap(find.text(Strings.newPayable));
       await tester.pumpAndSettle();
@@ -694,7 +855,7 @@ void main() {
 
     testWidgets('cadastros: nova categoria nos dois grupos', (tester) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabFinRegisters));
+      await openTab(tester, Strings.tabFinRegisters);
       await tester.pumpAndSettle();
       expect(find.text(Strings.finNewCategory), findsNWidgets(2));
     });
@@ -757,7 +918,7 @@ void main() {
 
     testWidgets('caixa: abre, mostra o resumo e fecha', (tester) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.cashTab));
+      await openTab(tester, Strings.cashTab);
       await tester.pumpAndSettle();
       expect(find.text(Strings.cashClosed), findsOneWidget);
       await tester.tap(find.text(Strings.cashOpenAction));
@@ -791,7 +952,7 @@ void main() {
       tester,
     ) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabPayables));
+      await openTab(tester, Strings.tabPayables);
       await tester.pumpAndSettle();
       // conta a pagar: sem campo de parcelas no cartao
       await tester.tap(find.text('Aluguel (1/3)'));
@@ -807,7 +968,7 @@ void main() {
 
     testWidgets('recebiveis: lista e confirma o que caiu', (tester) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabReceivablesCards));
+      await openTab(tester, Strings.tabReceivablesCards);
       await tester.pumpAndSettle();
       expect(find.text('Paciente Um'), findsOneWidget);
       expect(find.text('R\$ 144,75'), findsWidgets);
@@ -833,7 +994,7 @@ void main() {
 
     testWidgets('cadastros: taxas e nova taxa', (tester) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabFinRegisters));
+      await openTab(tester, Strings.tabFinRegisters);
       await tester.pumpAndSettle();
       expect(find.text('Crédito 1 a 6x'), findsOneWidget);
       await tester.tap(find.text(Strings.rateNew));
@@ -869,7 +1030,7 @@ void main() {
 
     testWidgets('extrato: exportacao Receita Saude do mes', (tester) async {
       await pump(tester);
-      await tester.tap(find.widgetWithText(Tab, Strings.tabStatement));
+      await openTab(tester, Strings.tabStatement);
       await tester.pumpAndSettle();
       await tester.tap(find.text(Strings.healthExport));
       await tester.pumpAndSettle();
@@ -878,6 +1039,107 @@ void main() {
       final now = DateTime.now();
       expect(repo.healthFrom, DateTime(now.year, now.month));
       expect(find.text(Strings.healthEmpty), findsOneWidget);
+    });
+
+    testWidgets('convenios: guia faturada e pagamento com glosa', (
+      tester,
+    ) async {
+      await pump(tester);
+      await openTab(tester, Strings.tabPlans);
+      await tester.pumpAndSettle();
+      expect(find.text('Paciente Convênio · Odonto Plus'), findsOneWidget);
+      expect(find.text('2× Limpeza'), findsOneWidget);
+      await tester.tap(find.text(Strings.guidePay));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.ancestor(
+          of: find.text(Strings.guideDenied),
+          matching: find.byType(TextField),
+        ),
+        '40',
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('${Strings.guidePaidValue}: R\$ 120,00'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(Strings.confirm));
+      await tester.pumpAndSettle();
+      final (rpc, fields) = repo.cashCalls.single;
+      expect(rpc, 'health_guide_settle');
+      expect(fields['vc_action'], 'PAY');
+      expect(fields['nr_guides'], [3]);
+      expect(fields['denials'], [
+        {'nr_item': 1, 'vl_denied': 40.0},
+      ]);
+    });
+
+    testWidgets('conciliacao: importa OFX e concilia a sugestao', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            financeRepositoryProvider.overrideWithValue(repo),
+            currentCompanyProvider.overrideWith((ref) => 1),
+            currentBranchNumberProvider.overrideWith((ref) => 1),
+            canReadProvider.overrideWith((ref, code) => true),
+            canCreateProvider.overrideWith((ref, code) => true),
+            canUpdateProvider.overrideWith((ref, code) => true),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light(useGoogleFonts: false),
+            home: Scaffold(
+              body: BankTab(
+                pickOfx: () async =>
+                    '<STMTTRN><DTPOSTED>20261203<TRNAMT>500<FITID>F2<MEMO>TED</STMTTRN>',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(repo.bankAccount, 2, reason: 'banco escolhido sozinho');
+      expect(find.text('TED RECEBIDA'), findsOneWidget);
+      await tester.tap(find.text(Strings.bankImport));
+      await tester.pumpAndSettle();
+      final (rpc, fields) = repo.cashCalls.single;
+      expect(rpc, 'fin_bank_import');
+      expect(fields['nr_account'], 2);
+      expect((fields['lines'] as List).single, {
+        'vc_fitid': 'F2',
+        'dt_posted': '2026-12-03',
+        'vl_amount': 500.0,
+        'vc_memo': 'TED',
+      });
+      await tester.tap(
+        find.textContaining('${Strings.bankMatch}: Transferência'),
+      );
+      await tester.pumpAndSettle();
+      final (rpc2, f2) = repo.cashCalls.last;
+      expect(rpc2, 'fin_bank_reconcile');
+      expect(f2, {'vc_action': 'MATCH', 'nr_line': 7, 'nr_transfer': 4});
+    });
+
+    testWidgets('cadastros: convenio com a tabela de preco', (tester) async {
+      await pump(tester);
+      await openTab(tester, Strings.tabFinRegisters);
+      await tester.pumpAndSettle();
+      expect(find.text(Strings.planSummary(1, 45)), findsOneWidget);
+      await tester.tap(find.text('Odonto Plus'));
+      await tester.pumpAndSettle();
+      expect(find.text(Strings.planPrivate('R\$ 200,00')), findsOneWidget);
+      await tester.tap(find.text(Strings.save).last);
+      await tester.pumpAndSettle();
+      final (rpc, fields) = repo.cashCalls.single;
+      expect(rpc, 'health_plan_save');
+      expect(fields['vc_action'], 'U');
+      expect(fields['prices'], [
+        {'nr_procedure': 1, 'vl_price': 80.0, 'vc_code': null},
+      ]);
     });
   });
 }

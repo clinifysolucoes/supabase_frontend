@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../agenda/application/agenda_controllers.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../data/finance_repository.dart';
+import '../domain/bank_models.dart';
 import '../domain/cash_models.dart';
+import '../domain/health_models.dart';
 import '../domain/finance_models.dart';
 import '../domain/receivable_models.dart';
 
@@ -165,6 +167,64 @@ final receivablesProvider = FutureProvider.autoDispose<ReceivableList>((
       );
 });
 
+/// Convenios (com os procedimentos e profissionais dos formularios).
+final healthPlansProvider = FutureProvider.autoDispose<PlanCatalog>((
+  ref,
+) async {
+  final b = _branchOf(ref);
+  if (b == null) return const PlanCatalog();
+  return ref
+      .read(financeRepositoryProvider)
+      .healthPlans(nrCompany: b.company, nrBranch: b.branch);
+});
+
+/// Guias: mes do atendimento e situacao.
+final guidesMonthProvider = StateProvider.autoDispose<DateTime>(
+  (_) => _thisMonth(),
+);
+
+final guidesFilterProvider = StateProvider.autoDispose<GuideFilter>(
+  (_) => GuideFilter.all,
+);
+
+final guidesProvider = FutureProvider.autoDispose<GuideList>((ref) async {
+  final b = _branchOf(ref);
+  if (b == null) return const GuideList();
+  final month = ref.watch(guidesMonthProvider);
+  return ref
+      .read(financeRepositoryProvider)
+      .healthGuides(
+        nrCompany: b.company,
+        nrBranch: b.branch,
+        from: month,
+        to: monthEnd(month),
+        status: ref.watch(guidesFilterProvider),
+      );
+});
+
+/// Conciliacao: conta (null = escolher) e mes.
+final bankAccountProvider = StateProvider.autoDispose<int?>((_) => null);
+
+final bankMonthProvider = StateProvider.autoDispose<DateTime>(
+  (_) => _thisMonth(),
+);
+
+final bankLinesProvider = FutureProvider.autoDispose<BankList?>((ref) async {
+  final b = _branchOf(ref);
+  final account = ref.watch(bankAccountProvider);
+  if (b == null || account == null) return null;
+  final month = ref.watch(bankMonthProvider);
+  return ref
+      .read(financeRepositoryProvider)
+      .bankLines(
+        nrCompany: b.company,
+        nrBranch: b.branch,
+        nrAccount: account,
+        from: month,
+        to: monthEnd(month),
+      );
+});
+
 /// Escritas do financeiro: chamam a RPC e recarregam tudo que mostra saldo.
 class FinanceActions {
   FinanceActions(this._ref);
@@ -190,7 +250,10 @@ class FinanceActions {
       ..invalidate(cashflowProvider)
       ..invalidate(statementProvider)
       ..invalidate(cashStatusProvider)
-      ..invalidate(receivablesProvider);
+      ..invalidate(receivablesProvider)
+      ..invalidate(healthPlansProvider)
+      ..invalidate(guidesProvider)
+      ..invalidate(bankLinesProvider);
   }
 
   Future<HealthExport> healthExport(DateTime from, DateTime to) {

@@ -20,6 +20,8 @@ import '../domain/finance_models.dart';
 import 'finance_overview_tab.dart' show accountIcon;
 import '../domain/receivable_models.dart';
 import 'finance_widgets.dart';
+import '../domain/health_models.dart';
+import 'plan_form_dialog.dart';
 import 'rate_form_dialog.dart';
 
 enum RegisterType { account, category, supplier }
@@ -164,12 +166,48 @@ class RegistersTab extends ConsumerWidget {
               ),
           ],
         );
+        final plansCatalog = ref.watch(healthPlansProvider).valueOrNull;
+        Future<void> openPlan([HealthPlan? p]) async {
+          if (plansCatalog == null) return;
+          final saved = await PlanFormDialog.show(
+            context,
+            catalog: plansCatalog,
+            accounts: c.payableAccounts,
+            plan: p,
+            readOnly: p != null && !canUpdate,
+          );
+          if (saved && context.mounted) {
+            AppSnack.success(context, Strings.savedSuccess);
+          }
+        }
+
+        final plans = _Section(
+          title: Strings.plansSection,
+          action: canCreate && plansCatalog != null
+              ? TextButton.icon(
+                  onPressed: openPlan,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text(Strings.planNew),
+                )
+              : null,
+          children: [
+            for (final p in plansCatalog?.plans ?? const <HealthPlan>[])
+              _Tile(
+                icon: Icons.assignment_ind_outlined,
+                title: p.vcName,
+                subtitle: Strings.planSummary(p.prices.length, p.qtPaymentDays),
+                status: p.itStatus,
+                onTap: () => openPlan(p),
+              ),
+          ],
+        );
         final sections = [
           accounts,
           categoryGroup(EntryKind.receivable),
           categoryGroup(EntryKind.payable),
           suppliers,
           rates,
+          plans,
         ];
         if (context.isMobile) {
           return ListView(
@@ -203,6 +241,8 @@ class RegistersTab extends ConsumerWidget {
                     sections[1],
                     const SizedBox(height: AppSpacing.md),
                     sections[2],
+                    const SizedBox(height: AppSpacing.md),
+                    plans,
                   ],
                 ),
               ),
