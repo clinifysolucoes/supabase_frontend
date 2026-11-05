@@ -19,6 +19,7 @@ enum AppSection {
   users,
   profiles,
   logs,
+  settings,
 }
 
 class _Destination {
@@ -112,6 +113,14 @@ const _adminItems = [
     selectedIcon: Icons.receipt_long_rounded,
     label: Strings.logs,
     route: '/logs',
+  ),
+  _Destination(
+    section: AppSection.settings,
+    code: ScreenCodes.settings,
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings_rounded,
+    label: Strings.settingsTitle,
+    route: '/configuracoes',
   ),
 ];
 
