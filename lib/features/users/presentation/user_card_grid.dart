@@ -33,20 +33,23 @@ class UserCardGrid extends StatelessWidget {
         final columns = (c.maxWidth / 300).floor().clamp(1, 4);
         final width = (c.maxWidth - (columns - 1) * AppSpacing.md) / columns;
         return SingleChildScrollView(
-          child: Wrap(
-            spacing: AppSpacing.md,
-            runSpacing: AppSpacing.md,
-            children: [
-              for (final u in users)
-                SizedBox(
-                  width: width,
-                  child: UserCard(
-                    user: u,
-                    canUpdate: canUpdate,
-                    onAction: (a) => onAction(u, a),
+          child: SizedBox(
+            width: c.maxWidth,
+            child: Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.md,
+              children: [
+                for (final u in users)
+                  SizedBox(
+                    width: width,
+                    child: UserCard(
+                      user: u,
+                      canUpdate: canUpdate,
+                      onAction: (a) => onAction(u, a),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
       },
