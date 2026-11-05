@@ -360,6 +360,10 @@ class _ProcedureMaterialsPickerState
   late List<ProcedureMaterial> _materials = [...widget.materials];
   final Map<int, TextEditingController> _qty = {};
 
+  /// Busca do catalogo aberta (Adicionar materiais, ou o botao dentro do
+  /// Ver materiais).
+  late bool _adding = widget.adding;
+
   @override
   void initState() {
     super.initState();
@@ -421,7 +425,7 @@ class _ProcedureMaterialsPickerState
     final theme = Theme.of(context);
     final isMobile = context.isMobile;
     final editable = !widget.readOnly;
-    final catalog = widget.adding && editable
+    final catalog = _adding && editable
         ? ref.watch(materialCatalogProvider).valueOrNull ?? const []
         : const <MaterialItem>[];
     final available = [
@@ -451,7 +455,7 @@ class _ProcedureMaterialsPickerState
                   style: const TextStyle(color: AppColors.muted),
                 ),
               const SizedBox(height: AppSpacing.lg),
-              if (widget.adding && editable) ...[
+              if (_adding && editable) ...[
                 SearchableDropdown<MaterialItem>(
                   label: Strings.addMaterial,
                   items: available,
@@ -497,6 +501,15 @@ class _ProcedureMaterialsPickerState
                     ],
                   ),
                 ),
+              if (editable && !_adding) ...[
+                const SizedBox(height: AppSpacing.sm),
+                AppButton(
+                  label: Strings.addMaterials,
+                  icon: Icons.add_rounded,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => setState(() => _adding = true),
+                ),
+              ],
               const SizedBox(height: AppSpacing.md),
               Row(
                 children: [

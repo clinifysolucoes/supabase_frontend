@@ -159,61 +159,74 @@ void main() {
     expect(find.text(Strings.materialsSaved), findsOneWidget);
   });
 
-  testWidgets('cadastro: Adicionar materiais inclui do catalogo', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1280, 900);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    List<ProcedureMaterial>? result;
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          materialCatalogProvider.overrideWith(
-            (ref) async => [
-              MaterialItem.fromJson({
-                'nr_material': 9,
-                'vc_name': 'Luva',
-                'vc_unit': 'par',
-                'vl_unit_cost': 0.5,
-              }),
+  for (final adding in [true, false]) {
+    testWidgets(
+      'cadastro: inclui do catalogo (${adding ? 'Adicionar' : 'Ver'})',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        List<ProcedureMaterial>? result;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              materialCatalogProvider.overrideWith(
+                (ref) async => [
+                  MaterialItem.fromJson({
+                    'nr_material': 9,
+                    'vc_name': 'Luva',
+                    'vc_unit': 'par',
+                    'vl_unit_cost': 0.5,
+                  }),
+                ],
+              ),
             ],
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.light(useGoogleFonts: false),
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () async =>
-                    result = await ProcedureMaterialsPicker.show(
-                      context,
-                      materials: const [],
-                      title: 'Profilaxia',
-                      adding: true,
-                    ),
-                child: const Text('abrir'),
+            child: MaterialApp(
+              theme: AppTheme.light(useGoogleFonts: false),
+              home: Scaffold(
+                body: Builder(
+                  builder: (context) => TextButton(
+                    onPressed: () async =>
+                        result = await ProcedureMaterialsPicker.show(
+                          context,
+                          materials: const [],
+                          title: 'Profilaxia',
+                          adding: adding,
+                        ),
+                    child: const Text('abrir'),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+        await tester.tap(find.text('abrir'));
+        await tester.pumpAndSettle();
+        // Adicionar: titulo da janela. Ver: botao que abre a busca ali mesmo.
+        expect(find.text(Strings.addMaterials), findsOneWidget);
+        expect(
+          find.text(Strings.addMaterial),
+          adding ? findsOneWidget : findsNothing,
+        );
+        if (!adding) {
+          await tester.tap(find.text(Strings.addMaterials));
+          await tester.pumpAndSettle();
+          expect(find.text(Strings.addMaterials), findsNothing);
+        }
+        await tester.tap(find.text(Strings.addMaterial));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Luva').last);
+        await tester.pumpAndSettle();
+        expect(
+          find.widgetWithText(TextField, Strings.quantityUsed),
+          findsOneWidget,
+        );
+        await tester.tap(find.text(Strings.confirm));
+        await tester.pumpAndSettle();
+        expect(result!.single.toJson(), {'nr_material': 9, 'qt_used': 1.0});
+      },
     );
-    await tester.tap(find.text('abrir'));
-    await tester.pumpAndSettle();
-    expect(find.text(Strings.addMaterials), findsOneWidget);
-    await tester.tap(find.text(Strings.addMaterial));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Luva').last);
-    await tester.pumpAndSettle();
-    expect(
-      find.widgetWithText(TextField, Strings.quantityUsed),
-      findsOneWidget,
-    );
-    await tester.tap(find.text(Strings.confirm));
-    await tester.pumpAndSettle();
-    expect(result!.single.toJson(), {'nr_material': 9, 'qt_used': 1.0});
-  });
+  }
 
   test('posicao de cada grupo: titulos de 40 e linhas de 64', () {
     final items = [
