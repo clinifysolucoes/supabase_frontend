@@ -86,6 +86,22 @@ class UsersController extends AutoDisposeAsyncNotifier<CompanyUserPage> {
     await refresh();
   }
 
+  Future<void> resetPassword({
+    required int nrUser,
+    required String password,
+  }) async {
+    final nrCompany = ref.read(currentCompanyProvider);
+    if (nrCompany == null) return;
+    await ref
+        .read(userRepositoryProvider)
+        .resetPassword(
+          nrCompany: nrCompany,
+          nrBranch: _nrBranch,
+          nrUser: nrUser,
+          password: password,
+        );
+  }
+
   Future<void> unlink({required int nrUser}) async {
     final nrCompany = ref.read(currentCompanyProvider);
     if (nrCompany == null) return;

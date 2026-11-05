@@ -154,6 +154,19 @@ class UserRepository {
     });
   }
 
+  /// O administrador define uma senha nova (Edge Function user-password-reset).
+  Future<void> resetPassword({
+    required int nrCompany,
+    int? nrBranch,
+    required int nrUser,
+    required String password,
+  }) => _gateway.invokeFunction('user-password-reset', {
+    'nr_company': nrCompany,
+    'nr_branch': ?nrBranch,
+    'nr_user': nrUser,
+    'vc_password': password,
+  });
+
   Future<void> unlink({
     required int nrCompany,
     int? nrBranch,

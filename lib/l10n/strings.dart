@@ -1184,6 +1184,21 @@ abstract final class Strings {
   static const attachDownload = 'Baixar';
   static const attachDownloaded = 'Arquivo baixado.';
 
+  // Usuarios em cards: senha, situacao
+  static const resetPassword = 'Redefinir senha';
+  static String resetPasswordHint(String name) =>
+      'Defina uma senha nova para $name. Passe a senha a ela pessoalmente; ela pode trocá-la depois.';
+  static const newPassword = 'Senha nova';
+  static const passwordResetDone = 'Senha redefinida.';
+  static const passwordMin = 'Use pelo menos 8 caracteres.';
+  static const inactivateUser = 'Inativar';
+  static const activateUser = 'Ativar';
+  static String inactivateUserConfirm(String name) =>
+      '$name deixa de entrar na empresa até ser ativado de novo. Inativar?';
+  static const userInactivated = 'Usuário inativado.';
+  static const userActivated = 'Usuário ativado.';
+  static const showOnlyActive = 'Mostrar apenas usuários ativos';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -1595,6 +1610,16 @@ abstract final class Strings {
     'FIN_ATTACHMENT_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
     'FIN_ATTACHMENT_BODY_INVALID': 'Dados do anexo inválidos.',
     'FIN_ATTACHMENT_METHOD': 'Requisição inválida.',
+    // Backend: redefinir senha
+    'USER_PASSWORD_COMPANY_REQUIRED': 'Empresa não informada.',
+    'USER_PASSWORD_FORBIDDEN': 'Só o administrador da empresa redefine senhas.',
+    'USER_PASSWORD_SHARED':
+        'Este usuário também usa outra empresa: ele mesmo precisa trocar a senha.',
+    'USER_PASSWORD_AUTH_FAILED': 'Não foi possível trocar a senha.',
+    'USER_PASSWORD_BACKEND_ERROR': 'Erro ao redefinir a senha.',
+    'USER_PASSWORD_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
+    'USER_PASSWORD_BODY_INVALID': 'Dados inválidos.',
+    'USER_PASSWORD_METHOD': 'Requisição inválida.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

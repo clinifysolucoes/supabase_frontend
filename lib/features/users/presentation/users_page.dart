@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
@@ -15,8 +14,6 @@ import '../../../shared/widgets/app_page_header.dart';
 import '../../../shared/widgets/app_pagination.dart';
 import '../../../shared/widgets/app_shell.dart';
 import '../../../shared/widgets/app_snack.dart';
-import '../../../shared/widgets/app_status_chip.dart';
-import '../../../shared/widgets/app_table.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
@@ -26,9 +23,8 @@ import '../../session/domain/screen_codes.dart';
 import '../application/users_controller.dart';
 import '../data/user_repository.dart';
 import '../domain/company_user.dart';
+import 'user_card_grid.dart';
 import 'user_form_dialog.dart';
-
-final _dateTime = DateFormat('dd/MM/yyyy HH:mm');
 
 /// Usuarios da empresa atual: cadastrar, editar acesso por filial, bloquear,
 /// remover. A lista exige ler USERS (o backend exige administrador para
@@ -89,6 +85,61 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     }
   }
 
+  Future<void> _resetPassword(CompanyUser user) async {
+    final password = await _ResetPasswordDialog.show(context, user);
+    if (password == null || !mounted) return;
+    try {
+      await ref
+          .read(usersProvider.notifier)
+          .resetPassword(nrUser: user.nrUser, password: password);
+      if (mounted) AppSnack.success(context, Strings.passwordResetDone);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    }
+  }
+
+  Future<void> _toggleStatus(CompanyUser user) async {
+    final activate = user.itStatus != UserStatus.active;
+    if (!activate &&
+        (!await AppConfirmDialog.show(
+              context,
+              title: Strings.inactivateUser,
+              message: Strings.inactivateUserConfirm(user.vcName),
+            ) ||
+            !mounted)) {
+      return;
+    }
+    try {
+      await ref
+          .read(usersProvider.notifier)
+          .updateUser(
+            nrUser: user.nrUser,
+            itStatus: activate ? UserStatus.active : UserStatus.inactive,
+          );
+      if (mounted) {
+        AppSnack.success(
+          context,
+          activate ? Strings.userActivated : Strings.userInactivated,
+        );
+      }
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    }
+  }
+
+  void _onAction(CompanyUser user, UserCardAction action) {
+    switch (action) {
+      case UserCardAction.edit:
+        _openForm(user);
+      case UserCardAction.password:
+        _resetPassword(user);
+      case UserCardAction.toggleStatus:
+        _toggleStatus(user);
+      case UserCardAction.unlink:
+        _unlink(user);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final canRead = ref.watch(canReadProvider(ScreenCodes.users));
@@ -109,12 +160,6 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     final async = ref.watch(usersProvider);
     final branches = ref.watch(branchesProvider).valueOrNull ?? const [];
 
-    final statusChoices = const [
-      Choice<int>(value: null, label: Strings.allStatuses),
-      Choice<int>(value: UserStatus.active, label: Strings.statusActive),
-      Choice<int>(value: UserStatus.blocked, label: Strings.statusBlocked),
-      Choice<int>(value: UserStatus.inactive, label: Strings.statusInactive),
-    ];
     final branchChoices = [
       const Choice<int>(value: null, label: Strings.allBranches),
       for (final b in branches)
@@ -163,19 +208,19 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   ),
                 ),
                 SizedBox(
-                  width: isMobile ? double.infinity : 200,
-                  child: SearchableDropdown<Choice<int>>(
-                    label: Strings.status,
-                    items: statusChoices,
-                    value: statusChoices.firstWhere(
-                      (c) => c.value == filters.itStatus,
-                      orElse: () => statusChoices.first,
-                    ),
-                    itemLabel: (c) => c.label,
-                    onChanged: (c) => _setFilters(
-                      c.value == null
-                          ? filters.copyWith(clearStatus: true, page: 1)
-                          : filters.copyWith(itStatus: c.value, page: 1),
+                  width: isMobile ? double.infinity : 300,
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: const Text(Strings.showOnlyActive),
+                    value: filters.itStatus == UserStatus.active,
+                    onChanged: (v) => _setFilters(
+                      v ?? false
+                          ? filters.copyWith(
+                              itStatus: UserStatus.active,
+                              page: 1,
+                            )
+                          : filters.copyWith(clearStatus: true, page: 1),
                     ),
                   ),
                 ),
@@ -218,17 +263,10 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   return Column(
                     children: [
                       Expanded(
-                        child: ResponsiveBuilder(
-                          mobile: (_) => _UserCards(
-                            users: page.users,
-                            onEdit: canUpdate ? _openForm : null,
-                            onUnlink: canUpdate ? _unlink : null,
-                          ),
-                          desktop: (_) => _UserTable(
-                            users: page.users,
-                            onEdit: canUpdate ? _openForm : null,
-                            onUnlink: canUpdate ? _unlink : null,
-                          ),
+                        child: UserCardGrid(
+                          users: page.users,
+                          canUpdate: canUpdate,
+                          onAction: _onAction,
                         ),
                       ),
                       AppPagination(
@@ -249,206 +287,85 @@ class _UsersPageState extends ConsumerState<UsersPage> {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.user});
+/// Senha nova (duas vezes); devolve a senha ou null.
+class _ResetPasswordDialog extends StatefulWidget {
+  const _ResetPasswordDialog({required this.user});
 
   final CompanyUser user;
 
+  static Future<String?> show(BuildContext context, CompanyUser user) =>
+      showDialog<String>(
+        context: context,
+        builder: (_) => _ResetPasswordDialog(user: user),
+      );
+
   @override
-  Widget build(BuildContext context) {
-    return CircleAvatar(
-      backgroundColor: user.idAdmin ? AppColors.mint : AppColors.surface,
-      foregroundColor: user.idAdmin ? AppColors.primaryDark : AppColors.muted,
-      child: Text(
-        user.initials,
-        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-      ),
-    );
-  }
+  State<_ResetPasswordDialog> createState() => _ResetPasswordDialogState();
 }
 
-Widget _accessChips(CompanyUser user) => Wrap(
-  spacing: AppSpacing.xs,
-  runSpacing: AppSpacing.xs,
-  children: [
-    for (final b in user.branches)
-      AppTagChip(
-        label: '${b.vcBranch} · ${b.vcProfile}',
-        icon: b.isAdmin ? Icons.admin_panel_settings_rounded : null,
-        highlighted: b.isAdmin,
-      ),
-  ],
-);
+class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
 
-Widget _actions(
-  CompanyUser u,
-  ValueChanged<CompanyUser>? onEdit,
-  ValueChanged<CompanyUser>? onUnlink,
-) => Row(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    IconButton(
-      tooltip: Strings.edit,
-      icon: const Icon(Icons.edit_outlined),
-      onPressed: onEdit == null ? null : () => onEdit(u),
-    ),
-    IconButton(
-      tooltip: Strings.unlinkUser,
-      icon: Icon(
-        Icons.person_remove_outlined,
-        color: onUnlink == null ? AppColors.muted : AppColors.danger,
-      ),
-      onPressed: onUnlink == null ? null : () => onUnlink(u),
-    ),
-  ],
-);
-
-class _UserTable extends StatelessWidget {
-  const _UserTable({
-    required this.users,
-    required this.onEdit,
-    required this.onUnlink,
-  });
-
-  final List<CompanyUser> users;
-  final ValueChanged<CompanyUser>? onEdit;
-  final ValueChanged<CompanyUser>? onUnlink;
+  @override
+  void dispose() {
+    _password.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AppTable(
-      minWidth: 960,
-      columns: const [
-        DataColumn(label: Text(Strings.user)),
-        DataColumn(label: Text(Strings.status)),
-        DataColumn(label: Text(Strings.userAccessTitle)),
-        DataColumn(label: Text(Strings.lastLogin)),
-        DataColumn(label: Text(Strings.actions)),
-      ],
-      rows: [
-        for (final u in users)
-          DataRow(
-            cells: [
-              DataCell(
-                Row(
-                  children: [
-                    _Avatar(user: u),
-                    const SizedBox(width: AppSpacing.sm),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          u.vcName,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        if (u.vcEmail != null)
-                          Text(
-                            u.vcEmail!,
-                            style: const TextStyle(
-                              color: AppColors.muted,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
+    return AlertDialog(
+      title: const Text(Strings.resetPassword),
+      content: SizedBox(
+        width: 400,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                Strings.resetPasswordHint(widget.user.vcName),
+                style: const TextStyle(color: AppColors.muted),
               ),
-              DataCell(
-                Tooltip(
-                  message: u.vcBlockReason ?? '',
-                  child: AppStatusChip(status: u.itStatus),
-                ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                label: Strings.newPassword,
+                controller: _password,
+                obscureText: true,
+                validator: (v) =>
+                    (v ?? '').length < 8 ? Strings.passwordMin : null,
               ),
-              DataCell(_accessChips(u)),
-              DataCell(
-                Text(
-                  u.dhLastLogin == null
-                      ? Strings.never
-                      : _dateTime.format(u.dhLastLogin!.toLocal()),
-                ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                label: Strings.confirmPassword,
+                controller: _confirm,
+                obscureText: true,
+                validator: (v) =>
+                    v != _password.text ? Strings.passwordsDiffer : null,
               ),
-              DataCell(_actions(u, onEdit, onUnlink)),
             ],
           ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text(Strings.cancel),
+        ),
+        AppButton(
+          label: Strings.resetPassword,
+          expanded: false,
+          onPressed: () {
+            if (_formKey.currentState?.validate() ?? false) {
+              Navigator.of(context).pop(_password.text);
+            }
+          },
+        ),
       ],
-    );
-  }
-}
-
-class _UserCards extends StatelessWidget {
-  const _UserCards({
-    required this.users,
-    required this.onEdit,
-    required this.onUnlink,
-  });
-
-  final List<CompanyUser> users;
-  final ValueChanged<CompanyUser>? onEdit;
-  final ValueChanged<CompanyUser>? onUnlink;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      itemCount: users.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) {
-        final u = users[index];
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    _Avatar(user: u),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            u.vcName,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          if (u.vcEmail != null)
-                            Text(
-                              u.vcEmail!,
-                              style: const TextStyle(
-                                color: AppColors.muted,
-                                fontSize: 12,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    AppStatusChip(status: u.itStatus, compact: true),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _accessChips(u),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${Strings.lastLogin}: ${u.dhLastLogin == null ? Strings.never : _dateTime.format(u.dhLastLogin!.toLocal())}',
-                        style: const TextStyle(
-                          color: AppColors.muted,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    _actions(u, onEdit, onUnlink),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
