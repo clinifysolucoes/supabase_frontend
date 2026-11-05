@@ -315,3 +315,228 @@ class _ReadRow extends StatelessWidget {
     );
   }
 }
+
+/// Materiais dentro do cadastro do procedimento: trabalha numa copia da lista
+/// do formulario e devolve a lista nova (null = cancelou). Nada e gravado
+/// aqui: o Salvar do cadastro grava tudo junto.
+/// [adding] = true abre com a busca de material para incluir.
+class ProcedureMaterialsPicker extends ConsumerStatefulWidget {
+  const ProcedureMaterialsPicker({
+    super.key,
+    required this.materials,
+    required this.title,
+    this.adding = false,
+    this.readOnly = false,
+  });
+
+  final List<ProcedureMaterial> materials;
+  final String title;
+  final bool adding;
+  final bool readOnly;
+
+  static Future<List<ProcedureMaterial>?> show(
+    BuildContext context, {
+    required List<ProcedureMaterial> materials,
+    required String title,
+    bool adding = false,
+    bool readOnly = false,
+  }) => showDialog<List<ProcedureMaterial>>(
+    context: context,
+    builder: (_) => ProcedureMaterialsPicker(
+      materials: materials,
+      title: title,
+      adding: adding,
+      readOnly: readOnly,
+    ),
+  );
+
+  @override
+  ConsumerState<ProcedureMaterialsPicker> createState() =>
+      _ProcedureMaterialsPickerState();
+}
+
+class _ProcedureMaterialsPickerState
+    extends ConsumerState<ProcedureMaterialsPicker> {
+  late List<ProcedureMaterial> _materials = [...widget.materials];
+  final Map<int, TextEditingController> _qty = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (final m in _materials) {
+      _qty[m.nrMaterial] = TextEditingController(
+        text: Numbers.toField(m.qtUsed, decimals: 3),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _qty.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  double get _total => _materials.fold<double>(
+    0,
+    (s, m) => s + PricingCalculator.round2(m.qtUsed * m.vlUnitCost),
+  );
+
+  void _add(MaterialItem m) {
+    if (_materials.any((x) => x.nrMaterial == m.nrMaterial)) return;
+    setState(() {
+      _materials = [..._materials, ProcedureMaterial.fromMaterial(m, 1)];
+      _qty[m.nrMaterial] = TextEditingController(text: '1');
+    });
+  }
+
+  void _setQty(int nrMaterial, String text) {
+    final qty = Numbers.parse(text) ?? 0;
+    setState(() {
+      _materials = [
+        for (final m in _materials)
+          if (m.nrMaterial == nrMaterial) m.copyWith(qtUsed: qty) else m,
+      ];
+    });
+  }
+
+  void _remove(int nrMaterial) {
+    setState(() {
+      _materials = _materials.where((m) => m.nrMaterial != nrMaterial).toList();
+      _qty.remove(nrMaterial)?.dispose();
+    });
+  }
+
+  void _apply() {
+    if (_materials.any((m) => m.qtUsed <= 0)) {
+      AppSnack.error(context, Strings.mustBePositive);
+      return;
+    }
+    Navigator.of(context).pop(_materials);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isMobile = context.isMobile;
+    final editable = !widget.readOnly;
+    final catalog = widget.adding && editable
+        ? ref.watch(materialCatalogProvider).valueOrNull ?? const []
+        : const <MaterialItem>[];
+    final available = [
+      for (final m in catalog)
+        if (!_materials.any((x) => x.nrMaterial == m.nrMaterial)) m,
+    ];
+
+    return Dialog(
+      insetPadding: EdgeInsets.all(isMobile ? AppSpacing.sm : AppSpacing.xxl),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.adding ? Strings.addMaterials : Strings.materialsUsed,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (widget.title.isNotEmpty)
+                Text(
+                  widget.title,
+                  style: const TextStyle(color: AppColors.muted),
+                ),
+              const SizedBox(height: AppSpacing.lg),
+              if (widget.adding && editable) ...[
+                SearchableDropdown<MaterialItem>(
+                  label: Strings.addMaterial,
+                  items: available,
+                  itemLabel: (m) => m.vcName,
+                  itemSubtitle: (m) =>
+                      '${m.vcPackage ?? ''} · ${Numbers.money(m.vlUnitCost, unit: true)}/${m.vcUnit ?? Strings.unit.toLowerCase()}',
+                  prefixIcon: Icons.add_rounded,
+                  onChanged: _add,
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              if (_materials.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  child: Text(
+                    Strings.noMaterialsInProcedure,
+                    style: TextStyle(color: AppColors.muted),
+                  ),
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.line),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < _materials.length; i++) ...[
+                        if (i > 0) const Divider(height: 1),
+                        if (editable)
+                          ProcedureMaterialRow(
+                            material: _materials[i],
+                            controller: _qty[_materials[i].nrMaterial]!,
+                            enabled: true,
+                            compact: isMobile,
+                            onChanged: (v) =>
+                                _setQty(_materials[i].nrMaterial, v),
+                            onRemove: () => _remove(_materials[i].nrMaterial),
+                          )
+                        else
+                          _ReadRow(material: _materials[i]),
+                      ],
+                    ],
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      Strings.materialsTotal,
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  Text(
+                    Numbers.money(_total),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      label: editable ? Strings.cancel : Strings.close,
+                      variant: AppButtonVariant.secondary,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  if (editable) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: Strings.confirm,
+                        onPressed: _apply,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

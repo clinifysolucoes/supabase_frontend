@@ -22,6 +22,7 @@ import '../domain/pricing_calculator.dart';
 import '../domain/pricing_models.dart';
 import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
+import 'procedure_materials_dialog.dart';
 
 /// Novo procedimento (procedure = null) ou edicao: dados, especialidade,
 /// materiais x quantidade e a simulacao do preco ao vivo (PricingCalculator)
@@ -173,22 +174,31 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     ),
   );
 
-  void _addMaterial(MaterialItem m) {
-    if (_materials.any((x) => x.nrMaterial == m.nrMaterial)) return;
+  /// Lista nova vinda da janela de materiais (ver ou adicionar).
+  void _replaceMaterials(List<ProcedureMaterial> list) {
     setState(() {
-      _materials = [..._materials, ProcedureMaterial.fromMaterial(m, 1)];
-      _qty[m.nrMaterial] = TextEditingController(text: '1');
+      for (final c in _qty.values) {
+        c.dispose();
+      }
+      _qty.clear();
+      _materials = [...list];
+      for (final m in _materials) {
+        _qty[m.nrMaterial] = TextEditingController(
+          text: Numbers.toField(m.qtUsed, decimals: 3),
+        );
+      }
     });
   }
 
-  void _setQty(int nrMaterial, String text) {
-    final qty = Numbers.parse(text) ?? 0;
-    setState(() {
-      _materials = [
-        for (final m in _materials)
-          if (m.nrMaterial == nrMaterial) m.copyWith(qtUsed: qty) else m,
-      ];
-    });
+  Future<void> _openMaterials({required bool adding}) async {
+    final list = await ProcedureMaterialsPicker.show(
+      context,
+      materials: _materials,
+      title: _name.text.trim(),
+      adding: adding,
+      readOnly: !_canEdit,
+    );
+    if (list != null && mounted) _replaceMaterials(list);
   }
 
   /// Escolheu uma sugestao do auto complete: preenche o formulario.
@@ -224,13 +234,6 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
           ? Strings.suggestionFilledFromSheet
           : Strings.suggestionCopied(s.vcName),
     );
-  }
-
-  void _removeMaterial(int nrMaterial) {
-    setState(() {
-      _materials = _materials.where((m) => m.nrMaterial != nrMaterial).toList();
-      _qty.remove(nrMaterial)?.dispose();
-    });
   }
 
   /// Edicao inline de um fator: parametros da filial (salvos na hora) e, para
@@ -309,7 +312,6 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isMobile = context.isMobile;
-    final catalog = ref.watch(materialCatalogProvider).valueOrNull ?? const [];
     final specialties =
         ref.watch(specialtyCatalogProvider).valueOrNull ?? const <Specialty>[];
     // especialidade inativa ligada ao procedimento continua visivel no combo
@@ -333,11 +335,6 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     final canUpdateParams =
         ref.watch(canUpdateProvider(ScreenCodes.pricing)) ||
         (ref.watch(canCreateProvider(ScreenCodes.pricing)) && !_params.idSaved);
-    final available = [
-      for (final m in catalog)
-        if (!_materials.any((x) => x.nrMaterial == m.nrMaterial)) m,
-    ];
-
     final title = widget.readOnly
         ? Strings.viewProcedure
         : (_isEdit ? Strings.editProcedure : Strings.newProcedure);
@@ -498,46 +495,36 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          if (_materials.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-              child: Text(
-                Strings.noMaterialsInProcedure,
-                style: TextStyle(color: AppColors.muted),
-              ),
-            )
-          else
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.line),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Column(
-                children: [
-                  for (var i = 0; i < _materials.length; i++) ...[
-                    if (i > 0) const Divider(height: 1),
-                    ProcedureMaterialRow(
-                      material: _materials[i],
-                      controller: _qty[_materials[i].nrMaterial]!,
-                      enabled: _canEdit,
-                      compact: isMobile,
-                      onChanged: (v) => _setQty(_materials[i].nrMaterial, v),
-                      onRemove: () => _removeMaterial(_materials[i].nrMaterial),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+          Text(
+            _materials.isEmpty
+                ? Strings.noMaterialsInProcedure
+                : Strings.materialsSummary(
+                    _materials.length,
+                    Numbers.money(_materialsCost),
+                  ),
+            style: const TextStyle(color: AppColors.muted),
+          ),
           const SizedBox(height: AppSpacing.sm),
-          SearchableDropdown<MaterialItem>(
-            label: Strings.addMaterial,
-            items: available,
-            itemLabel: (m) => m.vcName,
-            itemSubtitle: (m) =>
-                '${m.vcPackage ?? ''} · ${Numbers.money(m.vlUnitCost, unit: true)}/${m.vcUnit ?? Strings.unit.toLowerCase()}',
-            prefixIcon: Icons.add_rounded,
-            enabled: _canEdit,
-            onChanged: _addMaterial,
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              AppButton(
+                label: Strings.viewMaterials(_materials.length),
+                icon: Icons.inventory_2_outlined,
+                variant: AppButtonVariant.secondary,
+                expanded: false,
+                onPressed: () => _openMaterials(adding: false),
+              ),
+              if (_canEdit)
+                AppButton(
+                  label: Strings.addMaterials,
+                  icon: Icons.add_rounded,
+                  variant: AppButtonVariant.secondary,
+                  expanded: false,
+                  onPressed: () => _openMaterials(adding: true),
+                ),
+            ],
           ),
           if (_isEdit) ...[
             const SizedBox(height: AppSpacing.md),

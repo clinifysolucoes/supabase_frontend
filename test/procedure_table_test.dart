@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:odonto_app/core/theme/app_theme.dart';
 import 'package:odonto_app/features/pricing/application/pricing_controllers.dart';
 import 'package:odonto_app/features/pricing/domain/pricing_models.dart';
+import 'package:odonto_app/features/pricing/presentation/procedure_materials_dialog.dart';
 import 'package:odonto_app/features/pricing/presentation/procedures_tab.dart';
 import 'package:odonto_app/features/session/application/permissions.dart';
 import 'package:odonto_app/l10n/strings.dart';
@@ -156,6 +157,62 @@ void main() {
     expect(nr, 7);
     expect(materials.single.toJson(), {'nr_material': 3, 'qt_used': 4.0});
     expect(find.text(Strings.materialsSaved), findsOneWidget);
+  });
+
+  testWidgets('cadastro: Adicionar materiais inclui do catalogo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    List<ProcedureMaterial>? result;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          materialCatalogProvider.overrideWith(
+            (ref) async => [
+              MaterialItem.fromJson({
+                'nr_material': 9,
+                'vc_name': 'Luva',
+                'vc_unit': 'par',
+                'vl_unit_cost': 0.5,
+              }),
+            ],
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(useGoogleFonts: false),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async =>
+                    result = await ProcedureMaterialsPicker.show(
+                      context,
+                      materials: const [],
+                      title: 'Profilaxia',
+                      adding: true,
+                    ),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.addMaterials), findsOneWidget);
+    await tester.tap(find.text(Strings.addMaterial));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Luva').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.widgetWithText(TextField, Strings.quantityUsed),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(Strings.confirm));
+    await tester.pumpAndSettle();
+    expect(result!.single.toJson(), {'nr_material': 9, 'qt_used': 1.0});
   });
 
   test('posicao de cada grupo: titulos de 40 e linhas de 64', () {
