@@ -296,6 +296,22 @@ class PricingRepository {
     });
   }
 
+  /// So os materiais do procedimento (update parcial: o resto nao muda).
+  Future<void> updateProcedureMaterials({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrProcedure,
+    required List<ProcedureMaterial> materials,
+  }) async {
+    await _gateway.rpc('procedure_save', {
+      'vc_action': 'U',
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'nr_procedure': nrProcedure,
+      'materials': [for (final m in materials) m.toJson()],
+    });
+  }
+
   /// Pesquisa de preco de mercado (Edge Function material-price-lookup).
   /// Nao grava nada: o usuario escolhe a oferta e salva o material.
   Future<PriceLookupResult> lookupPrice({

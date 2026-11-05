@@ -516,7 +516,7 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
                 children: [
                   for (var i = 0; i < _materials.length; i++) ...[
                     if (i > 0) const Divider(height: 1),
-                    _MaterialRow(
+                    ProcedureMaterialRow(
                       material: _materials[i],
                       controller: _qty[_materials[i].nrMaterial]!,
                       enabled: _canEdit,
@@ -646,8 +646,9 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
 
 /// Linha de material: nome + custo unitario, quantidade e custo da linha.
 /// No mobile (compact) fica em duas linhas.
-class _MaterialRow extends StatelessWidget {
-  const _MaterialRow({
+class ProcedureMaterialRow extends StatelessWidget {
+  const ProcedureMaterialRow({
+    super.key,
     required this.material,
     required this.controller,
     required this.enabled,

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -13,7 +15,6 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_status_chip.dart';
-import '../../../shared/widgets/app_table.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
@@ -25,6 +26,7 @@ import '../domain/pricing_models.dart';
 import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
 import 'procedure_form_dialog.dart';
+import 'procedure_materials_dialog.dart';
 
 /// Aba Procedimentos: fatores do preco (clicaveis), lista com o preco
 /// calculado no banco e a situacao do valor cobrado hoje, filtros (inclusive
@@ -441,8 +443,90 @@ Color _diffColor(double? diff) => diff == null
 String _diffText(double? diff) =>
     diff == null ? '-' : '${diff >= 0 ? '+' : ''}${Numbers.money(diff)}';
 
+/// Agrupa por especialidade: nomes em ordem alfabetica e os sem especialidade
+/// no fim. Dentro do grupo mantem a ordem que veio do banco.
+List<({String? name, List<Procedure> items})> groupBySpecialty(
+  List<Procedure> items,
+) {
+  final map = <String?, List<Procedure>>{};
+  for (final p in items) {
+    (map[p.vcSpecialty] ??= []).add(p);
+  }
+  final keys = map.keys.toList()
+    ..sort((a, b) {
+      if (a == null) return b == null ? 0 : 1;
+      if (b == null) return -1;
+      return a.toLowerCase().compareTo(b.toLowerCase());
+    });
+  return [for (final k in keys) (name: k, items: map[k]!)];
+}
+
+/// Uma linha da lista: titulo de grupo ou procedimento.
+typedef _Entry = ({String? group, int count, Procedure? procedure});
+
+List<_Entry> _entries(List<Procedure> items, bool grouped) => grouped
+    ? [
+        for (final g in groupBySpecialty(items)) ...[
+          (
+            group: g.name ?? Strings.noSpecialty,
+            count: g.items.length,
+            procedure: null,
+          ),
+          for (final p in g.items) (group: null, count: 0, procedure: p),
+        ],
+      ]
+    : [for (final p in items) (group: null, count: 0, procedure: p)];
+
+class _Col {
+  const _Col(this.label, {this.width, this.numeric = false});
+  final String label;
+  final double? width;
+  final bool numeric;
+}
+
+// Acoes na primeira coluna: em janela estreita a tabela rola na horizontal
+// e os botoes continuam visiveis.
+const _cols = [
+  _Col(Strings.actions, width: 96),
+  _Col(Strings.procedureName),
+  _Col(Strings.time, width: 80),
+  _Col(Strings.directCost, width: 112, numeric: true),
+  _Col(Strings.minPrice, width: 112, numeric: true),
+  _Col(Strings.suggestedPrice, width: 120, numeric: true),
+  _Col(Strings.current, width: 112, numeric: true),
+  _Col(Strings.difference, width: 112, numeric: true),
+  _Col(Strings.priceCheckColumn, width: 210),
+  _Col(Strings.status, width: 110),
+];
+
+const _cellPad = AppSpacing.sm;
+
+Widget _row(List<Widget> cells) => Padding(
+  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg - _cellPad),
+  child: Row(
+    children: [
+      for (var i = 0; i < _cols.length; i++)
+        _cols[i].width == null
+            ? Expanded(child: _cell(_cols[i], cells[i]))
+            : SizedBox(width: _cols[i].width, child: _cell(_cols[i], cells[i])),
+    ],
+  ),
+);
+
+Widget _cell(_Col c, Widget child) => Padding(
+  padding: const EdgeInsets.symmetric(horizontal: _cellPad),
+  child: Align(
+    alignment: c.numeric ? Alignment.centerRight : Alignment.centerLeft,
+    // colunas de largura fixa: encolhe em vez de estourar (chips, valores altos)
+    child: c.width == null
+        ? child
+        : FittedBox(fit: BoxFit.scaleDown, child: child),
+  ),
+);
+
 /// Lista de procedimentos no desktop (aba Procedimentos e especialidade aberta).
-/// [showSpecialty] = false quando todos sao da mesma especialidade.
+/// O cabecalho das colunas fica fixo e so a lista rola. [showSpecialty] = true
+/// agrupa por especialidade (na especialidade aberta todos sao da mesma).
 class ProcedureTable extends StatelessWidget {
   const ProcedureTable({
     super.key,
@@ -455,105 +539,178 @@ class ProcedureTable extends StatelessWidget {
   final ValueChanged<Procedure> onTap;
   final bool showSpecialty;
 
+  /// Colunas fixas + 300 para o nome; abaixo disso rola na horizontal.
+  static const minWidth = 1520.0;
+
   @override
   Widget build(BuildContext context) {
-    return AppTable(
-      minWidth: 1100,
-      columns: const [
-        DataColumn(label: Text(Strings.procedureName)),
-        DataColumn(label: Text(Strings.time)),
-        DataColumn(label: Text(Strings.directCost), numeric: true),
-        DataColumn(label: Text(Strings.minPrice), numeric: true),
-        DataColumn(label: Text(Strings.suggestedPrice), numeric: true),
-        DataColumn(label: Text(Strings.current), numeric: true),
-        DataColumn(label: Text(Strings.difference), numeric: true),
-        DataColumn(label: Text(Strings.priceCheckColumn)),
-        DataColumn(label: Text(Strings.status)),
-        DataColumn(label: Text(Strings.actions)),
-      ],
-      rows: [
-        for (final p in items)
-          DataRow(
-            // a linha inteira abre o cadastro (o lapis pode ficar fora da tela)
-            onSelectChanged: (_) => onTap(p),
-            cells: [
-              DataCell(
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p.displayName,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+    final theme = Theme.of(context);
+    final entries = _entries(items, showSpecialty);
+    final headStyle = theme.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w800,
+      color: AppColors.muted,
+    );
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = math.max(constraints.maxWidth, minWidth);
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: width,
+              height: constraints.maxHeight,
+              child: Column(
+                children: [
+                  Container(
+                    key: const Key('procedure-table-header'),
+                    color: AppColors.surface,
+                    height: 48,
+                    child: _row([
+                      for (final c in _cols) Text(c.label, style: headStyle),
+                    ]),
+                  ),
+                  const Divider(height: 1, thickness: 0.6),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: entries.length,
+                      itemBuilder: (context, i) {
+                        final e = entries[i];
+                        final p = e.procedure;
+                        if (p == null) {
+                          return _GroupHeader(name: e.group!, count: e.count);
+                        }
+                        return _ProcedureRow(
+                          procedure: p,
+                          onTap: () => onTap(p),
+                        );
+                      },
                     ),
-                    if ((showSpecialty && p.vcSpecialty != null) ||
-                        p.setupAlerts.isNotEmpty)
-                      Row(
-                        children: [
-                          if (showSpecialty && p.vcSpecialty != null)
-                            Text(
-                              p.vcSpecialty!,
-                              style: const TextStyle(
-                                color: AppColors.muted,
-                                fontSize: 12,
-                              ),
-                            ),
-                          if (showSpecialty &&
-                              p.vcSpecialty != null &&
-                              p.setupAlerts.isNotEmpty)
-                            const SizedBox(width: AppSpacing.sm),
-                          ProcedureAlertChips(alerts: p.setupAlerts),
-                        ],
-                      ),
-                  ],
-                ),
-                onTap: () => onTap(p),
-              ),
-              DataCell(Text(Numbers.minutes(p.qtMinutes))),
-              DataCell(Text(Numbers.money(p.pricing?.vlDirectCost))),
-              DataCell(Text(Numbers.money(p.pricing?.vlPriceMin))),
-              DataCell(
-                Text(
-                  Numbers.money(p.pricing?.vlPrice),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primaryDark,
                   ),
-                ),
-                onTap: () => onTap(p),
+                ],
               ),
-              DataCell(Text(Numbers.money(p.vlCurrentPrice))),
-              DataCell(
-                Text(
-                  _diffText(p.priceDiff),
-                  style: TextStyle(
-                    color: _diffColor(p.priceDiff),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              DataCell(
-                p.vlCurrentPrice == null
-                    ? const Text('-')
-                    : PriceStatusChip(status: p.priceStatus),
-                onTap: () => onTap(p),
-              ),
-              DataCell(AppStatusChip(status: p.itStatus, compact: true)),
-              DataCell(
-                IconButton(
-                  tooltip: Strings.edit,
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: () => onTap(p),
-                ),
-              ),
-            ],
-          ),
-      ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
-/// Lista de procedimentos no mobile (cards).
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader({required this.name, required this.count});
+
+  final String name;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.mint,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.category_outlined,
+            size: 18,
+            color: AppColors.primaryDark,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            name,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryDark,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            Strings.proceduresCount(count),
+            style: const TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProcedureRow extends StatelessWidget {
+  const _ProcedureRow({required this.procedure, required this.onTap});
+
+  final Procedure procedure;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = procedure;
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 60),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.line, width: 0.6)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        child: _row([
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: Strings.procedureMaterials,
+                icon: const Icon(Icons.inventory_2_outlined),
+                onPressed: () => ProcedureMaterialsDialog.show(context, p),
+              ),
+              IconButton(
+                tooltip: Strings.edit,
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: onTap,
+              ),
+            ],
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                p.displayName,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              if (p.setupAlerts.isNotEmpty)
+                ProcedureAlertChips(alerts: p.setupAlerts),
+            ],
+          ),
+          Text(Numbers.minutes(p.qtMinutes)),
+          Text(Numbers.money(p.pricing?.vlDirectCost)),
+          Text(Numbers.money(p.pricing?.vlPriceMin)),
+          Text(
+            Numbers.money(p.pricing?.vlPrice),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryDark,
+            ),
+          ),
+          Text(Numbers.money(p.vlCurrentPrice)),
+          Text(
+            _diffText(p.priceDiff),
+            style: TextStyle(
+              color: _diffColor(p.priceDiff),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          p.vlCurrentPrice == null
+              ? const Text('-')
+              : PriceStatusChip(status: p.priceStatus),
+          AppStatusChip(status: p.itStatus, compact: true),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Lista de procedimentos no mobile (cards), agrupada como a do desktop.
 class ProcedureCards extends StatelessWidget {
   const ProcedureCards({
     super.key,
@@ -568,78 +725,95 @@ class ProcedureCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+    final entries = _entries(items, showSpecialty);
+    return ListView.builder(
+      itemCount: entries.length,
       itemBuilder: (context, index) {
-        final p = items[index];
-        return Card(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            onTap: () => onTap(p),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          p.displayName,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                      ),
-                      Text(
-                        Numbers.money(p.pricing?.vlPrice),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primaryDark,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    [
-                      if (showSpecialty && p.vcSpecialty != null)
-                        p.vcSpecialty!,
-                      Numbers.minutes(p.qtMinutes),
-                      '${Strings.directCost} ${Numbers.money(p.pricing?.vlDirectCost)}',
-                      '${Strings.minPrice} ${Numbers.money(p.pricing?.vlPriceMin)}',
-                    ].join(' · '),
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 12,
-                    ),
-                  ),
-                  if (p.vlCurrentPrice != null)
-                    Text(
-                      '${Strings.current} ${Numbers.money(p.vlCurrentPrice)} · ${_diffText(p.priceDiff)}',
-                      style: TextStyle(
-                        color: _diffColor(p.priceDiff),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  if (p.alerts.isNotEmpty ||
-                      !p.isActive ||
-                      p.vlCurrentPrice != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
+        final e = entries[index];
+        final p = e.procedure;
+        if (p == null) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              child: _GroupHeader(name: e.group!, count: e.count),
+            ),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              onTap: () => onTap(p),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        if (p.vlCurrentPrice != null)
-                          PriceStatusChip(status: p.priceStatus),
-                        if (!p.isActive)
-                          AppStatusChip(status: p.itStatus, compact: true),
-                        ProcedureAlertChips(alerts: p.setupAlerts),
+                        Expanded(
+                          child: Text(
+                            p.displayName,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        Text(
+                          Numbers.money(p.pricing?.vlPrice),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryDark,
+                            fontSize: 16,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: Strings.procedureMaterials,
+                          icon: const Icon(Icons.inventory_2_outlined),
+                          onPressed: () =>
+                              ProcedureMaterialsDialog.show(context, p),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      [
+                        Numbers.minutes(p.qtMinutes),
+                        '${Strings.directCost} ${Numbers.money(p.pricing?.vlDirectCost)}',
+                        '${Strings.minPrice} ${Numbers.money(p.pricing?.vlPriceMin)}',
+                      ].join(' · '),
+                      style: const TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (p.vlCurrentPrice != null)
+                      Text(
+                        '${Strings.current} ${Numbers.money(p.vlCurrentPrice)} · ${_diffText(p.priceDiff)}',
+                        style: TextStyle(
+                          color: _diffColor(p.priceDiff),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    if (p.alerts.isNotEmpty ||
+                        !p.isActive ||
+                        p.vlCurrentPrice != null) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          if (p.vlCurrentPrice != null)
+                            PriceStatusChip(status: p.priceStatus),
+                          if (!p.isActive)
+                            AppStatusChip(status: p.itStatus, compact: true),
+                          ProcedureAlertChips(alerts: p.setupAlerts),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),

@@ -219,6 +219,12 @@ abstract final class Strings {
   static const materialsUsed = 'Materiais utilizados';
   static const addMaterial = 'Adicionar material';
   static const noMaterialsInProcedure = 'Nenhum material adicionado.';
+  static const procedureMaterials = 'Materiais';
+  static const editMaterials = 'Adicionar ou editar materiais';
+  static const materialsTotal = 'Total em materiais';
+  static const otherMaterials = 'Outros materiais';
+  static const materialsGrandTotal = 'Custo total de materiais';
+  static const materialsSaved = 'Materiais salvos.';
   static const quantityUsed = 'Quantidade';
   static const unitCost = 'Custo unitário';
   static const lineCost = 'Custo';
