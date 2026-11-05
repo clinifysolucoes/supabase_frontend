@@ -246,6 +246,28 @@ class ProceduresController
     ref.invalidate(specialtiesProvider);
     await refresh();
   }
+
+  /// Troca so a lista de materiais do procedimento.
+  Future<void> updateMaterials(
+    int nrProcedure,
+    List<ProcedureMaterial> materials,
+  ) async {
+    final nrCompany = ref.read(currentCompanyProvider);
+    final nrBranch = ref.read(currentBranchNumberProvider);
+    if (nrCompany == null || nrBranch == null) return;
+    await ref
+        .read(pricingRepositoryProvider)
+        .updateProcedureMaterials(
+          nrCompany: nrCompany,
+          nrBranch: nrBranch,
+          nrProcedure: nrProcedure,
+          materials: materials,
+        );
+    ref.invalidate(materialsProvider);
+    ref.invalidate(specialtiesProvider);
+    ref.invalidate(specialtyProceduresProvider);
+    await refresh();
+  }
 }
 
 final proceduresProvider =
