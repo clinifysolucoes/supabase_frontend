@@ -1,4 +1,5 @@
 import '../../../l10n/strings.dart';
+import 'receivable_models.dart';
 
 /// Receita (a receber) ou despesa (a pagar): od.fin_entry.it_kind e
 /// od.fin_category.it_kind.
@@ -62,12 +63,16 @@ abstract final class AccountType {
   static const cash = 1;
   static const bank = 2;
   static const safe = 3;
+
+  /// Conta de passagem do sistema (cartao/boleto/cheque ate cair).
+  static const receivables = 4;
   static const all = [cash, bank, safe];
 
   static String label(int type) => switch (type) {
     cash => Strings.accountCash,
     bank => Strings.accountBank,
     safe => Strings.accountSafe,
+    receivables => Strings.accountReceivables,
     _ => '-',
   };
 }
@@ -187,6 +192,7 @@ class FinCatalog {
     this.accounts = const [],
     this.categories = const [],
     this.suppliers = const [],
+    this.rates = const [],
     this.permission = const FinPermission(),
   });
 
@@ -200,13 +206,26 @@ class FinCatalog {
     suppliers: [
       for (final s in _list(j['suppliers'])) FinSupplier.fromJson(_map(s)),
     ],
+    rates: [for (final r in _list(j['rates'])) FinRate.fromJson(_map(r))],
     permission: FinPermission.fromJson(_map(j['permission'])),
   );
 
   final List<FinAccount> accounts;
   final List<FinCategory> categories;
   final List<FinSupplier> suppliers;
+  final List<FinRate> rates;
   final FinPermission permission;
+
+  /// Contas onde o usuario recebe/paga (sem a de passagem).
+  List<FinAccount> get payableAccounts => [
+    for (final a in accounts)
+      if (a.isActive && a.itType != AccountType.receivables) a,
+  ];
+
+  /// Ha taxa ativa para a forma de pagamento?
+  bool hasRate(int? method) =>
+      method != null &&
+      rates.any((r) => r.isActive && r.itPaymentMethod == method);
 
   List<FinCategory> categoriesOf(int kind) => [
     for (final c in categories)

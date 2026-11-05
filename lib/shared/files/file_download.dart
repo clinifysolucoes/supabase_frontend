@@ -14,4 +14,14 @@ abstract final class FileDownload {
     fileExtension: 'xlsx',
     mimeType: MimeType.microsoftExcel,
   );
+
+  static Future<String> saveCsv({
+    required String name,
+    required Uint8List bytes,
+  }) => FileSaver.instance.saveFile(
+    name: name,
+    bytes: bytes,
+    fileExtension: 'csv',
+    mimeType: MimeType.csv,
+  );
 }

@@ -12,6 +12,7 @@ import '../../../shared/widgets/app_table.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
 import 'finance_widgets.dart';
+import 'health_export_dialog.dart';
 
 /// Extrato: movimentos pagos do mes numa conta (ou em todas), com o saldo
 /// depois de cada um.
@@ -57,6 +58,11 @@ class StatementTab extends ConsumerWidget {
                 onChanged: (v) =>
                     ref.read(statementAccountProvider.notifier).state = v,
               ),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => HealthExportDialog.show(context),
+              icon: const Icon(Icons.receipt_long_rounded),
+              label: const Text(Strings.healthExport),
             ),
           ],
         ),

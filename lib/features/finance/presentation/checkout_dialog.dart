@@ -43,6 +43,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   final _amount = TextEditingController();
   final _installments = TextEditingController(text: '1');
   final _pc = TextEditingController();
+  final _card = TextEditingController(text: '1');
   CheckoutData? _data;
   String? _error;
   int? _category;
@@ -68,6 +69,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     _amount.dispose();
     _installments.dispose();
     _pc.dispose();
+    _card.dispose();
     super.dispose();
   }
 
@@ -118,6 +120,9 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
               nrAccount: _account,
               idCommission: _commission,
               pcCommission: Numbers.parse(_pc.text),
+              qtCardInstallments: _method == 3
+                  ? int.tryParse(_card.text) ?? 1
+                  : 1,
             ),
           );
       if (!mounted) return;
@@ -349,12 +354,29 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
           ),
           items: [
             for (final a in d.accounts)
-              DropdownMenuItem(value: a.nrAccount, child: Text(a.vcName)),
+              if (a.itType != AccountType.receivables)
+                DropdownMenuItem(value: a.nrAccount, child: Text(a.vcName)),
           ],
           validator: (v) =>
               _paid && v == null ? Strings.finChooseAccount : null,
           onChanged: (v) => setState(() => _account = v),
         ),
+      if (_paid && _method == 3) ...[
+        const SizedBox(height: AppSpacing.md),
+        SizedBox(
+          width: 200,
+          child: AppNumberField(
+            label: Strings.cardInstallments,
+            controller: _card,
+            decimals: 0,
+            helper: Strings.cardRateHint,
+            validator: (v) {
+              final x = int.tryParse(v ?? '') ?? 0;
+              return x < 1 || x > 24 ? '1 – 24' : null;
+            },
+          ),
+        ),
+      ],
       if (hasProfessional) ...[
         const SizedBox(height: AppSpacing.sm),
         SwitchListTile(
