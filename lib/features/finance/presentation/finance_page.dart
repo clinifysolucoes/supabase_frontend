@@ -10,10 +10,12 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
+import 'bank_tab.dart';
 import 'cash_tab.dart';
 import 'cashflow_tab.dart';
 import 'entries_tab.dart';
 import 'finance_overview_tab.dart';
+import 'guides_tab.dart';
 import 'receivables_tab.dart';
 import 'registers_tab.dart';
 import 'statement_tab.dart';
@@ -49,7 +51,7 @@ class FinancePageBody extends ConsumerStatefulWidget {
 
 class _FinancePageBodyState extends ConsumerState<FinancePageBody>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 8, vsync: this);
+  late final TabController _tabs = TabController(length: 10, vsync: this);
 
   static const _items = [
     (Icons.space_dashboard_outlined, Strings.tabFinOverview),
@@ -57,7 +59,9 @@ class _FinancePageBodyState extends ConsumerState<FinancePageBody>
     (Icons.north_east_rounded, Strings.tabPayables),
     (Icons.south_west_rounded, Strings.tabReceivables),
     (Icons.credit_card_rounded, Strings.tabReceivablesCards),
+    (Icons.assignment_outlined, Strings.tabPlans),
     (Icons.list_alt_rounded, Strings.tabStatement),
+    (Icons.fact_check_outlined, Strings.tabBank),
     (Icons.show_chart_rounded, Strings.tabCashflow),
     (Icons.tune_rounded, Strings.tabFinRegisters),
   ];
@@ -133,7 +137,9 @@ class _FinancePageBodyState extends ConsumerState<FinancePageBody>
                       const EntriesTab(kind: EntryKind.payable),
                       const EntriesTab(kind: EntryKind.receivable),
                       const ReceivablesTab(),
+                      const GuidesTab(),
                       const StatementTab(),
+                      const BankTab(),
                       const CashflowTab(),
                       const RegistersTab(),
                     ],

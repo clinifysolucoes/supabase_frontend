@@ -4,6 +4,8 @@ import '../../../core/supabase/supabase_gateway.dart';
 import '../../../shared/formatters/dates.dart';
 import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
+import '../domain/bank_models.dart';
+import '../domain/health_models.dart';
 import '../domain/receivable_models.dart';
 
 /// Novo lancamento (ad.fin_entry_save, vc_action I).
@@ -269,8 +271,49 @@ class FinanceRepository {
     }),
   );
 
-  /// [rpc] = fin_cash_open, fin_cash_close, fin_transfer_save ou
-  /// fin_receivable_settle.
+  Future<PlanCatalog> healthPlans({
+    required int nrCompany,
+    required int nrBranch,
+  }) async => PlanCatalog.fromJson(
+    await _gateway.rpc('health_plan_list', {
+      ..._branch(nrCompany, nrBranch),
+      'id_include_inactive': true,
+    }),
+  );
+
+  Future<GuideList> healthGuides({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    GuideFilter status = GuideFilter.all,
+  }) async => GuideList.fromJson(
+    await _gateway.rpc('health_guide_list', {
+      ..._branch(nrCompany, nrBranch),
+      'dt_from': Dates.toIso(from),
+      'dt_to': Dates.toIso(to),
+      'vc_status': status.name,
+    }),
+  );
+
+  Future<BankList> bankLines({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAccount,
+    required DateTime from,
+    required DateTime to,
+  }) async => BankList.fromJson(
+    await _gateway.rpc('fin_bank_list', {
+      ..._branch(nrCompany, nrBranch),
+      'nr_account': nrAccount,
+      'dt_from': Dates.toIso(from),
+      'dt_to': Dates.toIso(to),
+    }),
+  );
+
+  /// [rpc] = fin_cash_open, fin_cash_close, fin_transfer_save,
+  /// fin_receivable_settle, health_plan_save, health_guide_save,
+  /// health_guide_settle, fin_bank_import ou fin_bank_reconcile.
   Future<Map<String, dynamic>> cashCall({
     required int nrCompany,
     required int nrBranch,

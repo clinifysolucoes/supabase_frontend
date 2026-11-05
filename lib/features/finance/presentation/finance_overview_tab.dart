@@ -112,7 +112,7 @@ class _FinanceOverviewTabState extends ConsumerState<FinanceOverviewTab> {
                         ? AppColors.danger
                         : AppColors.primaryDark,
                     caption: Dates.format(DateTime.now()),
-                    onTap: () => widget.onOpenTab?.call(5),
+                    onTap: () => widget.onOpenTab?.call(6),
                   ),
                   FinKpiCard(
                     label: Strings.finTodayReceivable,
