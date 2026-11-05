@@ -224,6 +224,10 @@ abstract final class Strings {
   static const materialsTotal = 'Total em materiais';
   static const otherMaterials = 'Outros materiais';
   static const materialsGrandTotal = 'Custo total de materiais';
+  static const addMaterials = 'Adicionar materiais';
+  static String viewMaterials(int n) => 'Ver materiais ($n)';
+  static String materialsSummary(int n, String total) =>
+      n == 1 ? '1 material · $total' : '$n materiais · $total';
   static const materialsSaved = 'Materiais salvos.';
   static const quantityUsed = 'Quantidade';
   static const unitCost = 'Custo unitário';

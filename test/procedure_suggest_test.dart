@@ -173,7 +173,27 @@ void main() {
       );
       expect(field(tester, Strings.minutes).controller!.text, '120');
       expect(field(tester, Strings.profitOverride).controller!.text, '35');
+      // materiais ficam atras do botao Ver materiais
+      expect(
+        find.text(Strings.materialsSummary(1, 'R\$ 0,80')),
+        findsOneWidget,
+      );
+      expect(find.text('Luva'), findsNothing);
+      await tester.tap(find.text(Strings.viewMaterials(1)));
+      await tester.pumpAndSettle();
       expect(find.text('Luva'), findsOneWidget);
+      await tester.enterText(
+        find.widgetWithText(TextField, Strings.quantityUsed),
+        '3',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.confirm));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(Strings.materialsSummary(1, 'R\$ 1,20')),
+        findsOneWidget,
+      );
+      expect(find.text(Strings.addMaterials), findsOneWidget);
     });
   });
 }
