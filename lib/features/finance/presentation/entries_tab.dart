@@ -16,9 +16,11 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
+import 'checkout_dialog.dart';
 import 'entry_actions.dart';
 import 'entry_form_dialog.dart';
 import 'finance_widgets.dart';
+import 'recurrences_dialog.dart';
 
 /// Contas a pagar ou a receber do mes: filtros, totais e a lista.
 class EntriesTab extends ConsumerStatefulWidget {
@@ -110,6 +112,13 @@ class _EntriesTabState extends ConsumerState<EntriesTab> {
                 expanded: false,
                 onPressed: _create,
               ),
+            AppButton(
+              label: Strings.recurrences,
+              icon: Icons.event_repeat_rounded,
+              variant: AppButtonVariant.secondary,
+              expanded: false,
+              onPressed: () => RecurrencesDialog.show(context, kind),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -124,8 +133,24 @@ class _EntriesTabState extends ConsumerState<EntriesTab> {
                 onSelected: (_) =>
                     ref.read(entriesFilterProvider(kind).notifier).state = f,
               ),
+            if (filter != EntryFilter.overdue)
+              FilterChip(
+                label: const Text(Strings.finByCompetence),
+                selected: ref.watch(entriesByCompetenceProvider(kind)),
+                onSelected: (v) =>
+                    ref.read(entriesByCompetenceProvider(kind).notifier).state =
+                        v,
+              ),
+            FilterChip(
+              label: const Text(Strings.finOnlyInstallments),
+              selected: ref.watch(entriesInstallmentsProvider(kind)),
+              onSelected: (v) =>
+                  ref.read(entriesInstallmentsProvider(kind).notifier).state =
+                      v,
+            ),
           ],
         ),
+        if (receivable) const _PendingCheckouts(),
         if (filter == EntryFilter.overdue)
           const Padding(
             padding: EdgeInsets.only(top: AppSpacing.xs),
@@ -202,18 +227,47 @@ class _EntriesTabState extends ConsumerState<EntriesTab> {
                                           : null,
                                     ),
                                   ),
-                                  if (e.isGrouped || e.idRecurring)
-                                    Text(
-                                      e.idRecurring
-                                          ? Strings.finRecurring
-                                          : Strings.finInstallmentOf(
-                                              e.nrInstallment,
-                                              e.qtInstallments,
+                                  if (e.isGrouped ||
+                                      e.idRecurring ||
+                                      e.qtAttachments > 0)
+                                    Row(
+                                      children: [
+                                        if (e.isGrouped || e.idRecurring)
+                                          Text(
+                                            e.idRecurring
+                                                ? Strings.finRecurring
+                                                : Strings.finInstallmentOf(
+                                                    e.nrInstallment,
+                                                    e.qtInstallments,
+                                                  ),
+                                            style: const TextStyle(
+                                              color: AppColors.muted,
+                                              fontSize: 12,
                                             ),
-                                      style: const TextStyle(
-                                        color: AppColors.muted,
-                                        fontSize: 12,
-                                      ),
+                                          ),
+                                        if (e.qtAttachments > 0) ...[
+                                          const SizedBox(width: 6),
+                                          Tooltip(
+                                            message: Strings.attachments,
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.attach_file_rounded,
+                                                  size: 14,
+                                                  color: AppColors.muted,
+                                                ),
+                                                Text(
+                                                  '${e.qtAttachments}',
+                                                  style: const TextStyle(
+                                                    color: AppColors.muted,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                 ],
                               ),
@@ -237,6 +291,66 @@ class _EntriesTabState extends ConsumerState<EntriesTab> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Aviso das consultas do mes que ja aconteceram e nao foram fechadas;
+/// abre a lista e o fechamento de cada uma.
+class _PendingCheckouts extends ConsumerWidget {
+  const _PendingCheckouts();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = ref.watch(pendingCheckoutsProvider).valueOrNull ?? const [];
+    if (list.isEmpty) return const SizedBox.shrink();
+    final canCreate = ref.watch(canCreateProvider(ScreenCodes.finance));
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Card(
+        color: AppColors.goldPale,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            leading: const Icon(
+              Icons.pending_actions_rounded,
+              color: AppColors.goldDark,
+            ),
+            title: Text(
+              Strings.pendingCheckoutTitle(list.length),
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: const Text(
+              Strings.pendingCheckoutHint,
+              style: TextStyle(fontSize: 12),
+            ),
+            children: [
+              for (final a in list)
+                ListTile(
+                  dense: true,
+                  title: Text(
+                    a.vcPatient,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    [
+                      '${Dates.format(a.dhStart)} ${Dates.formatTime(a.dhStart)}',
+                      ?a.vcProcedure,
+                      ?a.vcProfessional,
+                    ].join(' · '),
+                  ),
+                  trailing: canCreate
+                      ? TextButton(
+                          onPressed: () =>
+                              CheckoutDialog.show(context, a.nrAppointment),
+                          child: const Text(Strings.checkoutAction),
+                        )
+                      : null,
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

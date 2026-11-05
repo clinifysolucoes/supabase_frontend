@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
@@ -12,6 +14,8 @@ import '../errors/app_error.dart';
 ///   * Nenhuma tabela e lida ou escrita direto (`from(...)` nao existe aqui).
 ///   * Todo dado passa por RPC do schema `ad`, que valida a sessao no banco.
 ///   * Auth (signIn/signOut/sessao) e o Supabase Auth; e a unica excecao.
+///   * Storage so por URL assinada que uma Edge Function gerou depois de
+///     validar a permissao numa RPC (anexos do financeiro).
 ///
 /// O teste `test/no_direct_supabase_access_test.dart` garante que nenhum outro
 /// arquivo importa `supabase_flutter` nem acessa tabela direto.
@@ -88,6 +92,38 @@ class SupabaseGateway {
     } catch (e) {
       throw AppError.unexpected(e);
     }
+  }
+
+  /// Envia um arquivo para o Storage pela URL assinada que uma Edge Function
+  /// gerou (o app nao tem policy de escrita no Storage).
+  Future<void> uploadToSignedUrl({
+    required String bucket,
+    required String path,
+    required String token,
+    required Uint8List bytes,
+    String? contentType,
+  }) async {
+    try {
+      await _client.storage
+          .from(bucket)
+          .uploadBinaryToSignedUrl(
+            path,
+            token,
+            bytes,
+            FileOptions(contentType: contentType),
+          );
+    } on StorageException catch (e) {
+      throw AppError.unexpected(e.message);
+    }
+  }
+
+  /// Baixa o conteudo de uma URL assinada (download de anexo).
+  Future<Uint8List> fetchBytes(String url) async {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) {
+      throw AppError.unexpected('HTTP ${response.statusCode}');
+    }
+    return response.bodyBytes;
   }
 
   /// Chama uma Edge Function (`supabase/functions/<name>`) com o JWT da sessao.

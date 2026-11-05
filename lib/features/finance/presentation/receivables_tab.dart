@@ -197,6 +197,8 @@ class ReceivablesTab extends ConsumerWidget {
                                       r.itStatus,
                                       overdue: r.idOverdue,
                                     ),
+                                    if (r.paymentSummary.isNotEmpty)
+                                      r.paymentSummary,
                                   ].join(' · '),
                                 ),
                                 trailing: Column(
@@ -249,6 +251,8 @@ class ReceivablesTab extends ConsumerWidget {
                                       [
                                         r.vcPatient ?? r.vcDescription,
                                         ?r.vcReference,
+                                        if (r.paymentSummary.isNotEmpty)
+                                          r.paymentSummary,
                                       ].join(' · '),
                                     ),
                                   ),

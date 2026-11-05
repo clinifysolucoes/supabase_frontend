@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,10 +10,12 @@ import 'package:odonto_app/features/finance/data/finance_repository.dart';
 import 'package:odonto_app/features/finance/domain/bank_models.dart';
 import 'package:odonto_app/features/finance/domain/cash_models.dart';
 import 'package:odonto_app/features/finance/domain/health_models.dart';
+import 'package:odonto_app/features/finance/domain/phase4_models.dart';
 import 'package:odonto_app/features/finance/domain/receivable_models.dart';
 import 'package:odonto_app/features/finance/domain/finance_models.dart';
 import 'package:odonto_app/features/finance/presentation/checkout_dialog.dart';
 import 'package:odonto_app/features/finance/presentation/bank_tab.dart';
+import 'package:odonto_app/features/finance/presentation/payment_details_fields.dart';
 import 'package:odonto_app/features/finance/presentation/finance_page.dart';
 import 'package:odonto_app/features/profiles/application/profiles_controller.dart';
 import 'package:odonto_app/features/session/application/permissions.dart';
@@ -110,6 +113,9 @@ class _FakeRepo implements FinanceRepository {
   bool cashOpen = false;
   DateTime? healthFrom;
   int? bankAccount;
+  bool lastByCompetence = false;
+  final healthCalls = <({bool onlyPending, List<int>? entries, bool mark})>[];
+  final deletedAttachments = <int>[];
   final savedRegisters = <(String, Map<String, dynamic>)>[];
 
   @override
@@ -183,7 +189,10 @@ class _FakeRepo implements FinanceRepository {
     EntryFilter status = EntryFilter.all,
     int? nrCategory,
     String? search,
+    bool byCompetence = false,
+    bool onlyInstallments = false,
   }) async => FinEntryList.fromJson({
+    '_': lastByCompetence = byCompetence,
     'entries': itKind == EntryKind.payable ? [_entry()] : [],
     'totals': {
       'vl_open': 1500,
@@ -369,10 +378,114 @@ class _FakeRepo implements FinanceRepository {
     required int nrBranch,
     required DateTime from,
     required DateTime to,
+    bool onlyPending = false,
+    List<int>? entries,
+    bool mark = false,
   }) async {
     healthFrom = from;
-    return const HealthExport();
+    healthCalls.add((onlyPending: onlyPending, entries: entries, mark: mark));
+    if (onlyPending && !mark) return const HealthExport();
+    return HealthExport.fromJson({
+      'rows': [
+        {
+          'nr_entry': 31,
+          'dt_paid': '2026-11-04',
+          'vl_paid': 130,
+          'vc_patient': 'Paciente A',
+          'vc_cpf': '52998224725',
+        },
+        if (!mark)
+          {
+            'nr_entry': 32,
+            'dt_paid': '2026-11-05',
+            'vl_paid': 90,
+            'vc_patient': 'Paciente B',
+            'vc_cpf': '52998224725',
+            'dh_exported': '2026-11-06T10:00:00Z',
+          },
+      ],
+      'vl_total': 130,
+    });
   }
+
+  @override
+  Future<List<FinRecurrence>> recurrences({
+    required int nrCompany,
+    required int nrBranch,
+    int? itKind,
+    bool includeInactive = false,
+  }) async => [
+    FinRecurrence.fromJson({
+      'nr_recurrence': 5,
+      'it_kind': 2,
+      'nr_category': 4,
+      'vc_category': 'Aluguel',
+      'vc_description': 'Aluguel clínica',
+      'vl_amount': 2800,
+      'it_day': 30,
+      'dt_start': '2026-01-30',
+      'it_status': 1,
+      'dt_next': '2026-11-30',
+      'qt_open': 12,
+      'qt_paid': 10,
+    }),
+  ];
+
+  @override
+  Future<List<PendingCheckout>> pendingCheckouts({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+  }) async => [
+    PendingCheckout.fromJson({
+      'nr_appointment': 7,
+      'dh_start': '2026-11-04T12:00:00Z',
+      'vc_patient': 'Paciente Sem Fechar',
+      'vc_procedure': 'Limpeza',
+    }),
+  ];
+
+  @override
+  Future<List<FinAttachment>> attachments({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrEntry,
+  }) async => [
+    FinAttachment.fromJson({
+      'nr_attachment': 3,
+      'nr_entry': nrEntry,
+      'it_type': 1,
+      'vc_name': 'nota.pdf',
+      'vc_mime': 'application/pdf',
+      'vc_user': 'Mel',
+    }),
+  ];
+
+  @override
+  Future<void> uploadAttachment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrEntry,
+    required int itType,
+    required String name,
+    required String mime,
+    required Uint8List bytes,
+  }) async {}
+
+  @override
+  Future<Uint8List> downloadAttachment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAttachment,
+  }) async => Uint8List(0);
+
+  @override
+  Future<void> deleteAttachment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAttachment,
+  }) async => deletedAttachments.add(nrAttachment);
 
   @override
   Future<PlanCatalog> healthPlans({
@@ -657,6 +770,39 @@ OFXHEADER:100
       }).plans.single;
       expect(plan.priceOf(5), 80);
       expect(plan.priceOf(6), isNull);
+    });
+
+    test('dados do pagamento: so os campos da forma', () {
+      final c = PaymentDetailsController();
+      c.brand.text = 'Visa';
+      c.last4.text = '4321';
+      c.bank.text = 'Banco X';
+      c.document.text = '529.982.247-25';
+      expect(c.value(PaymentMethod.credit).toJson(), {
+        'vc_card_brand': 'Visa',
+        'vc_card_last4': '4321',
+        'vc_holder_document': '52998224725',
+      });
+      expect(c.value(PaymentMethod.check).toJson(), {
+        'vc_bank_name': 'Banco X',
+        'vc_holder_document': '52998224725',
+      });
+      expect(c.value(1).toJson(), isEmpty);
+      c.dispose();
+      final a = FinAccount.fromJson({
+        'nr_account': 2,
+        'vc_name': 'Banco',
+        'it_type': 2,
+        'vc_bank_code': '001',
+        'vc_bank_name': 'Banco do Brasil',
+        'vc_agency': '1234',
+      });
+      expect(
+        a.bankSummary,
+        '001 Banco do Brasil · ${Strings.bankAgencyShort} 1234',
+      );
+      expect(FinAttachment.mimeOf('Nota.PDF'), 'application/pdf');
+      expect(FinAttachment.mimeOf('x.exe'), isNull);
     });
 
     test('EntryDraft: parcelada, recorrente e ja paga', () {
@@ -1034,11 +1180,82 @@ OFXHEADER:100
       await tester.pumpAndSettle();
       await tester.tap(find.text(Strings.healthExport));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(Strings.healthGenerate));
+      // so os pendentes: nenhum no fake
+      await tester.tap(find.text(Strings.healthList));
       await tester.pumpAndSettle();
       final now = DateTime.now();
       expect(repo.healthFrom, DateTime(now.year, now.month));
       expect(find.text(Strings.healthEmpty), findsOneWidget);
+      // todos: um ja exportado vem desmarcado
+      await tester.tap(find.text(Strings.healthOnlyPending));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.healthList));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Paciente B'), findsOneWidget);
+      expect(find.textContaining(Strings.healthExportedOn('')), findsOneWidget);
+      expect(
+        find.text(Strings.healthSelected(1, 'R\$ 130,00')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(Strings.healthGenerate));
+      // salvar o arquivo nao termina no teste (sem plugin): so a chamada importa
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      final last = repo.healthCalls.last;
+      expect(last.mark, isTrue);
+      expect(last.entries, [31]);
+    });
+
+    testWidgets('a pagar: contas recorrentes e encerrar', (tester) async {
+      await pump(tester);
+      await openTab(tester, Strings.tabPayables);
+      await tester.tap(find.text(Strings.recurrences));
+      await tester.pumpAndSettle();
+      expect(find.text('Aluguel clínica'), findsOneWidget);
+      expect(
+        find.textContaining(Strings.recurrenceCounts(12, 10)),
+        findsOneWidget,
+      );
+      await tester.tap(find.byTooltip(Strings.recurrenceStop));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.confirm).last);
+      await tester.pumpAndSettle();
+      final (rpc, fields) = repo.cashCalls.last;
+      expect(rpc, 'fin_recurrence_save');
+      expect(fields, {'vc_action': 'CANCEL', 'nr_recurrence': 5});
+    });
+
+    testWidgets('a pagar: filtro por competencia', (tester) async {
+      await pump(tester);
+      await openTab(tester, Strings.tabPayables);
+      expect(repo.lastByCompetence, isFalse);
+      await tester.tap(find.text(Strings.finByCompetence));
+      await tester.pumpAndSettle();
+      expect(repo.lastByCompetence, isTrue);
+    });
+
+    testWidgets('a receber: atendimentos sem fechamento', (tester) async {
+      await pump(tester);
+      await openTab(tester, Strings.tabReceivables);
+      expect(find.text(Strings.pendingCheckoutTitle(1)), findsOneWidget);
+      await tester.tap(find.text(Strings.pendingCheckoutTitle(1)));
+      await tester.pumpAndSettle();
+      expect(find.text('Paciente Sem Fechar'), findsOneWidget);
+      expect(find.text(Strings.checkoutAction), findsOneWidget);
+    });
+
+    testWidgets('lancamento: anexos listados e exclusao', (tester) async {
+      await pump(tester);
+      await openTab(tester, Strings.tabPayables);
+      await tester.tap(find.text('Aluguel (1/3)'));
+      await tester.pumpAndSettle();
+      expect(find.text('nota.pdf'), findsOneWidget);
+      expect(find.text(Strings.attachAddReceipt), findsOneWidget);
+      await tester.tap(find.byTooltip(Strings.remove));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(Strings.confirm).last);
+      await tester.pumpAndSettle();
+      expect(repo.deletedAttachments, [3]);
     });
 
     testWidgets('convenios: guia faturada e pagamento com glosa', (

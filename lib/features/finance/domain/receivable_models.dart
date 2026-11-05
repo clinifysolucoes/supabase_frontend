@@ -92,6 +92,12 @@ class Receivable {
     this.dtReceived,
     this.vlReceived,
     this.vcReference,
+    this.vcCardBrand,
+    this.vcCardLast4,
+    this.vcAuthorization,
+    this.vcHolderName,
+    this.vcBankName,
+    this.vcCheckNumber,
   });
 
   factory Receivable.fromJson(Map<String, dynamic> j) => Receivable(
@@ -114,6 +120,12 @@ class Receivable {
     dtReceived: _date(j['dt_received']),
     vlReceived: j['vl_received'] == null ? null : _double(j['vl_received']),
     vcReference: j['vc_reference']?.toString(),
+    vcCardBrand: j['vc_card_brand']?.toString(),
+    vcCardLast4: j['vc_card_last4']?.toString(),
+    vcAuthorization: j['vc_authorization']?.toString(),
+    vcHolderName: j['vc_holder_name']?.toString(),
+    vcBankName: j['vc_bank_name']?.toString(),
+    vcCheckNumber: j['vc_check_number']?.toString(),
   );
 
   final int nrReceivable;
@@ -135,6 +147,22 @@ class Receivable {
   final DateTime? dtReceived;
   final double? vlReceived;
   final String? vcReference;
+  final String? vcCardBrand;
+  final String? vcCardLast4;
+  final String? vcAuthorization;
+  final String? vcHolderName;
+  final String? vcBankName;
+  final String? vcCheckNumber;
+
+  /// "Visa •••• 4321 · Aut. A1B2" ou "Cheque 123 · Banco X" (vazio sem dados).
+  String get paymentSummary => [
+    if (vcCardBrand != null || vcCardLast4 != null)
+      [?vcCardBrand, if (vcCardLast4 != null) '•••• $vcCardLast4'].join(' '),
+    if (vcAuthorization != null) '${Strings.cardAuthShort} $vcAuthorization',
+    if (vcCheckNumber != null) '${Strings.checkShort} $vcCheckNumber',
+    ?vcBankName,
+    ?vcHolderName,
+  ].join(' · ');
 
   bool get isPending => itStatus == ReceivableStatus.pending;
   bool get isReceived => itStatus == ReceivableStatus.received;
@@ -176,6 +204,8 @@ class ReceivableList {
 /// Linha de ad.fin_health_export (um pagamento de paciente).
 class HealthRow {
   const HealthRow({
+    this.nrEntry = 0,
+    this.dhExported,
     required this.dtPaid,
     required this.vlPaid,
     required this.vcPatient,
@@ -187,6 +217,10 @@ class HealthRow {
   });
 
   factory HealthRow.fromJson(Map<String, dynamic> j) => HealthRow(
+    nrEntry: _int(j['nr_entry'] ?? 0),
+    dhExported: DateTime.tryParse(
+      j['dh_exported']?.toString() ?? '',
+    )?.toLocal(),
     dtPaid: _date(j['dt_paid']) ?? DateTime(2000),
     vlPaid: _double(j['vl_paid']),
     vcPatient: j['vc_patient']?.toString() ?? '',
@@ -197,6 +231,10 @@ class HealthRow {
     vcDescription: j['vc_description']?.toString(),
   );
 
+  final int nrEntry;
+
+  /// Quando foi exportado para a Receita Saude (null = ainda nao).
+  final DateTime? dhExported;
   final DateTime dtPaid;
   final double vlPaid;
   final String vcPatient;

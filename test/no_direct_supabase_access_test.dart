@@ -51,7 +51,11 @@ void main() {
   });
 
   test('o gateway nao usa tabelas (.from) em lugar nenhum', () {
-    final source = code(File(gateway));
+    // .storage.from(bucket) e o Storage (upload por URL assinada de Edge
+    // Function), nao tabela: e a unica forma permitida
+    final source = code(
+      File(gateway),
+    ).replaceAll(RegExp(r'\.storage\s*\.from\s*\('), '');
     expect(
       RegExp(r'\.from\s*\(').hasMatch(source),
       isFalse,

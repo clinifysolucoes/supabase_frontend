@@ -15,7 +15,9 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
+import 'attachments_section.dart';
 import 'entry_form_dialog.dart';
+import 'payment_details_fields.dart';
 import 'finance_widgets.dart';
 
 /// Detalhes de um lancamento e as acoes possiveis na situacao dele:
@@ -171,49 +173,54 @@ class _EntryDetailsDialog extends StatelessWidget {
       ),
       content: SizedBox(
         width: 460,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              Numbers.money(e.vlAmount),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: receivable ? AppColors.success : AppColors.danger,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                Numbers.money(e.vlAmount),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: receivable ? AppColors.success : AppColors.danger,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            info(Strings.finDue, Dates.format(e.dtDue)),
-            info(Strings.finCategory, e.vcCategory),
-            info(
-              receivable ? Strings.finPatient : Strings.finSupplier,
-              e.counterpart,
-            ),
-            info(Strings.finAccount, e.vcAccount),
-            info(
-              Strings.finPaymentMethod,
-              e.itPaymentMethod == null
-                  ? null
-                  : PaymentMethod.label(e.itPaymentMethod),
-            ),
-            if (e.isGrouped)
+              const SizedBox(height: AppSpacing.sm),
+              info(Strings.finDue, Dates.format(e.dtDue)),
+              info(Strings.finCategory, e.vcCategory),
               info(
-                Strings.finRepeat,
-                Strings.finInstallmentOf(e.nrInstallment, e.qtInstallments) +
-                    (e.idRecurring ? ' · ${Strings.finRecurring}' : ''),
+                receivable ? Strings.finPatient : Strings.finSupplier,
+                e.counterpart,
               ),
-            if (e.isPaid) ...[
+              info(Strings.finAccount, e.vcAccount),
               info(
-                receivable ? Strings.finReceivedOn : Strings.finPaidOn,
-                Dates.format(e.dtPaid),
+                Strings.finPaymentMethod,
+                e.itPaymentMethod == null
+                    ? null
+                    : PaymentMethod.label(e.itPaymentMethod),
               ),
-              info(
-                receivable ? Strings.finReceivedAmount : Strings.finPaidAmount,
-                Numbers.money(e.vlPaid),
-              ),
+              if (e.isGrouped)
+                info(
+                  Strings.finRepeat,
+                  Strings.finInstallmentOf(e.nrInstallment, e.qtInstallments) +
+                      (e.idRecurring ? ' · ${Strings.finRecurring}' : ''),
+                ),
+              if (e.isPaid) ...[
+                info(
+                  receivable ? Strings.finReceivedOn : Strings.finPaidOn,
+                  Dates.format(e.dtPaid),
+                ),
+                info(
+                  receivable
+                      ? Strings.finReceivedAmount
+                      : Strings.finPaidAmount,
+                  Numbers.money(e.vlPaid),
+                ),
+              ],
+              info(Strings.notes, e.vcNotes),
+              AttachmentsSection(entry: e, canUpdate: canUpdate),
             ],
-            info(Strings.notes, e.vcNotes),
-          ],
+          ),
         ),
       ),
       actionsOverflowButtonSpacing: AppSpacing.sm,
@@ -280,6 +287,7 @@ class _SettleDialogState extends State<SettleDialog> {
   late final TextEditingController _date;
   late final TextEditingController _amount;
   final _cardInstallments = TextEditingController(text: '1');
+  final _details = PaymentDetailsController();
   int? _account;
   int? _method;
 
@@ -299,6 +307,7 @@ class _SettleDialogState extends State<SettleDialog> {
     _date.dispose();
     _amount.dispose();
     _cardInstallments.dispose();
+    _details.dispose();
     super.dispose();
   }
 
@@ -315,6 +324,9 @@ class _SettleDialogState extends State<SettleDialog> {
       'it_payment_method': _method,
       if (_method == 3 && (int.tryParse(_cardInstallments.text) ?? 1) > 1)
         'qt_card_installments': int.tryParse(_cardInstallments.text),
+      if (widget.entry.itKind == EntryKind.receivable &&
+          widget.catalog.hasRate(_method))
+        ..._details.value(_method).toJson(),
     });
   }
 
@@ -403,6 +415,7 @@ class _SettleDialogState extends State<SettleDialog> {
                   Strings.cardRateHint,
                   style: TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
+                PaymentDetailsFields(controller: _details, method: _method),
               ],
             ],
           ),

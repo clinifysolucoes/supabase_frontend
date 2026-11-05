@@ -72,8 +72,11 @@ class RegistersTab extends ConsumerWidget {
               _Tile(
                 icon: accountIcon(a.itType),
                 title: a.vcName,
-                subtitle:
-                    '${AccountType.label(a.itType)} · ${Strings.finOpening} ${Numbers.money(a.vlOpening)}',
+                subtitle: [
+                  AccountType.label(a.itType),
+                  '${Strings.finOpening} ${Numbers.money(a.vlOpening)}',
+                  if (a.bankSummary.isNotEmpty) a.bankSummary,
+                ].join(' · '),
                 trailing: Numbers.money(a.vlBalance),
                 status: a.itStatus,
                 onTap: () => open(RegisterType.account, item: a),
@@ -379,6 +382,10 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
   final _phone = TextEditingController();
   final _email = TextEditingController();
   final _notes = TextEditingController();
+  final _bankCode = TextEditingController();
+  final _bankName = TextEditingController();
+  final _agency = TextEditingController();
+  final _accountNumber = TextEditingController();
   int _accountType = AccountType.cash;
   int _kind = EntryKind.payable;
   int? _costType = CostType.fixed;
@@ -405,6 +412,10 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
         _accountType = a.itType;
         _opening.text = Numbers.toField(a.vlOpening);
         _active = a.isActive;
+        _bankCode.text = a.vcBankCode ?? '';
+        _bankName.text = a.vcBankName ?? '';
+        _agency.text = a.vcAgency ?? '';
+        _accountNumber.text = a.vcAccountNumber ?? '';
       case final FinCategory c:
         _name.text = c.vcName;
         _kind = c.itKind;
@@ -426,7 +437,18 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
 
   @override
   void dispose() {
-    for (final c in [_name, _opening, _document, _phone, _email, _notes]) {
+    for (final c in [
+      _name,
+      _opening,
+      _document,
+      _phone,
+      _email,
+      _notes,
+      _bankCode,
+      _bankName,
+      _agency,
+      _accountNumber,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -446,6 +468,17 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
         RegisterType.account => {
           'it_type': _accountType,
           'vl_opening': Numbers.parse(_opening.text) ?? 0,
+          // dados bancarios so na conta banco
+          'vc_bank_code': _accountType == AccountType.bank
+              ? _text(_bankCode)
+              : null,
+          'vc_bank_name': _accountType == AccountType.bank
+              ? _text(_bankName)
+              : null,
+          'vc_agency': _accountType == AccountType.bank ? _text(_agency) : null,
+          'vc_account_number': _accountType == AccountType.bank
+              ? _text(_accountNumber)
+              : null,
         },
         RegisterType.category => {
           if (isNew) 'it_kind': _kind,
@@ -519,6 +552,66 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
             helper: Strings.finOpeningHelper,
             enabled: enabled,
           ),
+          if (_accountType == AccountType.bank) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              Strings.bankSection,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                SizedBox(
+                  width: 110,
+                  child: AppTextField(
+                    label: Strings.bankCode,
+                    controller: _bankCode,
+                    enabled: enabled,
+                    maxLength: 3,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      final s = (v ?? '').trim();
+                      return s.isEmpty || RegExp(r'^[0-9]{3}$').hasMatch(s)
+                          ? null
+                          : '000';
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: AppTextField(
+                    label: Strings.bankName,
+                    controller: _bankName,
+                    enabled: enabled,
+                    maxLength: 60,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: AppTextField(
+                    label: Strings.bankAgency,
+                    controller: _agency,
+                    enabled: enabled,
+                    maxLength: 10,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: AppTextField(
+                    label: Strings.bankAccountNumber,
+                    controller: _accountNumber,
+                    enabled: enabled,
+                    maxLength: 20,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
         RegisterType.category => [
           SegmentedButton<int>(
