@@ -57,7 +57,7 @@ void main() {
 
   late _FakeProcedures fake;
 
-  Widget app(List<Procedure> items) {
+  Widget app(List<Procedure> items, {Map<String, GlobalKey>? keys}) {
     fake = _FakeProcedures();
     return ProviderScope(
       overrides: [
@@ -77,7 +77,7 @@ void main() {
       child: MaterialApp(
         theme: AppTheme.light(useGoogleFonts: false),
         home: Scaffold(
-          body: ProcedureTable(items: items, onTap: (_) {}),
+          body: ProcedureTable(items: items, groupKeys: keys, onTap: (_) {}),
         ),
       ),
     );
@@ -103,7 +103,11 @@ void main() {
     final before = tester.getTopLeft(header);
     await tester.drag(find.text('Proc 3'), const Offset(0, -900));
     await tester.pumpAndSettle();
-    expect(find.text('Proc 0'), findsNothing, reason: 'a lista rolou');
+    expect(
+      find.text('Proc 0').hitTestable(),
+      findsNothing,
+      reason: 'a lista rolou',
+    );
     expect(tester.getTopLeft(header), before);
     expect(find.text(Strings.procedureName).hitTestable(), findsOneWidget);
   });
@@ -210,4 +214,55 @@ void main() {
     await tester.pumpAndSettle();
     expect(result!.single.toJson(), {'nr_material': 9, 'qt_used': 1.0});
   });
+
+  test('posicao de cada grupo: titulos de 40 e linhas de 64', () {
+    final items = [
+      for (var i = 0; i < 5; i++) _proc(i + 1, 'A$i', 'Clínica Geral'),
+      _proc(9, 'B', 'Prótese'),
+    ];
+    expect(groupOffset(items, 'Clínica Geral'), 0);
+    expect(groupOffset(items, 'Prótese'), 40 + 5 * 64);
+  });
+
+  testWidgets('ir para especialidade: o seletor rola ate o grupo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1600, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          proceduresProvider.overrideWith(_ListProcedures.new),
+          canCreateProvider.overrideWith((ref, code) => true),
+          canUpdateProvider.overrideWith((ref, code) => true),
+          specialtyCatalogProvider.overrideWith((ref) async => const []),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(useGoogleFonts: false),
+          home: const Scaffold(body: ProceduresTab()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Prótese'), findsNothing, reason: 'ainda nao montado');
+    await tester.tap(find.text(Strings.jumpToSpecialty));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Prótese · 10'));
+    await tester.pumpAndSettle();
+    expect(find.text('Prótese').hitTestable(), findsOneWidget);
+    expect(find.text(Strings.procedureName).hitTestable(), findsOneWidget);
+  });
+}
+
+class _ListProcedures extends ProceduresController {
+  @override
+  Future<ProcedureListData?> build() async => ProcedureListData(
+    procedures: [
+      for (var i = 0; i < 40; i++)
+        _proc(i + 1, 'Proc $i', i < 30 ? 'Clínica Geral' : 'Prótese'),
+    ],
+    params: const PricingParams(nrCompany: 1, nrBranch: 1),
+    summary: const PricingSummary(),
+  );
 }

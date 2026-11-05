@@ -228,6 +228,8 @@ abstract final class Strings {
   static String viewMaterials(int n) => 'Ver materiais ($n)';
   static String materialsSummary(int n, String total) =>
       n == 1 ? '1 material · $total' : '$n materiais · $total';
+
+  static const jumpToSpecialty = 'Ir para especialidade';
   static const materialsSaved = 'Materiais salvos.';
   static const quantityUsed = 'Quantidade';
   static const unitCost = 'Custo unitário';
