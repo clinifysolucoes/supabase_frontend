@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../agenda/application/agenda_controllers.dart';
@@ -7,6 +9,7 @@ import '../domain/bank_models.dart';
 import '../domain/cash_models.dart';
 import '../domain/health_models.dart';
 import '../domain/finance_models.dart';
+import '../domain/phase4_models.dart';
 import '../domain/receivable_models.dart';
 
 /// Empresa e filial atuais (null sem sessao/filial).
@@ -62,6 +65,16 @@ final entriesSearchProvider = StateProvider.autoDispose.family<String, int>(
   (_, _) => '',
 );
 
+/// Filtrar o mes pela competencia (em vez do vencimento), por tipo.
+final entriesByCompetenceProvider = StateProvider.autoDispose.family<bool, int>(
+  (_, _) => false,
+);
+
+/// So contas parceladas, por tipo.
+final entriesInstallmentsProvider = StateProvider.autoDispose.family<bool, int>(
+  (_, _) => false,
+);
+
 /// Lancamentos do mes, por tipo.
 final entriesProvider = FutureProvider.autoDispose.family<FinEntryList, int>((
   ref,
@@ -85,8 +98,58 @@ final entriesProvider = FutureProvider.autoDispose.family<FinEntryList, int>((
         to: overdue ? today : monthEnd(month),
         status: status,
         search: ref.watch(entriesSearchProvider(kind)),
+        byCompetence: !overdue && ref.watch(entriesByCompetenceProvider(kind)),
+        onlyInstallments: ref.watch(entriesInstallmentsProvider(kind)),
       );
 });
+
+/// Contas recorrentes (regras), por tipo; [includeInactive] mostra as encerradas.
+final recurrencesProvider = FutureProvider.autoDispose
+    .family<List<FinRecurrence>, ({int kind, bool includeInactive})>((
+      ref,
+      key,
+    ) async {
+      final b = _branchOf(ref);
+      if (b == null) return const [];
+      return ref
+          .read(financeRepositoryProvider)
+          .recurrences(
+            nrCompany: b.company,
+            nrBranch: b.branch,
+            itKind: key.kind,
+            includeInactive: key.includeInactive,
+          );
+    });
+
+/// Consultas do mes de A receber que ja aconteceram e nao foram fechadas.
+final pendingCheckoutsProvider =
+    FutureProvider.autoDispose<List<PendingCheckout>>((ref) async {
+      final b = _branchOf(ref);
+      if (b == null) return const [];
+      final month = ref.watch(entriesMonthProvider(EntryKind.receivable));
+      return ref
+          .read(financeRepositoryProvider)
+          .pendingCheckouts(
+            nrCompany: b.company,
+            nrBranch: b.branch,
+            from: month,
+            to: monthEnd(month),
+          );
+    });
+
+/// Anexos de uma conta.
+final attachmentsProvider = FutureProvider.autoDispose
+    .family<List<FinAttachment>, int>((ref, nrEntry) async {
+      final b = _branchOf(ref);
+      if (b == null) return const [];
+      return ref
+          .read(financeRepositoryProvider)
+          .attachments(
+            nrCompany: b.company,
+            nrBranch: b.branch,
+            nrEntry: nrEntry,
+          );
+    });
 
 /// Mes do fluxo de caixa.
 final cashflowMonthProvider = StateProvider.autoDispose<DateTime>(
@@ -253,17 +316,69 @@ class FinanceActions {
       ..invalidate(receivablesProvider)
       ..invalidate(healthPlansProvider)
       ..invalidate(guidesProvider)
-      ..invalidate(bankLinesProvider);
+      ..invalidate(bankLinesProvider)
+      ..invalidate(recurrencesProvider)
+      ..invalidate(pendingCheckoutsProvider)
+      ..invalidate(attachmentsProvider);
   }
 
-  Future<HealthExport> healthExport(DateTime from, DateTime to) {
+  /// Recebimentos para a Receita Saude; [mark] = exporta de verdade.
+  Future<HealthExport> healthExport(
+    DateTime from,
+    DateTime to, {
+    bool onlyPending = false,
+    List<int>? entries,
+    bool mark = false,
+  }) {
     final b = _b;
     return _repo.healthExport(
       nrCompany: b.company,
       nrBranch: b.branch,
       from: from,
       to: to,
+      onlyPending: onlyPending,
+      entries: entries,
+      mark: mark,
     );
+  }
+
+  Future<void> uploadAttachment({
+    required int nrEntry,
+    required int itType,
+    required String name,
+    required String mime,
+    required Uint8List bytes,
+  }) async {
+    final b = _b;
+    await _repo.uploadAttachment(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      nrEntry: nrEntry,
+      itType: itType,
+      name: name,
+      mime: mime,
+      bytes: bytes,
+    );
+    _invalidate();
+  }
+
+  Future<Uint8List> downloadAttachment(int nrAttachment) {
+    final b = _b;
+    return _repo.downloadAttachment(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      nrAttachment: nrAttachment,
+    );
+  }
+
+  Future<void> deleteAttachment(int nrAttachment) async {
+    final b = _b;
+    await _repo.deleteAttachment(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      nrAttachment: nrAttachment,
+    );
+    _invalidate();
   }
 
   /// Fechamento da consulta: gera o financeiro e atualiza a agenda (selo).

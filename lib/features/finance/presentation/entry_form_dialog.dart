@@ -81,6 +81,9 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
   String? _patientName;
   int? _method;
   _Repeat _repeat = _Repeat.once;
+
+  /// Mensal: regra sem data final (senao, ate [count] meses).
+  bool _noEnd = true;
   bool _paid = false;
   bool _saving = false;
 
@@ -140,7 +143,35 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
     setState(() => _saving = true);
     final actions = ref.read(financeActionsProvider);
     try {
-      if (_isNew) {
+      if (_isNew && _repeat == _Repeat.monthly) {
+        // mensal = conta recorrente (regra); o banco gera os lancamentos
+        final count = int.tryParse(_count.text) ?? 12;
+        final due = Dates.parseField(_due.text)!;
+        final r = await actions.cash('fin_recurrence_save', {
+          'vc_action': 'I',
+          'it_kind': widget.kind,
+          'nr_category': _category,
+          'vc_description': _description.text.trim(),
+          'vl_amount': Numbers.parse(_amount.text) ?? 0,
+          'dt_start': Dates.toIso(due),
+          'it_day': due.day,
+          if (!_noEnd)
+            'dt_end': Dates.toIso(
+              DateTime(due.year, due.month + count - 1, due.day),
+            ),
+          'nr_account': _account,
+          if (!_receivable) 'nr_supplier': _supplier,
+          if (_receivable) 'nr_patient': _patient,
+          'it_payment_method': _method,
+          'vc_notes': _nullIfEmpty(_notes.text),
+        });
+        if (mounted) {
+          AppSnack.success(
+            context,
+            Strings.recurrenceSaved((r['qt_created'] as num?)?.toInt() ?? 0),
+          );
+        }
+      } else if (_isNew) {
         final count = int.tryParse(_count.text) ?? 1;
         final qt = await actions.createEntry(
           EntryDraft(
@@ -376,7 +407,9 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
           keyboardType: TextInputType.number,
           validator: _dateValidator,
         ),
-        if (_isNew && _repeat != _Repeat.once)
+        if (_isNew &&
+            (_repeat == _Repeat.installments ||
+                (_repeat == _Repeat.monthly && !_noEnd)))
           AppNumberField(
             label: _repeat == _Repeat.installments
                 ? Strings.finInstallments
@@ -388,7 +421,22 @@ class _EntryFormDialogState extends ConsumerState<EntryFormDialog> {
             positive: true,
           ),
       ]),
-      if (_isNew && _repeat != _Repeat.once && count > 0 && amount > 0) ...[
+      if (_isNew && _repeat == _Repeat.monthly)
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          title: const Text(Strings.recurrenceNoEnd),
+          subtitle: const Text(
+            Strings.recurrenceFormHint,
+            style: TextStyle(fontSize: 12),
+          ),
+          value: _noEnd,
+          onChanged: enabled ? (v) => setState(() => _noEnd = v ?? true) : null,
+        ),
+      if (_isNew &&
+          _repeat == _Repeat.installments &&
+          count > 0 &&
+          amount > 0) ...[
         const SizedBox(height: AppSpacing.xs),
         Text(
           _repeat == _Repeat.installments

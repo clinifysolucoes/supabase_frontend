@@ -1108,6 +1108,82 @@ abstract final class Strings {
   static const bankDone = 'Extrato atualizado.';
   static const bankTransfer = 'Transferência';
 
+  // Financeiro, fase 4: recorrentes, filtros, banco, cartao/cheque,
+  // Receita Saude, atendimentos sem fechamento e anexos
+  static const recurrences = 'Contas recorrentes';
+  static const recurrenceNew = 'Nova conta recorrente';
+  static const recurrenceEdit = 'Conta recorrente';
+  static const recurrenceDay = 'Dia do vencimento';
+  static const recurrenceStart = 'A partir de';
+  static const recurrenceEnd = 'Até';
+  static const recurrenceNoEnd = 'Sem data final';
+  static const recurrenceNone = 'Nenhuma conta recorrente.';
+  static const recurrenceNoneHint =
+      'Aluguel, salários, internet...: cadastre uma vez e o sistema lança todo mês.';
+  static String recurrenceSummary(int day, String? next) =>
+      next == null ? 'Todo dia $day' : 'Todo dia $day · próximo $next';
+  static String recurrenceEndsOn(String d) => 'até $d';
+  static String recurrenceCounts(int open, int paid) =>
+      '$open em aberto · $paid pagos';
+  static const recurrenceStop = 'Encerrar';
+  static const recurrenceStopConfirm =
+      'Os lançamentos futuros em aberto serão cancelados; os pagos continuam. Encerrar esta conta recorrente?';
+  static const recurrenceStopped = 'Conta recorrente encerrada.';
+  static String recurrenceSaved(int n) => n == 0
+      ? 'Conta recorrente salva.'
+      : 'Conta recorrente salva ($n lançamentos gerados).';
+  static const recurrenceChangedHint =
+      'Ao salvar, os lançamentos em aberto de hoje em diante passam a ter os dados novos.';
+  static const recurrenceShowEnded = 'Mostrar encerradas';
+  static const recurrenceEnded = 'Encerrada';
+  static const recurrenceFormHint =
+      'Gera os lançamentos dos próximos 12 meses e continua gerando sozinha.';
+  static const finByCompetence = 'Por competência';
+  static const finOnlyInstallments = 'Só parceladas';
+  static const bankSection = 'Dados bancários';
+  static const bankCode = 'Código do banco';
+  static const bankName = 'Banco';
+  static const bankAgency = 'Agência';
+  static const bankAccountNumber = 'Conta';
+  static const bankAgencyShort = 'Ag.';
+  static const bankAccountShort = 'CC';
+  static const payDetails = 'Dados do pagamento (opcional)';
+  static const cardBrand = 'Bandeira';
+  static const cardLast4 = 'Últimos 4 dígitos';
+  static const cardAuth = 'Autorização';
+  static const cardAuthShort = 'Aut.';
+  static const holderName = 'Titular';
+  static const holderNameCheck = 'Emitente';
+  static const holderDocument = 'CPF/CNPJ';
+  static const checkBank = 'Banco do cheque';
+  static const checkNumber = 'Número do cheque';
+  static const checkShort = 'Cheque';
+  static const healthList = 'Listar';
+  static const healthOnlyPending = 'Só os ainda não exportados';
+  static String healthExportedOn(String d) => 'Exportado em $d';
+  static String healthSelected(int n, String total) =>
+      '$n selecionados · $total';
+  static const healthNoneSelected = 'Selecione ao menos um recebimento.';
+  static String pendingCheckoutTitle(int n) => n == 1
+      ? '1 atendimento sem fechamento'
+      : '$n atendimentos sem fechamento';
+  static const pendingCheckoutHint =
+      'Consultas do mês que já aconteceram e ainda não foram cobradas.';
+  static const attachments = 'Anexos';
+  static const attachDocument = 'Documento';
+  static const attachReceipt = 'Comprovante';
+  static const attachAddDocument = 'Anexar documento';
+  static const attachAddReceipt = 'Anexar comprovante';
+  static const attachNone = 'Nenhum anexo.';
+  static const attachTooLarge = 'O arquivo passa de 10 MB.';
+  static const attachTypeInvalid =
+      'Envie PDF ou imagem (JPG, PNG, WEBP, HEIC).';
+  static const attachDone = 'Arquivo anexado.';
+  static const attachDeleted = 'Anexo excluído.';
+  static const attachDeleteConfirm = 'Excluir este anexo?';
+  static const attachDownload = 'Baixar';
+  static const attachDownloaded = 'Arquivo baixado.';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -1491,6 +1567,34 @@ abstract final class Strings {
         'Informe a conta do repasse (no convênio ou no pagamento).',
     'HEALTH_GUIDE_ENTRY_PAID':
         'O faturamento já tem pagamento. Desfaça o pagamento antes.',
+    // Backend: financeiro fase 4
+    'FIN_RECURRENCE_ACTION_INVALID': 'Ação inválida.',
+    'FIN_RECURRENCE_FORBIDDEN':
+        'Você não tem permissão para alterar contas recorrentes.',
+    'FIN_RECURRENCE_REQUIRED': 'Conta recorrente não informada.',
+    'FIN_RECURRENCE_NOT_FOUND': 'Conta recorrente não encontrada.',
+    'FIN_RECURRENCE_CANCELLED': 'Esta conta recorrente já foi encerrada.',
+    'FIN_RECURRENCE_VALUE_INVALID': 'Dados da conta recorrente inválidos.',
+    'FIN_RECURRENCE_DAY_INVALID': 'O dia do vencimento vai de 1 a 31.',
+    'FIN_RECURRENCE_PERIOD_INVALID':
+        'Informe o início; a data final não pode ser antes dele.',
+    'FIN_ACCOUNT_BANK_INVALID': 'O código do banco tem 3 dígitos.',
+    'FIN_RECEIVABLE_DETAILS_INVALID':
+        'Confira os 4 últimos dígitos do cartão e o CPF/CNPJ do titular.',
+    'FIN_ATTACHMENT_ACTION_INVALID': 'Ação inválida.',
+    'FIN_ATTACHMENT_FORBIDDEN': 'Você não tem permissão para anexar arquivos.',
+    'FIN_ATTACHMENT_VALUE_INVALID': 'Dados do anexo inválidos.',
+    'FIN_ATTACHMENT_TYPE_INVALID':
+        'Envie PDF ou imagem (JPG, PNG, WEBP, HEIC).',
+    'FIN_ATTACHMENT_TOO_LARGE': 'O arquivo passa de 10 MB.',
+    'FIN_ATTACHMENT_REQUIRED': 'Anexo não informado.',
+    'FIN_ATTACHMENT_NOT_FOUND': 'Anexo não encontrado.',
+    'FIN_ATTACHMENT_STORAGE_FAILED':
+        'Não foi possível guardar o arquivo. Tente de novo.',
+    'FIN_ATTACHMENT_BACKEND_ERROR': 'Erro ao processar o anexo.',
+    'FIN_ATTACHMENT_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
+    'FIN_ATTACHMENT_BODY_INVALID': 'Dados do anexo inválidos.',
+    'FIN_ATTACHMENT_METHOD': 'Requisição inválida.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

@@ -43,6 +43,9 @@ abstract final class CostType {
 
 /// Forma de pagamento (od.fin_entry.it_payment_method).
 abstract final class PaymentMethod {
+  static const credit = 3;
+  static const debit = 4;
+  static const check = 7;
   static const all = [1, 2, 3, 4, 5, 6, 7, 9];
 
   static String label(int? method) => switch (method) {
@@ -85,6 +88,10 @@ class FinAccount {
     this.vlOpening = 0,
     this.vlBalance = 0,
     this.itStatus = 1,
+    this.vcBankCode,
+    this.vcBankName,
+    this.vcAgency,
+    this.vcAccountNumber,
   });
 
   factory FinAccount.fromJson(Map<String, dynamic> j) => FinAccount(
@@ -94,6 +101,10 @@ class FinAccount {
     vlOpening: _double(j['vl_opening']),
     vlBalance: _double(j['vl_balance']),
     itStatus: _int(j['it_status'] ?? 1),
+    vcBankCode: _str(j['vc_bank_code']),
+    vcBankName: _str(j['vc_bank_name']),
+    vcAgency: _str(j['vc_agency']),
+    vcAccountNumber: _str(j['vc_account_number']),
   );
 
   final int nrAccount;
@@ -102,8 +113,20 @@ class FinAccount {
   final double vlOpening;
   final double vlBalance;
   final int itStatus;
+  final String? vcBankCode;
+  final String? vcBankName;
+  final String? vcAgency;
+  final String? vcAccountNumber;
 
   bool get isActive => itStatus == 1;
+
+  /// "001 Banco do Brasil · Ag. 1234 · CC 9988-7" (vazio sem dados bancarios).
+  String get bankSummary => [
+    if (vcBankName != null || vcBankCode != null)
+      [?vcBankCode, ?vcBankName].join(' '),
+    if (vcAgency != null) '${Strings.bankAgencyShort} $vcAgency',
+    if (vcAccountNumber != null) '${Strings.bankAccountShort} $vcAccountNumber',
+  ].join(' · ');
 }
 
 class FinCategory {
@@ -263,6 +286,8 @@ class FinEntry {
     this.nrProfessional,
     this.vcProfessional,
     this.nrAppointment,
+    this.nrRecurrence,
+    this.qtAttachments = 0,
   });
 
   factory FinEntry.fromJson(Map<String, dynamic> j) => FinEntry(
@@ -299,6 +324,8 @@ class FinEntry {
     nrAppointment: j['nr_appointment'] == null
         ? null
         : _int(j['nr_appointment']),
+    nrRecurrence: j['nr_recurrence'] == null ? null : _int(j['nr_recurrence']),
+    qtAttachments: _int(j['qt_attachments'] ?? 0),
   );
 
   final int nrEntry;
@@ -330,6 +357,10 @@ class FinEntry {
 
   /// Atendimento da agenda que gerou o lancamento (fechamento).
   final int? nrAppointment;
+
+  /// Conta recorrente (regra) que gerou o lancamento.
+  final int? nrRecurrence;
+  final int qtAttachments;
 
   bool get isOpen => itStatus == EntryStatus.open;
   bool get isPaid => itStatus == EntryStatus.paid;

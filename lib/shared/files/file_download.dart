@@ -15,6 +15,27 @@ abstract final class FileDownload {
     mimeType: MimeType.microsoftExcel,
   );
 
+  /// Arquivo baixado (anexo): nome original com a extensao.
+  static Future<String> saveFile({
+    required String fileName,
+    required Uint8List bytes,
+  }) {
+    final dot = fileName.lastIndexOf('.');
+    final name = dot > 0 ? fileName.substring(0, dot) : fileName;
+    final ext = dot > 0 ? fileName.substring(dot + 1).toLowerCase() : '';
+    return FileSaver.instance.saveFile(
+      name: name,
+      bytes: bytes,
+      fileExtension: ext,
+      mimeType: switch (ext) {
+        'pdf' => MimeType.pdf,
+        'jpg' || 'jpeg' => MimeType.jpeg,
+        'png' => MimeType.png,
+        _ => MimeType.other,
+      },
+    );
+  }
+
   static Future<String> saveCsv({
     required String name,
     required Uint8List bytes,

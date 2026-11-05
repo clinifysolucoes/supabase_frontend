@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_gateway.dart';
@@ -6,6 +8,7 @@ import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
 import '../domain/bank_models.dart';
 import '../domain/health_models.dart';
+import '../domain/phase4_models.dart';
 import '../domain/receivable_models.dart';
 
 /// Novo lancamento (ad.fin_entry_save, vc_action I).
@@ -133,6 +136,8 @@ class FinanceRepository {
     EntryFilter status = EntryFilter.all,
     int? nrCategory,
     String? search,
+    bool byCompetence = false,
+    bool onlyInstallments = false,
   }) async => FinEntryList.fromJson(
     await _gateway.rpc('fin_entry_list', {
       ..._branch(nrCompany, nrBranch),
@@ -142,8 +147,109 @@ class FinanceRepository {
       'vc_status': status.name,
       if (nrCategory != null) 'nr_category': nrCategory,
       if (search != null && search.trim().isNotEmpty) 'vc_search': search,
+      if (byCompetence) 'vc_date': 'competence',
+      if (onlyInstallments) 'id_installments': true,
     }),
   );
+
+  Future<List<FinRecurrence>> recurrences({
+    required int nrCompany,
+    required int nrBranch,
+    int? itKind,
+    bool includeInactive = false,
+  }) async => FinRecurrence.listFromJson(
+    await _gateway.rpc('fin_recurrence_list', {
+      ..._branch(nrCompany, nrBranch),
+      'it_kind': ?itKind,
+      'id_inactive': includeInactive,
+    }),
+  );
+
+  Future<List<PendingCheckout>> pendingCheckouts({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+  }) async => PendingCheckout.listFromJson(
+    await _gateway.rpc('appointment_pending_checkout', {
+      ..._branch(nrCompany, nrBranch),
+      'dt_from': Dates.toIso(from),
+      'dt_to': Dates.toIso(to),
+    }),
+  );
+
+  Future<List<FinAttachment>> attachments({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrEntry,
+  }) async => FinAttachment.listFromJson(
+    await _gateway.rpc('fin_attachment_list', {
+      ..._branch(nrCompany, nrBranch),
+      'nr_entry': nrEntry,
+    }),
+  );
+
+  /// Anexa: a Edge Function valida e reserva o caminho; o arquivo sobe pela
+  /// URL assinada. Se o envio falhar, o registro e excluido.
+  Future<void> uploadAttachment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrEntry,
+    required int itType,
+    required String name,
+    required String mime,
+    required Uint8List bytes,
+  }) async {
+    final r = await _gateway.invokeFunction('fin-attachment', {
+      'action': 'upload',
+      ..._branch(nrCompany, nrBranch),
+      'nr_entry': nrEntry,
+      'it_type': itType,
+      'vc_name': name,
+      'vc_mime': mime,
+      'qt_bytes': bytes.length,
+    });
+    try {
+      await _gateway.uploadToSignedUrl(
+        bucket: 'finance',
+        path: r['vc_path'] as String,
+        token: r['token'] as String,
+        bytes: bytes,
+        contentType: mime,
+      );
+    } catch (_) {
+      await deleteAttachment(
+        nrCompany: nrCompany,
+        nrBranch: nrBranch,
+        nrAttachment: (r['nr_attachment'] as num).toInt(),
+      );
+      rethrow;
+    }
+  }
+
+  /// Baixa o arquivo (URL assinada de 5 minutos gerada pela Edge Function).
+  Future<Uint8List> downloadAttachment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAttachment,
+  }) async {
+    final r = await _gateway.invokeFunction('fin-attachment', {
+      'action': 'download',
+      ..._branch(nrCompany, nrBranch),
+      'nr_attachment': nrAttachment,
+    });
+    return _gateway.fetchBytes(r['signed_url'] as String);
+  }
+
+  Future<void> deleteAttachment({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrAttachment,
+  }) => _gateway.invokeFunction('fin-attachment', {
+    'action': 'delete',
+    ..._branch(nrCompany, nrBranch),
+    'nr_attachment': nrAttachment,
+  });
 
   Future<int> createEntry({
     required int nrCompany,
@@ -258,16 +364,25 @@ class FinanceRepository {
     }),
   );
 
+  /// Recebimentos para a Receita Saude. [onlyPending] = so os ainda nao
+  /// exportados; [entries] = so estes pagamentos; [mark] = marca as linhas
+  /// devolvidas como exportadas (a exportacao de verdade).
   Future<HealthExport> healthExport({
     required int nrCompany,
     required int nrBranch,
     required DateTime from,
     required DateTime to,
+    bool onlyPending = false,
+    List<int>? entries,
+    bool mark = false,
   }) async => HealthExport.fromJson(
     await _gateway.rpc('fin_health_export', {
       ..._branch(nrCompany, nrBranch),
       'dt_from': Dates.toIso(from),
       'dt_to': Dates.toIso(to),
+      if (onlyPending) 'vc_export': 'pending',
+      'nr_entries': ?entries,
+      if (mark) 'id_mark': true,
     }),
   );
 
@@ -341,6 +456,7 @@ class CheckoutDraft {
     this.pcCommission,
     this.vcNotes,
     this.qtCardInstallments = 1,
+    this.details = const PaymentDetails(),
   });
 
   final int nrAppointment;
@@ -358,6 +474,9 @@ class CheckoutDraft {
   /// Parcelas no cartao de credito (recebiveis), so com [idPaid].
   final int qtCardInstallments;
 
+  /// Dados do cartao/cheque para os recebiveis (so com [idPaid]).
+  final PaymentDetails details;
+
   Map<String, dynamic> toJson() => {
     'nr_appointment': nrAppointment,
     'vl_amount': vlAmount,
@@ -372,6 +491,7 @@ class CheckoutDraft {
     'id_commission': idCommission,
     if (idCommission) 'pc_commission': ?pcCommission,
     'vc_notes': ?vcNotes,
+    if (idPaid) ...details.toJson(),
   };
 }
 

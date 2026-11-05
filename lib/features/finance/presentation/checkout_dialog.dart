@@ -17,6 +17,7 @@ import '../application/finance_controllers.dart';
 import '../data/finance_repository.dart';
 import '../domain/cash_models.dart';
 import '../domain/finance_models.dart';
+import 'payment_details_fields.dart';
 
 /// Fechamento financeiro da consulta: valor (da precificacao), parcelas,
 /// receber agora no caixa e comissao do profissional. Se ja foi fechada,
@@ -44,6 +45,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   final _installments = TextEditingController(text: '1');
   final _pc = TextEditingController();
   final _card = TextEditingController(text: '1');
+  final _details = PaymentDetailsController();
   CheckoutData? _data;
   String? _error;
   int? _category;
@@ -70,6 +72,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     _installments.dispose();
     _pc.dispose();
     _card.dispose();
+    _details.dispose();
     super.dispose();
   }
 
@@ -123,6 +126,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
               qtCardInstallments: _method == 3
                   ? int.tryParse(_card.text) ?? 1
                   : 1,
+              details: _details.value(_method),
             ),
           );
       if (!mounted) return;
@@ -377,6 +381,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
           ),
         ),
       ],
+      if (_paid) PaymentDetailsFields(controller: _details, method: _method),
       if (hasProfessional) ...[
         const SizedBox(height: AppSpacing.sm),
         SwitchListTile(
