@@ -41,6 +41,9 @@ class ProceduresTab extends ConsumerStatefulWidget {
 class _ProceduresTabState extends ConsumerState<ProceduresTab>
     with AutomaticKeepAliveClientMixin {
   final _search = TextEditingController();
+  final _groupKeys = <String, GlobalKey>{};
+  final _jumpMenu = GlobalKey<PopupMenuButtonState<String>>();
+  final _listScroll = ScrollController();
   Timer? _debounce;
 
   @override
@@ -50,6 +53,7 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
   void dispose() {
     _debounce?.cancel();
     _search.dispose();
+    _listScroll.dispose();
     super.dispose();
   }
 
@@ -76,6 +80,33 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
           : null,
     );
     if (saved && mounted) AppSnack.success(context, Strings.savedSuccess);
+  }
+
+  /// Rola a lista ate o titulo da especialidade escolhida. No desktop a
+  /// posicao e exata; nos cards e estimada e acertada depois de montar.
+  Future<void> _jumpTo(String group) async {
+    final data = ref.read(proceduresProvider).valueOrNull;
+    if (data == null || !_listScroll.hasClients) return;
+    final mobile = context.isMobile;
+    final pos = _listScroll.position;
+    final target = groupOffset(
+      data.procedures,
+      group,
+      mobile: mobile,
+    ).clamp(0.0, pos.maxScrollExtent);
+    await _listScroll.animateTo(
+      target,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+    );
+    if (!mobile || !mounted) return;
+    final ctx = _groupKeys[group]?.currentContext;
+    if (ctx != null && ctx.mounted) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 200),
+      );
+    }
   }
 
   Future<void> _export(ProcedureListData data) async {
@@ -191,6 +222,28 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
                 expanded: false,
                 onPressed: () => _openForm(data),
               ),
+            if (data != null && groupBySpecialty(data.procedures).length > 1)
+              PopupMenuButton<String>(
+                key: _jumpMenu,
+                tooltip: Strings.jumpToSpecialty,
+                onSelected: _jumpTo,
+                itemBuilder: (_) => [
+                  for (final g in groupBySpecialty(data.procedures))
+                    PopupMenuItem(
+                      value: g.name ?? Strings.noSpecialty,
+                      child: Text(
+                        '${g.name ?? Strings.noSpecialty} · ${g.items.length}',
+                      ),
+                    ),
+                ],
+                child: AppButton(
+                  label: Strings.jumpToSpecialty,
+                  icon: Icons.format_list_bulleted_rounded,
+                  variant: AppButtonVariant.secondary,
+                  expanded: false,
+                  onPressed: () => _jumpMenu.currentState?.showButtonMenu(),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
@@ -211,10 +264,14 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
               return ResponsiveBuilder(
                 mobile: (_) => ProcedureCards(
                   items: d.procedures,
+                  groupKeys: _groupKeys,
+                  controller: _listScroll,
                   onTap: (p) => _openForm(d, p),
                 ),
                 desktop: (_) => ProcedureTable(
                   items: d.procedures,
+                  groupKeys: _groupKeys,
+                  controller: _listScroll,
                   onTap: (p) => _openForm(d, p),
                 ),
               );
@@ -477,6 +534,24 @@ List<_Entry> _entries(List<Procedure> items, bool grouped) => grouped
       ]
     : [for (final p in items) (group: null, count: 0, procedure: p)];
 
+const _groupExtent = 40.0;
+const _rowExtent = 64.0;
+
+/// Altura de cada linha da lista: exata no desktop, estimada nos cards.
+double _entryExtent(_Entry e, {required bool mobile}) => e.procedure == null
+    ? (mobile ? _groupExtent + AppSpacing.sm : _groupExtent)
+    : (mobile ? 128 : _rowExtent);
+
+/// Onde comeca o grupo [group] na lista (desktop exato, mobile estimado).
+double groupOffset(List<Procedure> items, String group, {bool mobile = false}) {
+  var offset = 0.0;
+  for (final e in _entries(items, true)) {
+    if (e.procedure == null && e.group == group) return offset;
+    offset += _entryExtent(e, mobile: mobile);
+  }
+  return offset;
+}
+
 class _Col {
   const _Col(this.label, {this.width, this.numeric = false});
   final String label;
@@ -533,11 +608,20 @@ class ProcedureTable extends StatelessWidget {
     required this.items,
     required this.onTap,
     this.showSpecialty = true,
+    this.groupKeys,
+    this.controller,
   });
 
   final List<Procedure> items;
   final ValueChanged<Procedure> onTap;
   final bool showSpecialty;
+
+  /// Chave do titulo de cada grupo (nome da especialidade), para o seletor
+  /// "Ir para especialidade" rolar ate ele.
+  final Map<String, GlobalKey>? groupKeys;
+
+  /// Rolagem da lista (o seletor "Ir para especialidade" usa).
+  final ScrollController? controller;
 
   /// Colunas fixas + 300 para o nome; abaixo disso rola na horizontal.
   static const minWidth = 1520.0;
@@ -572,13 +656,26 @@ class ProcedureTable extends StatelessWidget {
                   ),
                   const Divider(height: 1, thickness: 0.6),
                   Expanded(
+                    // altura fixa por linha: o seletor calcula onde fica cada
+                    // grupo sem montar a lista inteira
                     child: ListView.builder(
+                      controller: controller,
                       itemCount: entries.length,
+                      itemExtentBuilder: (i, _) => i < entries.length
+                          ? _entryExtent(entries[i], mobile: false)
+                          : null,
                       itemBuilder: (context, i) {
                         final e = entries[i];
                         final p = e.procedure;
                         if (p == null) {
-                          return _GroupHeader(name: e.group!, count: e.count);
+                          return _GroupHeader(
+                            key: groupKeys?.putIfAbsent(
+                              e.group!,
+                              GlobalKey.new,
+                            ),
+                            name: e.group!,
+                            count: e.count,
+                          );
                         }
                         return _ProcedureRow(
                           procedure: p,
@@ -598,7 +695,7 @@ class ProcedureTable extends StatelessWidget {
 }
 
 class _GroupHeader extends StatelessWidget {
-  const _GroupHeader({required this.name, required this.count});
+  const _GroupHeader({super.key, required this.name, required this.count});
 
   final String name;
   final int count;
@@ -607,10 +704,8 @@ class _GroupHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.mint,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
+      height: _groupExtent,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Row(
         children: [
           const Icon(
@@ -649,7 +744,7 @@ class _ProcedureRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 60),
+        height: _rowExtent,
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: AppColors.line, width: 0.6)),
         ),
@@ -717,108 +812,117 @@ class ProcedureCards extends StatelessWidget {
     required this.items,
     required this.onTap,
     this.showSpecialty = true,
+    this.groupKeys,
+    this.controller,
   });
 
   final List<Procedure> items;
   final ValueChanged<Procedure> onTap;
   final bool showSpecialty;
 
+  /// Chave do titulo de cada grupo (nome da especialidade), para o seletor
+  /// "Ir para especialidade" rolar ate ele.
+  final Map<String, GlobalKey>? groupKeys;
+
+  /// Rolagem da lista (o seletor "Ir para especialidade" usa).
+  final ScrollController? controller;
+
   @override
   Widget build(BuildContext context) {
     final entries = _entries(items, showSpecialty);
     return ListView.builder(
+      controller: controller,
       itemCount: entries.length,
-      itemBuilder: (context, index) {
-        final e = entries[index];
-        final p = e.procedure;
-        if (p == null) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              child: _GroupHeader(name: e.group!, count: e.count),
-            ),
-          );
-        }
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Card(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              onTap: () => onTap(p),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      itemBuilder: (context, i) => _card(context, entries[i]),
+    );
+  }
+
+  Widget _card(BuildContext context, _Entry e) {
+    final p = e.procedure;
+    if (p == null) {
+      return Padding(
+        key: groupKeys?.putIfAbsent(e.group!, GlobalKey.new),
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: _GroupHeader(name: e.group!, count: e.count),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Card(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          onTap: () => onTap(p),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            p.displayName,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                        Text(
-                          Numbers.money(p.pricing?.vlPrice),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryDark,
-                            fontSize: 16,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: Strings.procedureMaterials,
-                          icon: const Icon(Icons.inventory_2_outlined),
-                          onPressed: () =>
-                              ProcedureMaterialsDialog.show(context, p),
-                        ),
-                      ],
+                    Expanded(
+                      child: Text(
+                        p.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
                     Text(
-                      [
-                        Numbers.minutes(p.qtMinutes),
-                        '${Strings.directCost} ${Numbers.money(p.pricing?.vlDirectCost)}',
-                        '${Strings.minPrice} ${Numbers.money(p.pricing?.vlPriceMin)}',
-                      ].join(' · '),
+                      Numbers.money(p.pricing?.vlPrice),
                       style: const TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryDark,
+                        fontSize: 16,
                       ),
                     ),
-                    if (p.vlCurrentPrice != null)
-                      Text(
-                        '${Strings.current} ${Numbers.money(p.vlCurrentPrice)} · ${_diffText(p.priceDiff)}',
-                        style: TextStyle(
-                          color: _diffColor(p.priceDiff),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    if (p.alerts.isNotEmpty ||
-                        !p.isActive ||
-                        p.vlCurrentPrice != null) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Wrap(
-                        spacing: AppSpacing.xs,
-                        runSpacing: AppSpacing.xs,
-                        children: [
-                          if (p.vlCurrentPrice != null)
-                            PriceStatusChip(status: p.priceStatus),
-                          if (!p.isActive)
-                            AppStatusChip(status: p.itStatus, compact: true),
-                          ProcedureAlertChips(alerts: p.setupAlerts),
-                        ],
-                      ),
-                    ],
+                    IconButton(
+                      tooltip: Strings.procedureMaterials,
+                      icon: const Icon(Icons.inventory_2_outlined),
+                      onPressed: () =>
+                          ProcedureMaterialsDialog.show(context, p),
+                    ),
                   ],
                 ),
-              ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  [
+                    Numbers.minutes(p.qtMinutes),
+                    '${Strings.directCost} ${Numbers.money(p.pricing?.vlDirectCost)}',
+                    '${Strings.minPrice} ${Numbers.money(p.pricing?.vlPriceMin)}',
+                  ].join(' · '),
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                ),
+                if (p.vlCurrentPrice != null)
+                  Text(
+                    '${Strings.current} ${Numbers.money(p.vlCurrentPrice)} · ${_diffText(p.priceDiff)}',
+                    style: TextStyle(
+                      color: _diffColor(p.priceDiff),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                if (p.alerts.isNotEmpty ||
+                    !p.isActive ||
+                    p.vlCurrentPrice != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      if (p.vlCurrentPrice != null)
+                        PriceStatusChip(status: p.priceStatus),
+                      if (!p.isActive)
+                        AppStatusChip(status: p.itStatus, compact: true),
+                      ProcedureAlertChips(alerts: p.setupAlerts),
+                    ],
+                  ),
+                ],
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
