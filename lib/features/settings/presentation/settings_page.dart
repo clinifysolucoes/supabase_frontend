@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../clinical_record/presentation/anamnesis_models_section.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
@@ -28,7 +29,16 @@ import '../domain/settings_models.dart';
 import '../domain/trash_models.dart';
 import 'security_section.dart';
 
-enum _Section { clinic, agenda, patients, finance, security, export, trash }
+enum _Section {
+  clinic,
+  agenda,
+  patients,
+  record,
+  finance,
+  security,
+  export,
+  trash,
+}
 
 /// Configuracoes da filial: dados da clinica, agenda (intervalo, consultas no
 /// mesmo horario, fora do expediente, horario de funcionamento) e cadastro de
@@ -48,6 +58,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.clinic => Strings.settingsClinic,
     _Section.agenda => Strings.settingsAgenda,
     _Section.patients => Strings.settingsPatients,
+    _Section.record => Strings.settingsRecord,
     _Section.finance => Strings.settingsFinance,
     _Section.security => Strings.settingsSecurity,
     _Section.export => Strings.settingsExport,
@@ -58,6 +69,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.clinic => Icons.storefront_outlined,
     _Section.agenda => Icons.calendar_month_outlined,
     _Section.patients => Icons.badge_outlined,
+    _Section.record => Icons.assignment_outlined,
     _Section.finance => Icons.account_balance_wallet_outlined,
     _Section.security => Icons.shield_outlined,
     _Section.export => Icons.file_download_outlined,
@@ -135,6 +147,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         key: ValueKey(s.hashCode),
                         settings: s,
                       ),
+                      _Section.record => const AnamnesisModelsSection(),
                       _Section.finance => _FinanceForm(
                         key: ValueKey(s.hashCode),
                         settings: s,
