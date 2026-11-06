@@ -13,6 +13,8 @@ import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
+import '../../settings/application/settings_controller.dart';
+import '../../settings/domain/settings_models.dart';
 import '../application/patients_controllers.dart';
 import '../domain/patient_models.dart';
 
@@ -51,16 +53,18 @@ class _Field {
     _ => null,
   };
 
-  FormFieldValidator<String> get validator => Validators.compose([
-    if (required) Validators.required(),
-    switch (kind) {
-      _Kind.cpf => Validators.cpf(),
-      _Kind.phone => Validators.phone(),
-      _Kind.date => Validators.date(),
-      _Kind.email => Validators.email(),
-      _ => (_) => null,
-    },
-  ]);
+  /// [extra]: obrigatorio pelas configuracoes da filial.
+  FormFieldValidator<String> validator({bool extra = false}) =>
+      Validators.compose([
+        if (required || extra) Validators.required(),
+        switch (kind) {
+          _Kind.cpf => Validators.cpf(),
+          _Kind.phone => Validators.phone(),
+          _Kind.date => Validators.date(),
+          _Kind.email => Validators.email(),
+          _ => (_) => null,
+        },
+      ]);
 
   /// Texto do campo a partir do valor gravado (poe a mascara de volta).
   String display(String? value) {
@@ -100,7 +104,7 @@ const _nickname = _Field(
   maxLength: 60,
   capitalization: TextCapitalization.words,
 );
-const _cpf = _Field('vc_cpf', Strings.cpf, kind: _Kind.cpf);
+const _cpf = _Field('vc_cpf', Strings.cpf, kind: _Kind.cpf, required: true);
 const _rg = _Field('vc_rg', Strings.rg, hint: Strings.rgHint, maxLength: 20);
 const _birth = _Field(
   'dt_birth',
@@ -343,12 +347,30 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
   bool get _isEdit => _p != null;
   bool get _canEdit => !widget.readOnly && !_saving;
 
+  /// Colunas obrigatorias pelas configuracoes da filial.
+  Set<String> get _requiredCols => PatientRequired.columnsOf(
+    ref.read(settingsProvider).valueOrNull?.vcPatientRequired ?? const [],
+  );
+
+  bool _req(String key) => _requiredCols.contains(key);
+
+  /// Campo de texto obrigatorio pela filial (e-mail: "nao possui" dispensa).
+  bool _extra(_Field f) => _req(f.key) && !(f.key == 'vc_email' && _noEmail);
+
   List<_Field> get _allFields => [
     ..._registration,
     ..._contact,
     ..._complementary,
   ];
-  List<_Field> get _visibleFields => _isEdit ? _allFields : _quick;
+  List<_Field> get _visibleFields =>
+      _isEdit ? _allFields : [..._quick, ..._quickExtra];
+
+  /// Cadastro rapido: campos de texto obrigatorios da filial que nao estao
+  /// no formulario curto (endereco, profissao, convenio).
+  List<_Field> get _quickExtra => [
+    for (final f in [..._contact, ..._complementary])
+      if (_req(f.key) && !_quick.contains(f)) f,
+  ];
 
   String _initial(_Field f) {
     final p = _p;
@@ -372,11 +394,11 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
       'it_source': _source,
       'id_no_email': _noEmail,
     };
-    if (_isEdit) {
+    if (_isEdit || _req('it_marital_status')) {
       m['it_marital_status'] = _marital;
-      m['it_education'] = _education;
-      m['vc_state'] = _state;
     }
+    if (_isEdit || _req('it_education')) m['it_education'] = _education;
+    if (_isEdit || _req('vc_state')) m['vc_state'] = _state;
     return m;
   }
 
@@ -385,8 +407,23 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
     final groups = [_registration, _contact, _complementary];
     for (var i = 0; i < groups.length; i++) {
       for (final f in groups[i]) {
-        if (f.validator(_c[f.key]!.text) != null) return i;
+        if (f.validator(extra: _extra(f))(_c[f.key]!.text) != null) return i;
       }
+    }
+    return null;
+  }
+
+  /// Selecao obrigatoria pela filial que ficou vazia (rotulo) e a aba dela.
+  (String, int)? _missingSelect() {
+    final checks = [
+      ('it_gender', _gender, Strings.gender, 0),
+      ('it_marital_status', _marital, Strings.maritalStatus, 0),
+      ('it_education', _education, Strings.education, 0),
+      ('it_source', _source, Strings.howFound, 0),
+      ('vc_state', _state, Strings.state, 1),
+    ];
+    for (final (key, value, label, tab) in checks) {
+      if (_req(key) && value == null) return (label, tab);
     }
     return null;
   }
@@ -396,6 +433,12 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       final tab = _isEdit ? _tabWithError() : null;
       if (tab != null && tab != _tab) setState(() => _tab = tab);
+      return;
+    }
+    final missing = _missingSelect();
+    if (missing != null) {
+      if (_isEdit && missing.$2 != _tab) setState(() => _tab = missing.$2);
+      AppSnack.error(context, Strings.fieldRequiredNamed(missing.$1));
       return;
     }
     setState(() => _saving = true);
@@ -424,7 +467,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
   // --- campos ------------------------------------------------------------------
 
   Widget _text(_Field f, {bool autofocus = false}) => AppTextField(
-    label: f.required ? '${f.label} *' : f.label,
+    label: f.required || _extra(f) ? '${f.label} *' : f.label,
     hint: f.hint,
     controller: _c[f.key],
     mask: f.mask,
@@ -436,11 +479,12 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
     prefixIcon: f.icon,
     keyboardType: f.kind == _Kind.email ? TextInputType.emailAddress : null,
     textCapitalization: f.capitalization,
-    validator: f.validator,
+    validator: f.validator(extra: _extra(f)),
   );
 
   Widget _select({
     required String label,
+    String? requiredKey,
     required List<int> values,
     required int? value,
     required String Function(int?) labelOf,
@@ -452,7 +496,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
       for (final v in values) Choice<int>(value: v, label: labelOf(v)),
     ];
     return SearchableDropdown<Choice<int>>(
-      label: label,
+      label: requiredKey != null && _req(requiredKey) ? '$label *' : label,
       prefixIcon: icon,
       items: choices,
       value: choices.firstWhere((c) => c.value == value),
@@ -463,8 +507,8 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
   }
 
   Widget _genderChips() => InputDecorator(
-    decoration: const InputDecoration(
-      labelText: Strings.gender,
+    decoration: InputDecoration(
+      labelText: _req('it_gender') ? '${Strings.gender} *' : Strings.gender,
       border: InputBorder.none,
       contentPadding: EdgeInsets.zero,
     ),
@@ -499,7 +543,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
       for (final uf in brazilStates) Choice<String>(value: uf, label: uf),
     ];
     return SearchableDropdown<Choice<String>>(
-      label: Strings.state,
+      label: _req('vc_state') ? '${Strings.state} *' : Strings.state,
       items: choices,
       value: choices.firstWhere((c) => c.value == _state),
       itemLabel: (c) => c.label,
@@ -523,6 +567,8 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // obrigatorios da filial (Configuracoes): redesenha quando carregam
+    ref.watch(settingsProvider);
     final theme = Theme.of(context);
     final isMobile = context.isMobile;
     const gap = SizedBox(height: AppSpacing.md);
@@ -554,6 +600,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
         pair(
           _select(
             label: Strings.maritalStatus,
+            requiredKey: 'it_marital_status',
             values: MaritalStatus.all,
             value: _marital,
             labelOf: MaritalStatus.label,
@@ -561,6 +608,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
           ),
           _select(
             label: Strings.education,
+            requiredKey: 'it_education',
             values: Education.all,
             value: _education,
             labelOf: Education.label,
@@ -571,6 +619,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
         pair(
           _select(
             label: Strings.howFound,
+            requiredKey: 'it_source',
             values: PatientSource.all,
             value: _source,
             labelOf: PatientSource.label,
@@ -645,6 +694,7 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
         pair(
           _select(
             label: Strings.howFound,
+            requiredKey: 'it_source',
             values: PatientSource.all,
             value: _source,
             labelOf: PatientSource.label,
@@ -655,6 +705,36 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
         ),
         gap,
         _text(_notes),
+        if (_quickExtra.isNotEmpty ||
+            _req('it_marital_status') ||
+            _req('it_education') ||
+            _req('vc_state')) ...[
+          _sectionTitle(Strings.requiredByClinic),
+          if (_req('it_marital_status')) ...[
+            _select(
+              label: Strings.maritalStatus,
+              requiredKey: 'it_marital_status',
+              values: MaritalStatus.all,
+              value: _marital,
+              labelOf: MaritalStatus.label,
+              onChanged: (v) => _marital = v,
+            ),
+            gap,
+          ],
+          if (_req('it_education')) ...[
+            _select(
+              label: Strings.education,
+              requiredKey: 'it_education',
+              values: Education.all,
+              value: _education,
+              labelOf: Education.label,
+              onChanged: (v) => _education = v,
+            ),
+            gap,
+          ],
+          if (_req('vc_state')) ...[_stateSelect(), gap],
+          for (final f in _quickExtra) ...[_text(f), gap],
+        ],
       ],
     );
 

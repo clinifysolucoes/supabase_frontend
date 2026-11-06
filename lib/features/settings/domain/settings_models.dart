@@ -70,8 +70,7 @@ class BranchSettings {
     this.idAllowOutsideHours = true,
     this.idAutoRecordNumber = false,
     this.nrNextRecord = 1,
-    this.idRequireCpf = false,
-    this.idRequireMobile = false,
+    this.vcPatientRequired = const [],
     this.hours = const [],
     this.itDebtRule = DebtRule.none,
     this.qtDebtDays = 0,
@@ -98,8 +97,9 @@ class BranchSettings {
       idAllowOutsideHours: s['id_allow_outside_hours'] != false,
       idAutoRecordNumber: s['id_auto_record_number'] == true,
       nrNextRecord: i('nr_next_record', 1),
-      idRequireCpf: s['id_require_cpf'] == true,
-      idRequireMobile: s['id_require_mobile'] == true,
+      vcPatientRequired: [
+        for (final f in (s['vc_patient_required'] as List? ?? const [])) '$f',
+      ],
       hours: [
         for (final h in (j['hours'] as List? ?? const []))
           ScheduleRange.fromJson((h as Map).cast<String, dynamic>()),
@@ -123,8 +123,9 @@ class BranchSettings {
   final bool idAllowOutsideHours;
   final bool idAutoRecordNumber;
   final int nrNextRecord;
-  final bool idRequireCpf;
-  final bool idRequireMobile;
+
+  /// Campos obrigatorios do paciente marcados pela filial (PatientRequired).
+  final List<String> vcPatientRequired;
   final List<ScheduleRange> hours;
   final int itDebtRule;
   final int qtDebtDays;
@@ -139,6 +140,66 @@ class BranchSettings {
 
   /// Formas de pagamento (od.fin_entry.it_payment_method) aceitas por padrao.
   static const allPaymentMethods = [1, 2, 3, 4, 5, 6, 7, 9];
+}
+
+/// Campos do cadastro do paciente que a filial pode tornar obrigatorios
+/// (od.branch_setting.vc_patient_required). Nome, nascimento e CPF sempre sao.
+abstract final class PatientRequired {
+  static const rg = 'rg';
+  static const gender = 'gender';
+  static const maritalStatus = 'marital_status';
+  static const education = 'education';
+  static const source = 'source';
+  static const referral = 'referral';
+  static const mobile = 'mobile';
+  static const phone = 'phone';
+  static const email = 'email';
+  static const address = 'address';
+  static const profession = 'profession';
+  static const plan = 'plan';
+
+  static const all = [
+    rg,
+    gender,
+    maritalStatus,
+    education,
+    source,
+    referral,
+    mobile,
+    phone,
+    email,
+    address,
+    profession,
+    plan,
+  ];
+
+  /// Colunas do paciente (od.patient) de cada opcao.
+  static const columns = {
+    rg: ['vc_rg'],
+    gender: ['it_gender'],
+    maritalStatus: ['it_marital_status'],
+    education: ['it_education'],
+    source: ['it_source'],
+    referral: ['vc_referral'],
+    mobile: ['vc_mobile'],
+    phone: ['vc_phone'],
+    email: ['vc_email'],
+    address: [
+      'vc_zip',
+      'vc_address',
+      'vc_address_number',
+      'vc_district',
+      'vc_city',
+      'vc_state',
+    ],
+    profession: ['vc_profession'],
+    plan: ['vc_plan_name'],
+  };
+
+  /// Colunas obrigatorias a partir das opcoes marcadas.
+  static Set<String> columnsOf(Iterable<String> options) => {
+    for (final o in options) ...?columns[o],
+  };
 }
 
 /// Paciente com conta vencida ao agendar (od.branch_setting.it_debt_rule).

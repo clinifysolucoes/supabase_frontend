@@ -1252,6 +1252,16 @@ abstract final class Strings {
   static const settingsNextRecord = 'Próximo número';
   static const settingsNextRecordInvalid = 'Informe um número a partir de 1.';
   static const settingsRequired = 'Obrigatórios no cadastro';
+  static const settingsRequiredFixedHint =
+      'Sempre obrigatórios em todo cadastro de paciente.';
+  static const settingsRequiredAlways = 'Sempre obrigatório';
+  static const settingsRequiredOptional = 'Outros campos obrigatórios';
+  static const settingsRequiredOptionalHint =
+      'Marque os campos que a recepção precisa preencher ao cadastrar um paciente.';
+  static const settingsRequiredAddress = 'Endereço completo';
+  static const settingsRequiredPlan = 'Convênio';
+  static const requiredByClinic = 'Obrigatórios da clínica';
+  static String fieldRequiredNamed(String field) => 'Informe $field.';
   static const settingsFinance = 'Financeiro';
   static const settingsFinanceHint =
       'Pacientes com contas vencidas, caixa do dia, formas de pagamento e acréscimos por atraso.';
@@ -1782,7 +1792,7 @@ abstract final class Strings {
     'APPOINTMENT_OUTSIDE_HOURS':
         'Fora do horário de atendimento do profissional. Use encaixe para marcar assim mesmo.',
     'PATIENT_CPF_REQUIRED': 'Informe o CPF do paciente.',
-    'PATIENT_MOBILE_REQUIRED': 'Informe o celular do paciente.',
+    'PATIENT_FIELD_REQUIRED': 'Campo obrigatório nas configurações: {Field}.',
     'SETTINGS_DEBT_INVALID': 'Regra de inadimplentes ou tolerância inválida.',
     'SETTINGS_METHODS_INVALID':
         'Escolha ao menos uma forma de pagamento válida.',

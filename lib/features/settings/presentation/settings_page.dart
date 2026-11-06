@@ -603,12 +603,27 @@ class _PatientsForm extends ConsumerStatefulWidget {
 }
 
 class _PatientsFormState extends ConsumerState<_PatientsForm> {
+  static String _requiredLabel(String o) => switch (o) {
+    PatientRequired.rg => Strings.rg,
+    PatientRequired.gender => Strings.gender,
+    PatientRequired.maritalStatus => Strings.maritalStatus,
+    PatientRequired.education => Strings.education,
+    PatientRequired.source => Strings.howFound,
+    PatientRequired.referral => Strings.referredBy,
+    PatientRequired.mobile => Strings.mobile,
+    PatientRequired.phone => Strings.landline,
+    PatientRequired.email => Strings.email,
+    PatientRequired.address => Strings.settingsRequiredAddress,
+    PatientRequired.profession => Strings.profession,
+    PatientRequired.plan => Strings.settingsRequiredPlan,
+    _ => o,
+  };
+
   late bool _auto = widget.settings.idAutoRecordNumber;
   late final _next = TextEditingController(
     text: '${widget.settings.nrNextRecord}',
   );
-  late bool _cpf = widget.settings.idRequireCpf;
-  late bool _mobile = widget.settings.idRequireMobile;
+  late final Set<String> _required = {...widget.settings.vcPatientRequired};
   bool _saving = false;
 
   @override
@@ -628,8 +643,10 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
       await ref.read(settingsProvider.notifier).save({
         'id_auto_record_number': _auto,
         'nr_next_record': next,
-        'id_require_cpf': _cpf,
-        'id_require_mobile': _mobile,
+        'vc_patient_required': [
+          for (final o in PatientRequired.all)
+            if (_required.contains(o)) o,
+        ],
       });
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
     } catch (e) {
@@ -666,19 +683,44 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
             ),
           ),
         _subtitle(context, Strings.settingsRequired),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          title: const Text(Strings.cpf),
-          value: _cpf,
-          onChanged: can ? (v) => setState(() => _cpf = v ?? false) : null,
+        const Text(
+          Strings.settingsRequiredFixedHint,
+          style: TextStyle(color: AppColors.muted, fontSize: 12),
         ),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          title: const Text(Strings.mobile),
-          value: _mobile,
-          onChanged: can ? (v) => setState(() => _mobile = v ?? false) : null,
+        for (final label in const [
+          Strings.fullName,
+          Strings.birthDate,
+          Strings.cpf,
+        ])
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(label),
+            subtitle: const Text(Strings.settingsRequiredAlways),
+            value: true,
+            onChanged: null,
+          ),
+        _subtitle(context, Strings.settingsRequiredOptional),
+        const Text(
+          Strings.settingsRequiredOptionalHint,
+          style: TextStyle(color: AppColors.muted, fontSize: 12),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final o in PatientRequired.all)
+              FilterChip(
+                label: Text(_requiredLabel(o)),
+                selected: _required.contains(o),
+                onSelected: can
+                    ? (v) => setState(
+                        () => v ? _required.add(o) : _required.remove(o),
+                      )
+                    : null,
+              ),
+          ],
         ),
       ],
     );

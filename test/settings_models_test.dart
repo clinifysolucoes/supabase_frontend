@@ -28,8 +28,7 @@ void main() {
         'id_allow_outside_hours': false,
         'id_auto_record_number': true,
         'nr_next_record': 100,
-        'id_require_cpf': true,
-        'id_require_mobile': true,
+        'vc_patient_required': ['rg', 'address'],
       },
       'hours': [
         {'it_weekday': 1, 'qt_minute_start': 480, 'qt_minute_end': 720},
@@ -40,7 +39,11 @@ void main() {
     expect(s.qtMaxParallel, 2);
     expect(s.idAllowOutsideHours, isFalse);
     expect(s.nrNextRecord, 100);
-    expect(s.idRequireCpf && s.idRequireMobile, isTrue);
+    expect(s.vcPatientRequired, ['rg', 'address']);
+    expect(
+      PatientRequired.columnsOf(s.vcPatientRequired),
+      containsAll(['vc_rg', 'vc_zip', 'vc_city', 'vc_state']),
+    );
     expect(s.hours, hasLength(1));
     expect(s.clinic.vcForumCity, 'Curitiba');
   });
