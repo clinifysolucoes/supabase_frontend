@@ -759,6 +759,12 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
   late final _dreCsll = TextEditingController(
     text: Numbers.toField(widget.settings.pcDreCsll),
   );
+  late final _receiptPrefix = TextEditingController(
+    text: widget.settings.vcReceiptPrefix,
+  );
+  late final _receiptNext = TextEditingController(
+    text: '${widget.settings.nrNextReceipt}',
+  );
   bool _saving = false;
 
   @override
@@ -769,6 +775,8 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
     _dreRevenue.dispose();
     _dreIncome.dispose();
     _dreCsll.dispose();
+    _receiptPrefix.dispose();
+    _receiptNext.dispose();
     super.dispose();
   }
 
@@ -804,6 +812,8 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
         'pc_dre_revenue_tax': Numbers.parse(_dreRevenue.text) ?? 0,
         'pc_dre_income_tax': Numbers.parse(_dreIncome.text) ?? 0,
         'pc_dre_csll': Numbers.parse(_dreCsll.text) ?? 0,
+        'vc_receipt_prefix': _receiptPrefix.text.trim().toUpperCase(),
+        'nr_next_receipt': int.tryParse(_receiptNext.text.trim()) ?? 1,
       });
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
     } catch (e) {
@@ -952,6 +962,35 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
               suffixText: '%',
               enabled: can,
               validator: _taxPercent,
+            ),
+          ]),
+          _subtitle(context, Strings.settingsReceipts),
+          const Text(
+            Strings.settingsReceiptsHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _row(context, [
+            AppTextField(
+              label: Strings.settingsReceiptPrefix,
+              hint: 'REC-',
+              controller: _receiptPrefix,
+              maxLength: 10,
+              enabled: can,
+              textCapitalization: TextCapitalization.characters,
+              validator: (v) =>
+                  RegExp(r'^[A-Za-z0-9./-]*$').hasMatch((v ?? '').trim())
+                  ? null
+                  : Strings.settingsReceiptPrefixInvalid,
+            ),
+            AppNumberField(
+              label: Strings.settingsReceiptNext,
+              controller: _receiptNext,
+              decimals: 0,
+              enabled: can,
+              validator: (v) => (int.tryParse(v ?? '') ?? 0) < 1
+                  ? Strings.settingsNextRecordInvalid
+                  : null,
             ),
           ]),
         ],

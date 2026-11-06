@@ -81,6 +81,8 @@ class BranchSettings {
     this.pcDreRevenueTax = 0,
     this.pcDreIncomeTax = 0,
     this.pcDreCsll = 0,
+    this.vcReceiptPrefix = '',
+    this.nrNextReceipt = 1,
     this.canUpdate = false,
     this.canEditClinic = false,
   });
@@ -118,6 +120,8 @@ class BranchSettings {
       pcDreRevenueTax: d('pc_dre_revenue_tax'),
       pcDreIncomeTax: d('pc_dre_income_tax'),
       pcDreCsll: d('pc_dre_csll'),
+      vcReceiptPrefix: s['vc_receipt_prefix']?.toString() ?? '',
+      nrNextReceipt: i('nr_next_receipt', 1),
       canUpdate: p['id_update'] == true,
       canEditClinic: p['id_clinic'] == true,
     );
@@ -144,6 +148,10 @@ class BranchSettings {
   final double pcDreRevenueTax;
   final double pcDreIncomeTax;
   final double pcDreCsll;
+
+  /// Numeracao dos recibos (prefixo e proximo numero).
+  final String vcReceiptPrefix;
+  final int nrNextReceipt;
   final bool canUpdate;
   final bool canEditClinic;
 

@@ -36,6 +36,16 @@ abstract final class FileDownload {
     );
   }
 
+  static Future<String> savePdf({
+    required String name,
+    required Uint8List bytes,
+  }) => FileSaver.instance.saveFile(
+    name: name,
+    bytes: bytes,
+    fileExtension: 'pdf',
+    mimeType: MimeType.pdf,
+  );
+
   static Future<String> saveCsv({
     required String name,
     required Uint8List bytes,

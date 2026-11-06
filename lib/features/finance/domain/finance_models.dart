@@ -290,6 +290,8 @@ class FinEntry {
     this.qtAttachments = 0,
     this.vlLateFee = 0,
     this.vlLateInterest = 0,
+    this.nrReceipt,
+    this.vcReceiptNumber,
   });
 
   factory FinEntry.fromJson(Map<String, dynamic> j) => FinEntry(
@@ -330,6 +332,8 @@ class FinEntry {
     qtAttachments: _int(j['qt_attachments'] ?? 0),
     vlLateFee: _double(j['vl_late_fee'] ?? 0),
     vlLateInterest: _double(j['vl_late_interest'] ?? 0),
+    nrReceipt: j['nr_receipt'] == null ? null : _int(j['nr_receipt']),
+    vcReceiptNumber: _str(j['vc_receipt_number']),
   );
 
   final int nrEntry;
@@ -370,6 +374,10 @@ class FinEntry {
   final double vlLateFee;
   final double vlLateInterest;
   double get vlLateTotal => vlLateFee + vlLateInterest;
+
+  /// Recibo ativo (conta a receber paga).
+  final int? nrReceipt;
+  final String? vcReceiptNumber;
 
   bool get isOpen => itStatus == EntryStatus.open;
   bool get isPaid => itStatus == EntryStatus.paid;

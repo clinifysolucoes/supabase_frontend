@@ -11,6 +11,7 @@ import '../domain/dre_models.dart';
 import '../domain/health_models.dart';
 import '../domain/finance_models.dart';
 import '../domain/phase4_models.dart';
+import '../domain/receipt_models.dart';
 import '../domain/receivable_models.dart';
 
 /// Empresa e filial atuais (null sem sessao/filial).
@@ -431,6 +432,50 @@ class FinanceActions {
     _invalidate();
     return r;
   }
+
+  /// Emite (ou devolve o ativo) o recibo da conta paga.
+  Future<ReceiptDoc> issueReceipt(
+    int nrEntry, {
+    String? payerName,
+    String? payerDocument,
+    String? description,
+  }) async {
+    final b = _b;
+    final r = await _repo.cashCall(
+      nrCompany: b.company,
+      nrBranch: b.branch,
+      rpc: 'fin_receipt_issue',
+      fields: {
+        'nr_entry': nrEntry,
+        if (payerName != null && payerName.isNotEmpty)
+          'vc_payer_name': payerName,
+        if (payerDocument != null && payerDocument.isNotEmpty)
+          'vc_payer_document': payerDocument,
+        if (description != null && description.isNotEmpty)
+          'vc_description': description,
+      },
+    );
+    _invalidate();
+    return ReceiptDoc.fromJson(r);
+  }
+
+  /// Recibo ativo da conta (sem recarregar as listas).
+  Future<ReceiptDoc> receiptOf(int nrEntry) async {
+    final b = _b;
+    return ReceiptDoc.fromJson(
+      await _repo.cashCall(
+        nrCompany: b.company,
+        nrBranch: b.branch,
+        rpc: 'fin_receipt_get',
+        fields: {'nr_entry': nrEntry},
+      ),
+    );
+  }
+
+  Future<void> cancelReceipt(int nrReceipt, String reason) => cash(
+    'fin_receipt_cancel',
+    {'nr_receipt': nrReceipt, 'vc_reason': reason},
+  );
 
   Future<void> setup() async {
     final b = _b;

@@ -1329,6 +1329,35 @@ abstract final class Strings {
       'Agendado. Atenção: o paciente tem $amount em contas vencidas.';
   static String finLateIncluded(String fee, String interest) =>
       'Inclui multa de $fee e juros de $interest.';
+  static const receipt = 'Recibo';
+  static const receiptNone = 'Não emitido';
+  static const receiptIssue = 'Emitir recibo';
+  static const receiptIssueTitle = 'Emitir recibo';
+  static const receiptDownload = 'Recibo (PDF)';
+  static const receiptDownloaded = 'Recibo baixado.';
+  static const receiptCancel = 'Cancelar recibo';
+  static String receiptCancelTitle(String number) =>
+      'Cancelar o recibo $number';
+  static const receiptCancelHint =
+      'O número não volta a ser usado: emitir de novo gera outro recibo.';
+  static const receiptCancelReason = 'Motivo';
+  static const receiptCancelReasonRequired =
+      'Informe o motivo do cancelamento.';
+  static const receiptCancelled = 'Recibo cancelado.';
+  static String receiptIssued(String number) => 'Recibo $number emitido.';
+  static String receiptAlready(String number) =>
+      'Esta conta já tem o recibo $number.';
+  static const receiptPayer = 'Recebemos de';
+  static const receiptPayerRequired = 'Informe quem pagou.';
+  static const receiptPayerDocument = 'CPF ou CNPJ de quem pagou';
+  static const receiptPayerDocumentHint = 'Vazio = CPF do paciente';
+  static const receiptDescription = 'Referente a';
+  static const settingsReceipts = 'Recibos';
+  static const settingsReceiptsHint =
+      'Numeração dos recibos emitidos pelos recebimentos (Financeiro › conta paga › Emitir recibo).';
+  static const settingsReceiptPrefix = 'Prefixo do número';
+  static const settingsReceiptPrefixInvalid = 'Use letras, números, - / ou .';
+  static const settingsReceiptNext = 'Próximo número';
   static const cashDisabled =
       'O caixa do dia está desligado nas configurações.';
   static const settingsExport = 'Exportar';
@@ -1832,6 +1861,15 @@ abstract final class Strings {
     'FIN_CASH_DISABLED': 'O caixa do dia está desligado nas configurações.',
     'FIN_DRE_PERIOD_INVALID': 'Período inválido para o DRE (até 24 meses).',
     'SETTINGS_DRE_INVALID': 'As alíquotas do DRE devem ficar entre 0 e 50%.',
+    'FIN_RECEIPT_FORBIDDEN':
+        'Você não tem permissão para emitir ou cancelar recibos.',
+    'FIN_RECEIPT_NOT_FOUND': 'Recibo não encontrado.',
+    'FIN_RECEIPT_NOT_PAID':
+        'Só dá para emitir recibo de conta a receber já paga.',
+    'FIN_RECEIPT_PAYER_REQUIRED': 'Informe quem pagou.',
+    'FIN_RECEIPT_DOCUMENT_INVALID': 'CPF ou CNPJ de quem pagou inválido.',
+    'FIN_RECEIPT_REASON_REQUIRED': 'Informe o motivo do cancelamento.',
+    'SETTINGS_RECEIPT_INVALID': 'Prefixo ou próximo número do recibo inválido.',
     'EXPORT_BRANCH_REQUIRED': 'Filial não informada.',
     'EXPORT_FORBIDDEN': 'Você não tem permissão para exportar estes dados.',
     'EXPORT_KIND_INVALID': 'Tipo de planilha inválido.',
