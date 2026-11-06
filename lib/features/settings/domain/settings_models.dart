@@ -78,6 +78,8 @@ class BranchSettings {
     this.itPaymentMethods = allPaymentMethods,
     this.pcLateFee = 0,
     this.pcLateInterest = 0,
+    this.vcReceiptPrefix = '',
+    this.nrNextReceipt = 1,
     this.canUpdate = false,
     this.canEditClinic = false,
   });
@@ -112,6 +114,8 @@ class BranchSettings {
           : allPaymentMethods,
       pcLateFee: d('pc_late_fee'),
       pcLateInterest: d('pc_late_interest'),
+      vcReceiptPrefix: s['vc_receipt_prefix']?.toString() ?? '',
+      nrNextReceipt: i('nr_next_receipt', 1),
       canUpdate: p['id_update'] == true,
       canEditClinic: p['id_clinic'] == true,
     );
@@ -133,6 +137,10 @@ class BranchSettings {
   final List<int> itPaymentMethods;
   final double pcLateFee;
   final double pcLateInterest;
+
+  /// Numeracao dos recibos (prefixo e proximo numero).
+  final String vcReceiptPrefix;
+  final int nrNextReceipt;
   final bool canUpdate;
   final bool canEditClinic;
 
