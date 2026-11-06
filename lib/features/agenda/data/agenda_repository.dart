@@ -155,33 +155,45 @@ class AgendaRepository {
     return AppointmentListData.fromJson(json);
   }
 
-  Future<int> createAppointment({
+  /// Cria e devolve o total vencido do paciente quando a filial avisa (ou o
+  /// administrador liberou com [debtOverride]); null sem pendencia.
+  Future<double?> createAppointment({
     required int nrCompany,
     required int nrBranch,
     required AppointmentDraft draft,
+    bool debtOverride = false,
   }) async {
     final json = await _gateway.rpc('appointment_save', {
       'vc_action': 'I',
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
       ...draft.toJson(),
+      if (debtOverride) 'id_debt_override': true,
     });
-    return (json['nr_appointment'] as num).toInt();
+    return _debt(json);
   }
 
-  Future<void> updateAppointment({
+  Future<double?> updateAppointment({
     required int nrCompany,
     required int nrBranch,
     required int nrAppointment,
     required Map<String, dynamic> changes,
+    bool debtOverride = false,
   }) async {
-    await _gateway.rpc('appointment_save', {
+    final json = await _gateway.rpc('appointment_save', {
       'vc_action': 'U',
       'nr_company': nrCompany,
       'nr_branch': nrBranch,
       'nr_appointment': nrAppointment,
       ...changes,
+      if (debtOverride) 'id_debt_override': true,
     });
+    return _debt(json);
+  }
+
+  static double? _debt(Map<String, dynamic> json) {
+    final d = json['debt'];
+    return d is Map ? (d['vl_total'] as num?)?.toDouble() : null;
   }
 }
 

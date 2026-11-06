@@ -122,6 +122,7 @@ class CashStatus {
     this.accounts = const [],
     this.sessions = const [],
     this.permission = const FinPermission(),
+    this.idEnabled = true,
   });
 
   factory CashStatus.fromJson(Map<String, dynamic> j) => CashStatus(
@@ -141,12 +142,16 @@ class CashStatus {
             (j['permission'] as Map).cast<String, dynamic>(),
           )
         : const FinPermission(),
+    idEnabled: j['id_enabled'] != false,
   );
 
   final CashSession? mine;
   final List<CashAccount> accounts;
   final List<CashSession> sessions;
   final FinPermission permission;
+
+  /// Caixa do dia ligado nas configuracoes da filial.
+  final bool idEnabled;
 }
 
 /// Lancamento ja gerado por um atendimento (ad.appointment_checkout_get).

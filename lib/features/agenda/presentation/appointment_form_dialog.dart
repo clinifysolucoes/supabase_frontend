@@ -6,7 +6,9 @@ import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/dates.dart';
+import '../../../shared/formatters/numbers.dart';
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_confirm_dialog.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
@@ -192,12 +194,44 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
       idFitIn: _isConsultation && _fitIn,
     );
     setState(() => _saving = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final controller = ref.read(appointmentsProvider.notifier);
+    Future<double?> run({bool debtOverride = false}) => _isEdit
+        ? controller.change(
+            _a!.nrAppointment,
+            draft.toJson(),
+            debtOverride: debtOverride,
+          )
+        : controller.create(draft, debtOverride: debtOverride);
     try {
-      final controller = ref.read(appointmentsProvider.notifier);
-      if (_isEdit) {
-        await controller.change(_a!.nrAppointment, draft.toJson());
-      } else {
-        await controller.create(draft);
+      double? debt;
+      try {
+        debt = await run();
+      } on AppError catch (e) {
+        // paciente com conta vencida: o administrador confirma e agenda
+        if (e.key != 'APPOINTMENT_DEBT_CONFIRM' || !mounted) rethrow;
+        final ok = await AppConfirmDialog.show(
+          context,
+          title: Strings.debtConfirmTitle,
+          message: Strings.debtConfirmMessage(
+            Numbers.money(e.parameters['Amount'] as num?),
+          ),
+          confirmLabel: Strings.debtConfirmAction,
+          destructive: false,
+        );
+        if (!ok) {
+          if (mounted) setState(() => _saving = false);
+          return;
+        }
+        debt = await run(debtOverride: true);
+      }
+      if (debt != null) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(Strings.debtWarning(Numbers.money(debt))),
+            backgroundColor: AppColors.warning,
+          ),
+        );
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
