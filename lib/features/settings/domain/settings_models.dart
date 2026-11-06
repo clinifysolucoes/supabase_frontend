@@ -78,6 +78,9 @@ class BranchSettings {
     this.itPaymentMethods = allPaymentMethods,
     this.pcLateFee = 0,
     this.pcLateInterest = 0,
+    this.pcDreRevenueTax = 0,
+    this.pcDreIncomeTax = 0,
+    this.pcDreCsll = 0,
     this.canUpdate = false,
     this.canEditClinic = false,
   });
@@ -112,6 +115,9 @@ class BranchSettings {
           : allPaymentMethods,
       pcLateFee: d('pc_late_fee'),
       pcLateInterest: d('pc_late_interest'),
+      pcDreRevenueTax: d('pc_dre_revenue_tax'),
+      pcDreIncomeTax: d('pc_dre_income_tax'),
+      pcDreCsll: d('pc_dre_csll'),
       canUpdate: p['id_update'] == true,
       canEditClinic: p['id_clinic'] == true,
     );
@@ -133,6 +139,11 @@ class BranchSettings {
   final List<int> itPaymentMethods;
   final double pcLateFee;
   final double pcLateInterest;
+
+  /// Aliquotas da estimativa de impostos no DRE (%).
+  final double pcDreRevenueTax;
+  final double pcDreIncomeTax;
+  final double pcDreCsll;
   final bool canUpdate;
   final bool canEditClinic;
 

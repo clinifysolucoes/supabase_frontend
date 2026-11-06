@@ -750,6 +750,15 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
   late final _interest = TextEditingController(
     text: Numbers.toField(widget.settings.pcLateInterest),
   );
+  late final _dreRevenue = TextEditingController(
+    text: Numbers.toField(widget.settings.pcDreRevenueTax),
+  );
+  late final _dreIncome = TextEditingController(
+    text: Numbers.toField(widget.settings.pcDreIncomeTax),
+  );
+  late final _dreCsll = TextEditingController(
+    text: Numbers.toField(widget.settings.pcDreCsll),
+  );
   bool _saving = false;
 
   @override
@@ -757,6 +766,9 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
     _days.dispose();
     _fee.dispose();
     _interest.dispose();
+    _dreRevenue.dispose();
+    _dreIncome.dispose();
+    _dreCsll.dispose();
     super.dispose();
   }
 
@@ -789,6 +801,9 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
         'it_payment_methods': (_methods.toList()..sort()),
         'pc_late_fee': Numbers.parse(_fee.text) ?? 0,
         'pc_late_interest': Numbers.parse(_interest.text) ?? 0,
+        'pc_dre_revenue_tax': Numbers.parse(_dreRevenue.text) ?? 0,
+        'pc_dre_income_tax': Numbers.parse(_dreIncome.text) ?? 0,
+        'pc_dre_csll': Numbers.parse(_dreCsll.text) ?? 0,
       });
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
     } catch (e) {
@@ -801,6 +816,11 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
   String? _percent(String? v) {
     final n = Numbers.parse(v) ?? 0;
     return n < 0 || n > 10 ? Strings.settingsPercentRange : null;
+  }
+
+  String? _taxPercent(String? v) {
+    final n = Numbers.parse(v) ?? 0;
+    return n < 0 || n > 50 ? Strings.settingsTaxRange : null;
   }
 
   @override
@@ -903,6 +923,35 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
               suffixText: Strings.settingsPerMonth,
               enabled: can,
               validator: _percent,
+            ),
+          ]),
+          _subtitle(context, Strings.settingsDre),
+          const Text(
+            Strings.settingsDreHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _row(context, [
+            AppNumberField(
+              label: Strings.settingsDreRevenueTax,
+              controller: _dreRevenue,
+              suffixText: '%',
+              enabled: can,
+              validator: _taxPercent,
+            ),
+            AppNumberField(
+              label: Strings.settingsDreIncomeTax,
+              controller: _dreIncome,
+              suffixText: '%',
+              enabled: can,
+              validator: _taxPercent,
+            ),
+            AppNumberField(
+              label: Strings.settingsDreCsll,
+              controller: _dreCsll,
+              suffixText: '%',
+              enabled: can,
+              validator: _taxPercent,
             ),
           ]),
         ],

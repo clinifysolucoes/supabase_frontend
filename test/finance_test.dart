@@ -9,6 +9,7 @@ import 'package:odonto_app/features/agenda/domain/agenda_models.dart';
 import 'package:odonto_app/features/finance/data/finance_repository.dart';
 import 'package:odonto_app/features/finance/domain/bank_models.dart';
 import 'package:odonto_app/features/finance/domain/cash_models.dart';
+import 'package:odonto_app/features/finance/domain/dre_models.dart';
 import 'package:odonto_app/features/finance/domain/health_models.dart';
 import 'package:odonto_app/features/finance/domain/phase4_models.dart';
 import 'package:odonto_app/features/finance/domain/receivable_models.dart';
@@ -237,6 +238,47 @@ class _FakeRepo implements FinanceRepository {
     required int nrBranch,
     required DateTime month,
   }) async => const Cashflow();
+
+  String? dreBasis;
+
+  @override
+  Future<DreReport> dre({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    String basis = 'competence',
+  }) async {
+    dreBasis = basis;
+    List<double> months(double jan) => [jan, for (var i = 1; i < 12; i++) 0];
+    Map<String, dynamic> line(
+      String key,
+      String label,
+      int level,
+      double jan,
+    ) => {
+      'vc_key': key,
+      'vc_label': label,
+      'it_level': level,
+      'it_sign': 1,
+      'values': months(jan),
+      'vl_total': jan,
+      'pc_revenue': jan / 10,
+    };
+    return DreReport.fromJson({
+      'months': [
+        for (var m = 1; m <= 12; m++) '2030-${m.toString().padLeft(2, '0')}',
+      ],
+      'vc_basis': basis,
+      'lines': [
+        line('gross', 'Receita bruta', 1, 1000),
+        line('cat:1', 'Tratamentos', 3, 1000),
+        line('variable', '(-) Custos variáveis', 2, 200),
+        line('fixed', '(-) Custos fixos', 2, 300),
+        line('result', 'Resultado líquido', 1, 500),
+      ],
+    });
+  }
 
   @override
   Future<Statement> statement({
@@ -895,6 +937,28 @@ OFXHEADER:100
       await tester.pumpAndSettle();
       expect(repo.setups, 1);
       expect(find.widgetWithText(Tab, Strings.tabPayables), findsOneWidget);
+    });
+
+    testWidgets('DRE: linhas do ano e troca para caixa', (tester) async {
+      await pump(tester);
+      await tester.ensureVisible(find.widgetWithText(Tab, Strings.tabDre));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(Tab, Strings.tabDre));
+      await tester.pumpAndSettle();
+      expect(find.text('Receita bruta'), findsOneWidget);
+      expect(find.text('Resultado líquido'), findsOneWidget);
+      expect(find.textContaining('1.000,00'), findsWidgets);
+      expect(find.text('Jan/30'), findsOneWidget);
+      expect(repo.dreBasis, 'competence');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SegmentedButton<String>),
+          matching: find.text(Strings.dreCash),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(repo.dreBasis, 'cash');
+      expect(find.text(Strings.dreCashHint), findsOneWidget);
     });
 
     testWidgets('visao geral: saldo, vencidos e proximos', (tester) async {
