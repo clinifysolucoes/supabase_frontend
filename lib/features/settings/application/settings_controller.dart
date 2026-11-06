@@ -78,6 +78,13 @@ class SettingsRepository {
     if (item.nrParent != null) 'nr_parent': item.nrParent,
   });
 
+  /// 2FA obrigatoria da empresa (administrador; ad.company_update).
+  Future<void> saveMfaPolicy({required int nrCompany, required int policy}) =>
+      _gateway.rpc('company_update', {
+        'nr_company': nrCompany,
+        'it_mfa_policy': policy,
+      });
+
   /// Dados da clinica (administrador da empresa).
   Future<void> saveClinic({
     required int nrCompany,

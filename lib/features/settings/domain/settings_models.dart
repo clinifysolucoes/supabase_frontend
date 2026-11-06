@@ -83,6 +83,7 @@ class BranchSettings {
     this.pcDreCsll = 0,
     this.vcReceiptPrefix = '',
     this.nrNextReceipt = 1,
+    this.itMfaPolicy = 0,
     this.canUpdate = false,
     this.canEditClinic = false,
   });
@@ -122,6 +123,8 @@ class BranchSettings {
       pcDreCsll: d('pc_dre_csll'),
       vcReceiptPrefix: s['vc_receipt_prefix']?.toString() ?? '',
       nrNextReceipt: i('nr_next_receipt', 1),
+      itMfaPolicy:
+          ((j['security'] as Map?)?['it_mfa_policy'] as num?)?.toInt() ?? 0,
       canUpdate: p['id_update'] == true,
       canEditClinic: p['id_clinic'] == true,
     );
@@ -152,6 +155,9 @@ class BranchSettings {
   /// Numeracao dos recibos (prefixo e proximo numero).
   final String vcReceiptPrefix;
   final int nrNextReceipt;
+
+  /// 2FA da empresa: 0 nao exige | 1 administradores | 2 todos.
+  final int itMfaPolicy;
   final bool canUpdate;
   final bool canEditClinic;
 

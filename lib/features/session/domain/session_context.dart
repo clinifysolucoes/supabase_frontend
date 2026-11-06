@@ -33,6 +33,10 @@ class SessionContext {
   /// Sem empresa e sem bloqueio: primeiro acesso, o app oferece criar empresa.
   bool get isFirstAccess => companies.isEmpty && blocked.isEmpty;
 
+  /// Alguma empresa so libera com 2FA confirmado na sessao.
+  bool get requiresMfa =>
+      blocked.any((b) => b.vcReasonKey == 'SESSION_MFA_REQUIRED');
+
   /// Todas as filiais acessiveis, em ordem de empresa e filial.
   List<BranchRef> get branches => [
     for (final c in companies)

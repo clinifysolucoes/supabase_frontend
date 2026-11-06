@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
 import '../errors/app_error.dart';
+import 'mfa_types.dart';
 
 /// UNICO ponto do app que fala com o Supabase.
 ///
@@ -52,6 +53,79 @@ class SupabaseGateway {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    }
+  }
+
+  // --- 2FA (app autenticador / TOTP) ---------------------------------------
+
+  /// Nivel da sessao e fatores da conta.
+  Future<MfaStatus> mfaStatus() async {
+    try {
+      final level = _client.auth.mfa.getAuthenticatorAssuranceLevel();
+      final factors = _client.auth.currentUser?.factors ?? const [];
+      return MfaStatus(
+        currentAal: level.currentLevel?.name ?? 'aal1',
+        nextAal: level.nextLevel?.name,
+        factors: [
+          for (final f in factors)
+            if (f.factorType == FactorType.totp)
+              MfaFactor(
+                id: f.id,
+                name: f.friendlyName,
+                verified: f.status == FactorStatus.verified,
+              ),
+        ],
+      );
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    }
+  }
+
+  /// Comeca o cadastro de um app autenticador (descarta cadastros nao
+  /// confirmados antes).
+  Future<MfaEnrollment> mfaEnroll({required String issuer}) async {
+    try {
+      for (final f in _client.auth.currentUser?.factors ?? const <Factor>[]) {
+        if (f.status != FactorStatus.verified) {
+          await _client.auth.mfa.unenroll(f.id);
+        }
+      }
+      final r = await _client.auth.mfa.enroll(
+        factorType: FactorType.totp,
+        issuer: issuer,
+        friendlyName: 'App autenticador',
+      );
+      final totp = r.totp;
+      if (totp == null) throw AppError(key: 'MFA_ERROR');
+      return MfaEnrollment(
+        factorId: r.id,
+        qrSvg: totp.qrCode,
+        secret: totp.secret,
+      );
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    }
+  }
+
+  /// Confirma o codigo de 6 digitos (a sessao passa a aal2).
+  Future<void> mfaVerify({
+    required String factorId,
+    required String code,
+  }) async {
+    try {
+      await _client.auth.mfa.challengeAndVerify(factorId: factorId, code: code);
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    }
+  }
+
+  /// Remove o app autenticador da conta (exige sessao aal2).
+  Future<void> mfaUnenroll(String factorId) async {
+    try {
+      await _client.auth.mfa.unenroll(factorId);
+      await _client.auth.refreshSession();
     } on AuthException catch (e) {
       throw _fromAuth(e);
     }
@@ -196,6 +270,9 @@ class SupabaseGateway {
       'email_not_confirmed' => AppError(key: 'AUTH_EMAIL_NOT_CONFIRMED'),
       'user_banned' => AppError(key: 'AUTH_USER_BANNED'),
       'over_request_rate_limit' => AppError(key: 'AUTH_RATE_LIMIT'),
+      'mfa_verification_failed' ||
+      'mfa_challenge_expired' => AppError(key: 'MFA_CODE_INVALID'),
+      'insufficient_aal' => AppError(key: 'MFA_AAL_REQUIRED'),
       _ => AppError(key: 'AUTH_ERROR', fallback: e.message),
     };
   }
