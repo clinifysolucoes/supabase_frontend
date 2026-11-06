@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../budgets/presentation/budgets_page.dart';
+import '../../clinical_record/presentation/anamnesis_tab.dart';
+import '../../clinical_record/presentation/evolution_tab.dart';
+import '../../clinical_record/presentation/odontogram_tab.dart';
+import '../../clinical_record/presentation/record_common.dart';
+import '../../clinical_record/application/clinical_record_controllers.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
@@ -46,6 +51,7 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
     Strings.tabBudgets,
     Strings.tabFinance,
     Strings.tabAnamnesis,
+    Strings.tabEvolution,
     Strings.tabOdontogram,
     Strings.tabPhotos,
     Strings.tabDocuments,
@@ -224,7 +230,15 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
                                 title: Strings.noPermissionTitle,
                                 subtitle: Strings.noPermissionSubtitle,
                               ),
-                        for (final t in _tabs.skip(3))
+                        AppEmptyState(
+                          icon: Icons.construction_rounded,
+                          title: Strings.moduleSoon(_tabs[3]),
+                          subtitle: Strings.moduleSoonSubtitle,
+                        ),
+                        AnamnesisTab(nrPatient: p.nrPatient),
+                        EvolutionTab(nrPatient: p.nrPatient),
+                        OdontogramTab(nrPatient: p.nrPatient),
+                        for (final t in _tabs.skip(7))
                           AppEmptyState(
                             icon: Icons.construction_rounded,
                             title: Strings.moduleSoon(t),
@@ -527,10 +541,28 @@ class _Overview extends StatelessWidget {
       ),
       _SideCard(
         title: Strings.tabAnamnesis,
-        child: const _EmptyHint(
-          icon: Icons.assignment_outlined,
-          title: Strings.noAnamnesis,
-          hint: Strings.noAnamnesisHint,
+        child: Consumer(
+          builder: (context, ref, _) {
+            final r = ref
+                .watch(clinicalRecordProvider(record.patient.nrPatient))
+                .valueOrNull;
+            final last = r?.anamneses.firstOrNull;
+            if (last == null) {
+              return const _EmptyHint(
+                icon: Icons.assignment_outlined,
+                title: Strings.noAnamnesis,
+                hint: Strings.noAnamnesisHint,
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('${last.vcModel} · ${Dates.format(last.dtFilled)}'),
+                const SizedBox(height: AppSpacing.xs),
+                RecordAlerts(alerts: r!.alerts),
+              ],
+            );
+          },
         ),
       ),
       _SideCard(

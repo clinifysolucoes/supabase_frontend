@@ -1567,6 +1567,85 @@ abstract final class Strings {
   static const trashEmptyHint = 'Nada foi excluído por aqui.';
   static String trashDeletedAt(String when) => 'Excluído em $when';
 
+  // Prontuario
+  static const tabEvolution = 'Evolução';
+  static const settingsRecord = 'Prontuário';
+  static const recordAlerts = 'Alertas da anamnese';
+  static const anamnesisHistory = 'Anamneses';
+  static const fillAnamnesis = 'Preencher anamnese';
+  static const deleteAnamnesis = 'Excluir anamnese';
+  static const deleteAnamnesisConfirm =
+      'A anamnese sai do prontuário (fica no histórico de atividades).';
+  static const anamnesisDeleted = 'Anamnese excluída.';
+  static const anamnesisSaved = 'Anamnese registrada.';
+  static String alertCount(int n) => n == 1 ? '1 alerta' : '$n alertas';
+  static const yes = 'Sim';
+  static const no = 'Não';
+  static const notAnswered = 'Sem resposta';
+  static const anamnesisModel = 'Modelo de anamnese';
+  static const answer = 'Resposta';
+  static const answerDetail = 'Detalhe (qual, desde quando...)';
+  static const treatmentToDo = 'Tratamento a realizar (orçamentos aprovados)';
+  static const tooth = 'Dente';
+  static const markDone = 'Realizado';
+  static const evolutionHistory = 'Evolução clínica';
+  static const newEvolution = 'Nova evolução';
+  static const noEvolution = 'Nenhuma evolução registrada';
+  static const noEvolutionHint =
+      'Registre o que foi feito em cada atendimento.';
+  static const deleteEvolution = 'Excluir evolução';
+  static const deleteEvolutionConfirm =
+      'A evolução sai do prontuário e o item do orçamento volta a ficar a realizar.';
+  static const evolutionDeleted = 'Evolução excluída.';
+  static const evolutionSaved = 'Evolução registrada.';
+  static const budgetItemDone = 'Item do orçamento realizado';
+  static const budgetItemRealized =
+      'Item do orçamento realizado neste atendimento';
+  static const recordedBy = 'Registrado por';
+  static const toothOrRegion = 'Dente ou região';
+  static const evolutionText = 'Descrição do atendimento';
+  static const permanent = 'Permanentes';
+  static const deciduous = 'Decíduos';
+  static const odontogramMarks = 'Marcações';
+  static const noToothMarks = 'Nenhuma marcação.';
+  static const newToothMark = 'Nova marcação';
+  static const toothCondition = 'Condição';
+  static const toothFaces = 'Faces';
+  static String faceName(String f) => switch (f) {
+    'M' => 'Mesial',
+    'D' => 'Distal',
+    'O' => 'Oclusal',
+    'V' => 'Vestibular',
+    'L' => 'Lingual',
+    'I' => 'Incisal',
+    'P' => 'Palatina',
+    _ => f,
+  };
+  static const addMark = 'Marcar';
+  static const toothMarkSaved = 'Dente marcado.';
+  static const toothMarkRemoved = 'Marcação removida.';
+  static const anamnesisModels = 'Modelos de anamnese';
+  static const anamnesisModelsHint =
+      'Perguntas usadas ao preencher a anamnese do paciente. Marque o alerta nas perguntas em que "sim" precisa de atenção.';
+  static const newModel = 'Novo modelo';
+  static const editModel = 'Alterar modelo';
+  static const modelName = 'Nome do modelo';
+  static const question = 'Pergunta';
+  static const questions = 'Perguntas';
+  static const answerType = 'Resposta';
+  static String questionType(int code) => switch (code) {
+    2 => 'Texto livre',
+    3 => 'Sim/não com detalhe',
+    _ => 'Sim/não',
+  };
+  static String questionCount(int n) => n == 1 ? '1 pergunta' : '$n perguntas';
+  static const questionAlertHint =
+      'Alerta: "sim" aparece em destaque no prontuário';
+  static const questionsRequired = 'Inclua ao menos uma pergunta.';
+  static const moveUp = 'Subir';
+  static const moveDown = 'Descer';
+  static const addQuestion = 'Adicionar pergunta';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2086,6 +2165,39 @@ abstract final class Strings {
     'TRASH_FORBIDDEN': 'Você não tem permissão para ver a lixeira.',
     'TRASH_KIND_INVALID': 'Tipo inválido na lixeira.',
     'TRASH_NOT_FOUND': 'Este item não está mais na lixeira.',
+    'RECORD_BRANCH_REQUIRED': 'Selecione a filial.',
+    'RECORD_FORBIDDEN': 'Você não tem permissão para ver o prontuário.',
+    'ANAMNESIS_MODEL_ACTION_INVALID': 'Ação inválida no modelo de anamnese.',
+    'ANAMNESIS_MODEL_FORBIDDEN':
+        'Você não tem permissão para alterar os modelos de anamnese.',
+    'ANAMNESIS_MODEL_NOT_FOUND':
+        'Modelo de anamnese não encontrado ou inativo.',
+    'ANAMNESIS_MODEL_NAME_REQUIRED': 'Informe o nome do modelo.',
+    'ANAMNESIS_MODEL_SPECIALTY_INVALID': 'Especialidade inválida.',
+    'ANAMNESIS_MODEL_QUESTIONS_REQUIRED': 'Inclua ao menos uma pergunta.',
+    'ANAMNESIS_QUESTION_INVALID': 'Pergunta {Item} inválida.',
+    'ANAMNESIS_MODEL_VALUE_INVALID': 'Valor inválido no modelo de anamnese.',
+    'PATIENT_ANAMNESIS_ACTION_INVALID': 'Ação inválida na anamnese.',
+    'PATIENT_ANAMNESIS_FORBIDDEN':
+        'Você não tem permissão para registrar anamnese.',
+    'PATIENT_ANAMNESIS_VALUE_INVALID': 'Resposta ou data inválida na anamnese.',
+    'PATIENT_ANAMNESIS_NOT_FOUND': 'Anamnese não encontrada.',
+    'CLINICAL_EVOLUTION_ACTION_INVALID': 'Ação inválida na evolução.',
+    'CLINICAL_EVOLUTION_FORBIDDEN':
+        'Você não tem permissão para registrar evolução.',
+    'CLINICAL_EVOLUTION_TEXT_REQUIRED': 'Descreva o atendimento.',
+    'CLINICAL_EVOLUTION_VALUE_INVALID': 'Data ou item inválido na evolução.',
+    'CLINICAL_EVOLUTION_PROFESSIONAL_INVALID': 'Profissional inválido.',
+    'CLINICAL_EVOLUTION_PROCEDURE_INVALID': 'Procedimento inválido.',
+    'CLINICAL_EVOLUTION_ITEM_INVALID':
+        'O item não é de um orçamento aprovado do paciente ou já foi realizado.',
+    'CLINICAL_EVOLUTION_NOT_FOUND': 'Evolução não encontrada.',
+    'TOOTH_MARK_ACTION_INVALID': 'Ação inválida no odontograma.',
+    'TOOTH_MARK_FORBIDDEN':
+        'Você não tem permissão para alterar o odontograma.',
+    'TOOTH_MARK_TOOTH_INVALID': 'Dente inválido.',
+    'TOOTH_MARK_VALUE_INVALID': 'Condição, faces, situação ou data inválida.',
+    'TOOTH_MARK_NOT_FOUND': 'Marcação não encontrada.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
