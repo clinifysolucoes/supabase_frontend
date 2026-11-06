@@ -69,4 +69,23 @@ void main() {
     expect(s.pcLateFee, 2);
     expect(s.pcLateInterest, 1.5);
   });
+  test('BranchSettings le as regras de orcamento, conta em aberto e multa', () {
+    final s = BranchSettings.fromJson({
+      'clinic': {'vc_timezone': 'America/Manaus'},
+      'settings': {
+        'id_budget_request_approval': false,
+        'id_budget_admin_below_min': false,
+        'id_budget_reduction_as_discount': true,
+        'it_open_rule': 2,
+        'it_late_edit': 1,
+      },
+    });
+    expect(s.idBudgetRequestApproval, isFalse);
+    expect(s.idBudgetAdminBelowMin, isFalse);
+    expect(s.idBudgetReductionAsDiscount, isTrue);
+    expect(s.itOpenRule, DebtRule.warn);
+    expect(s.itLateEdit, 1);
+    expect(s.clinic.vcTimezone, 'America/Manaus');
+    expect(BranchSettings.timezones, contains('America/Manaus'));
+  });
 }

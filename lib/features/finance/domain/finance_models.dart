@@ -135,6 +135,7 @@ class FinCategory {
     required this.vcName,
     required this.itKind,
     this.itCostType,
+    this.itDreGroup,
     this.itStatus = 1,
     this.qtEntries = 0,
   });
@@ -144,6 +145,7 @@ class FinCategory {
     vcName: _str(j['vc_name']) ?? '',
     itKind: _int(j['it_kind'] ?? 1),
     itCostType: j['it_cost_type'] == null ? null : _int(j['it_cost_type']),
+    itDreGroup: j['it_dre_group'] == null ? null : _int(j['it_dre_group']),
     itStatus: _int(j['it_status'] ?? 1),
     qtEntries: _int(j['qt_entries'] ?? 0),
   );
@@ -152,10 +154,30 @@ class FinCategory {
   final String vcName;
   final int itKind;
   final int? itCostType;
+
+  /// Grupo no DRE (DreGroup; null = automatico pelo tipo).
+  final int? itDreGroup;
   final int itStatus;
   final int qtEntries;
 
   bool get isActive => itStatus == 1;
+}
+
+/// Grupo da categoria no DRE (od.fin_category.it_dre_group).
+abstract final class DreGroup {
+  static const all = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  static String label(int? g) => switch (g) {
+    1 => Strings.dreGroup1,
+    2 => Strings.dreGroup2,
+    3 => Strings.dreGroup3,
+    4 => Strings.dreGroup4,
+    5 => Strings.dreGroup5,
+    6 => Strings.dreGroup6,
+    7 => Strings.dreGroup7,
+    8 => Strings.dreGroup8,
+    _ => Strings.dreGroupAuto,
+  };
 }
 
 class FinSupplier {

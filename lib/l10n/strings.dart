@@ -1323,10 +1323,10 @@ abstract final class Strings {
   static const settingsPercentRange = 'Informe de 0 a 10%.';
   static const debtConfirmTitle = 'Paciente com contas vencidas';
   static String debtConfirmMessage(String amount) =>
-      'Este paciente tem $amount em contas vencidas. Agendar mesmo assim?';
+      'Este paciente tem $amount em contas pendentes. Agendar mesmo assim?';
   static const debtConfirmAction = 'Agendar mesmo assim';
   static String debtWarning(String amount) =>
-      'Agendado. Atenção: o paciente tem $amount em contas vencidas.';
+      'Agendado. Atenção: o paciente tem $amount em contas pendentes.';
   static String finLateIncluded(String fee, String interest) =>
       'Inclui multa de $fee e juros de $interest.';
   static const receipt = 'Recibo';
@@ -1353,6 +1353,47 @@ abstract final class Strings {
   static const receiptPayerDocumentHint = 'Vazio = CPF do paciente';
   static const receiptDescription = 'Referente a';
   static const settingsBudgets = 'Orçamentos';
+  static const settingsBudgetRequest = 'Permitir pedir aprovação do desconto';
+  static const settingsBudgetRequestHint =
+      'Desligado, desconto acima do máximo é recusado (só o administrador lança).';
+  static const settingsBudgetBelowMin =
+      'Administrador pode aprovar abaixo do preço mínimo';
+  static const settingsBudgetBelowMinHint =
+      'Preço mínimo da precificação (sem lucro). Desligado, ninguém aprova item abaixo dele.';
+  static const settingsBudgetReduction =
+      'Contar redução de valor como desconto';
+  static const settingsBudgetReductionHint =
+      'Item lançado abaixo do valor cobrado hoje entra no limite de desconto.';
+  static const settingsOpen = 'Pacientes com contas em aberto';
+  static const settingsOpenHint =
+      'O que a agenda faz com quem tem conta a receber em aberto, mesmo não vencida (vale a regra mais forte).';
+  static const settingsLateEdit = 'Edição de multa e juros na baixa';
+  static const settingsLateEdit0 = 'Pode reduzir';
+  static const settingsLateEdit1 = 'Só o administrador reduz';
+  static const settingsLateEdit2 = 'Não pode reduzir';
+  static const settingsTimezone = 'Fuso horário';
+  static String timezoneLabel(String z) => switch (z) {
+    'America/Sao_Paulo' => 'Horário de Brasília (UTC-03:00)',
+    'America/Manaus' => 'Amazonas (UTC-04:00)',
+    'America/Cuiaba' => 'Mato Grosso (UTC-04:00)',
+    'America/Porto_Velho' => 'Rondônia (UTC-04:00)',
+    'America/Boa_Vista' => 'Roraima (UTC-04:00)',
+    'America/Rio_Branco' => 'Acre (UTC-05:00)',
+    'America/Noronha' => 'Fernando de Noronha (UTC-02:00)',
+    _ => z,
+  };
+  static const trashProfessional = 'Profissional';
+  static const dreGroupLabel = 'Grupo no DRE';
+  static const dreGroupHint = 'Automático = pelo tipo de custo da categoria.';
+  static const dreGroupAuto = 'Automático';
+  static const dreGroup1 = 'Receita operacional';
+  static const dreGroup2 = 'Dedução da receita';
+  static const dreGroup3 = 'Custo variável';
+  static const dreGroup4 = 'Custo fixo';
+  static const dreGroup5 = 'Despesa operacional';
+  static const dreGroup6 = 'Receita não operacional';
+  static const dreGroup7 = 'Despesa não operacional';
+  static const dreGroup8 = 'Investimento (fora do resultado)';
   static const settingsBudgetsHint =
       'Acima do desconto máximo, só o administrador da empresa aprova o orçamento.';
   static const settingsBudgetMax = 'Desconto máximo sem aprovação';
@@ -2020,6 +2061,20 @@ abstract final class Strings {
     'BUDGET_HAS_PAYMENTS':
         'Já há parcela paga: estorne no Financeiro antes de cancelar.',
     'BUDGET_FILTER_INVALID': 'Filtro inválido.',
+    'BUDGET_DISCOUNT_OVER_MAX':
+        'Desconto acima do máximo da clínica: só o administrador pode lançar.',
+    'BUDGET_BELOW_MIN':
+        'Item {Item} abaixo do preço mínimo da precificação: não pode ser aprovado.',
+    'APPOINTMENT_OPEN_BLOCKED':
+        'Paciente com contas em aberto: a agenda está bloqueada até o pagamento.',
+    'APPOINTMENT_OPEN_APPROVAL':
+        'Paciente com contas em aberto: só o administrador da empresa pode agendar.',
+    'APPOINTMENT_OPEN_CONFIRM':
+        'Paciente com contas em aberto: confirme para agendar.',
+    'FIN_LATE_EDIT_FORBIDDEN':
+        'Multa e juros não podem ser reduzidos (Configurações › Financeiro).',
+    'FIN_LATE_EDIT_ADMIN': 'Só o administrador pode reduzir multa e juros.',
+    'FIN_CATEGORY_DRE_GROUP_INVALID': 'Grupo do DRE inválido.',
     'SETTINGS_BUDGET_INVALID':
         'Desconto máximo (0 a 100%) ou validade (1 a 365 dias) inválidos.',
     'EXPORT_BRANCH_REQUIRED': 'Filial não informada.',

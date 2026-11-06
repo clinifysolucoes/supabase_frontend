@@ -389,6 +389,7 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
   int _accountType = AccountType.cash;
   int _kind = EntryKind.payable;
   int? _costType = CostType.fixed;
+  int? _dreGroup;
   bool _active = true;
   bool _saving = false;
 
@@ -420,6 +421,7 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
         _name.text = c.vcName;
         _kind = c.itKind;
         _costType = c.itCostType;
+        _dreGroup = c.itDreGroup;
         _active = c.isActive;
       case final FinSupplier s:
         _name.text = s.vcName;
@@ -483,6 +485,7 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
         RegisterType.category => {
           if (isNew) 'it_kind': _kind,
           'it_cost_type': _kind == EntryKind.payable ? _costType : null,
+          'it_dre_group': _dreGroup,
         },
         RegisterType.supplier => {
           'vc_document': _text(_document),
@@ -648,6 +651,24 @@ class _RegisterFormDialogState extends ConsumerState<RegisterFormDialog> {
               onChanged: enabled ? (v) => setState(() => _costType = v) : null,
             ),
           ],
+          const SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<int?>(
+            isExpanded: true,
+            initialValue: _dreGroup,
+            decoration: const InputDecoration(
+              labelText: Strings.dreGroupLabel,
+              helperText: Strings.dreGroupHint,
+            ),
+            items: [
+              const DropdownMenuItem(
+                value: null,
+                child: Text(Strings.dreGroupAuto),
+              ),
+              for (final g in DreGroup.all)
+                DropdownMenuItem(value: g, child: Text(DreGroup.label(g))),
+            ],
+            onChanged: enabled ? (v) => setState(() => _dreGroup = v) : null,
+          ),
         ],
         RegisterType.supplier => [
           AppTextField(

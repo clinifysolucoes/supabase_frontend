@@ -62,6 +62,7 @@ abstract final class TrashKind {
     'fin_entry' => Strings.trashFinEntry,
     'procedure' => Strings.trashProcedure,
     'material' => Strings.trashMaterial,
+    'professional' => Strings.trashProfessional,
     _ => kind,
   };
 
@@ -72,6 +73,7 @@ abstract final class TrashKind {
     'fin_entry' => Icons.receipt_long_outlined,
     'procedure' => Icons.medical_services_outlined,
     'material' => Icons.inventory_2_outlined,
+    'professional' => Icons.badge_outlined,
     _ => Icons.delete_outline_rounded,
   };
 }

@@ -209,7 +209,11 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
         debt = await run();
       } on AppError catch (e) {
         // paciente com conta vencida: o administrador confirma e agenda
-        if (e.key != 'APPOINTMENT_DEBT_CONFIRM' || !mounted) rethrow;
+        if ((e.key != 'APPOINTMENT_DEBT_CONFIRM' &&
+                e.key != 'APPOINTMENT_OPEN_CONFIRM') ||
+            !mounted) {
+          rethrow;
+        }
         final ok = await AppConfirmDialog.show(
           context,
           title: Strings.debtConfirmTitle,
