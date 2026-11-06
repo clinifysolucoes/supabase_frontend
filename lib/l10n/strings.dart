@@ -1297,6 +1297,54 @@ abstract final class Strings {
       'Inclui multa de $fee e juros de $interest.';
   static const cashDisabled =
       'O caixa do dia está desligado nas configurações.';
+  static const settingsExport = 'Exportar';
+  static const settingsExportHint =
+      'Planilhas Excel com os dados da filial. Cada exportação fica no log de atividades.';
+  static const exportForbidden =
+      'Só quem pode alterar as configurações exporta planilhas.';
+  static const exportOptions = 'Opções';
+  static const exportFrom = 'De';
+  static const exportTo = 'Até';
+  static const exportFinanceKind = 'Contas (financeiro)';
+  static const exportBoth = 'A receber e a pagar';
+  static const exportReceivable = 'Só a receber';
+  static const exportPayable = 'Só a pagar';
+  static const exportPeriodHint =
+      'O período vale para o financeiro (vencimento) e para a agenda (até 400 dias).';
+  static const exportInactive = 'Incluir pacientes e procedimentos inativos';
+  static const exportPatients = 'Pacientes';
+  static const exportPatientsHint = 'Cadastro, contato, endereço e convênio.';
+  static const exportFinance = 'Financeiro';
+  static const exportFinanceHint =
+      'Contas a receber e a pagar do período, com situação e pagamento.';
+  static const exportProcedures = 'Procedimentos';
+  static const exportProceduresHint =
+      'Tempo, custo direto e preços mínimo, sugerido e cobrado.';
+  static const exportAgenda = 'Agenda';
+  static const exportAgendaHint =
+      'Consultas e compromissos do período, com situação.';
+  static const exportNoScreen = 'Sem permissão de leitura nesta tela.';
+  static const exportEmpty = 'Nada para exportar com essas opções.';
+  static const exportPeriodInvalid =
+      'Período inválido: a data final precisa ser depois da inicial e no máximo 400 dias.';
+  static String exportRows(int n) => n == 1
+      ? 'Planilha gerada com 1 linha.'
+      : 'Planilha gerada com $n linhas.';
+  static const settingsTrash = 'Lixeira';
+  static const settingsTrashHint =
+      'Registros excluídos ou cancelados que podem voltar. Restaurar segue as permissões de cada tela.';
+  static const trashAll = 'Todos';
+  static const trashPatient = 'Paciente';
+  static const trashPatientNote = 'Nota do paciente';
+  static const trashAppointment = 'Agendamento';
+  static const trashFinEntry = 'Conta';
+  static const trashProcedure = 'Procedimento';
+  static const trashMaterial = 'Material';
+  static const trashRestore = 'Restaurar';
+  static const trashRestored = 'Restaurado.';
+  static const trashEmpty = 'Lixeira vazia';
+  static const trashEmptyHint = 'Nada foi excluído por aqui.';
+  static String trashDeletedAt(String when) => 'Excluído em $when';
 
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
@@ -1748,6 +1796,15 @@ abstract final class Strings {
     'FIN_ENTRY_METHOD_NOT_ACCEPTED':
         'Esta forma de pagamento não é aceita nas configurações da filial.',
     'FIN_CASH_DISABLED': 'O caixa do dia está desligado nas configurações.',
+    'EXPORT_BRANCH_REQUIRED': 'Filial não informada.',
+    'EXPORT_FORBIDDEN': 'Você não tem permissão para exportar estes dados.',
+    'EXPORT_KIND_INVALID': 'Tipo de planilha inválido.',
+    'EXPORT_PERIOD_INVALID':
+        'Período inválido: a data final precisa ser depois da inicial e no máximo 400 dias.',
+    'TRASH_BRANCH_REQUIRED': 'Filial não informada.',
+    'TRASH_FORBIDDEN': 'Você não tem permissão para ver a lixeira.',
+    'TRASH_KIND_INVALID': 'Tipo inválido na lixeira.',
+    'TRASH_NOT_FOUND': 'Este item não está mais na lixeira.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
