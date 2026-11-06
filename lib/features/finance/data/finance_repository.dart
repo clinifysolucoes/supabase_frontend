@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/supabase/supabase_gateway.dart';
 import '../../../shared/formatters/dates.dart';
 import '../domain/cash_models.dart';
+import '../domain/dre_models.dart';
 import '../domain/finance_models.dart';
 import '../domain/bank_models.dart';
 import '../domain/health_models.dart';
@@ -289,6 +290,22 @@ class FinanceRepository {
     'vc_action': action,
     ...extra,
   });
+
+  /// DRE (ad.fin_dre) do periodo, por competencia ou caixa.
+  Future<DreReport> dre({
+    required int nrCompany,
+    required int nrBranch,
+    required DateTime from,
+    required DateTime to,
+    String basis = 'competence',
+  }) async => DreReport.fromJson(
+    await _gateway.rpc('fin_dre', {
+      ..._branch(nrCompany, nrBranch),
+      'dt_from': Dates.toIso(from),
+      'dt_to': Dates.toIso(to),
+      'vc_basis': basis,
+    }),
+  );
 
   Future<Cashflow> cashflow({
     required int nrCompany,

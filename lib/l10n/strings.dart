@@ -737,6 +737,30 @@ abstract final class Strings {
   static const tabStatement = 'Extrato';
   static const tabCashflow = 'Fluxo de caixa';
   static const tabFinRegisters = 'Cadastros';
+  static const tabDre = 'DRE';
+  static const dreLine = 'Conta';
+  static const dreTotal = 'Total';
+  static const drePercent = '% receita';
+  static const drePrevYear = 'Ano anterior';
+  static const dreNextYear = 'Próximo ano';
+  static const dreCompetence = 'Competência';
+  static const dreCash = 'Caixa';
+  static const dreCompetenceHint =
+      'Por competência: contas a receber e a pagar não canceladas, pelo mês de competência.';
+  static const dreCashHint =
+      'Por caixa: só o que foi pago, pelo mês do pagamento e pelo valor pago.';
+  static const dreEmpty = 'Sem movimento no ano';
+  static const dreEmptyHint =
+      'Lance contas a receber e a pagar com categoria para ver o DRE.';
+  static const dreEstimatedHint =
+      '* Estimado pelas alíquotas de Configurações › Financeiro › DRE.';
+  static const settingsDre = 'DRE (estimativa de impostos)';
+  static const settingsDreHint =
+      'Alíquotas para estimar os impostos no DRE. Deixe zero se os impostos pagos já são lançados como despesa.';
+  static const settingsDreRevenueTax = 'Impostos sobre a receita';
+  static const settingsDreIncomeTax = 'IRPJ';
+  static const settingsDreCsll = 'CSLL';
+  static const settingsTaxRange = 'Informe de 0 a 50%.';
   static const finSetupTitle = 'Configure o financeiro da filial';
   static const finSetupSubtitle =
       'Criamos as contas Caixa e Banco e o plano de contas a partir das despesas da precificação. Depois é só ajustar em Cadastros.';
@@ -1835,6 +1859,8 @@ abstract final class Strings {
     'FIN_ENTRY_METHOD_NOT_ACCEPTED':
         'Esta forma de pagamento não é aceita nas configurações da filial.',
     'FIN_CASH_DISABLED': 'O caixa do dia está desligado nas configurações.',
+    'FIN_DRE_PERIOD_INVALID': 'Período inválido para o DRE (até 24 meses).',
+    'SETTINGS_DRE_INVALID': 'As alíquotas do DRE devem ficar entre 0 e 50%.',
     'FIN_RECEIPT_FORBIDDEN':
         'Você não tem permissão para emitir ou cancelar recibos.',
     'FIN_RECEIPT_NOT_FOUND': 'Recibo não encontrado.',

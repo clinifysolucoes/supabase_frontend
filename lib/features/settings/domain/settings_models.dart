@@ -78,6 +78,9 @@ class BranchSettings {
     this.itPaymentMethods = allPaymentMethods,
     this.pcLateFee = 0,
     this.pcLateInterest = 0,
+    this.pcDreRevenueTax = 0,
+    this.pcDreIncomeTax = 0,
+    this.pcDreCsll = 0,
     this.vcReceiptPrefix = '',
     this.nrNextReceipt = 1,
     this.canUpdate = false,
@@ -114,6 +117,9 @@ class BranchSettings {
           : allPaymentMethods,
       pcLateFee: d('pc_late_fee'),
       pcLateInterest: d('pc_late_interest'),
+      pcDreRevenueTax: d('pc_dre_revenue_tax'),
+      pcDreIncomeTax: d('pc_dre_income_tax'),
+      pcDreCsll: d('pc_dre_csll'),
       vcReceiptPrefix: s['vc_receipt_prefix']?.toString() ?? '',
       nrNextReceipt: i('nr_next_receipt', 1),
       canUpdate: p['id_update'] == true,
@@ -137,6 +143,11 @@ class BranchSettings {
   final List<int> itPaymentMethods;
   final double pcLateFee;
   final double pcLateInterest;
+
+  /// Aliquotas da estimativa de impostos no DRE (%).
+  final double pcDreRevenueTax;
+  final double pcDreIncomeTax;
+  final double pcDreCsll;
 
   /// Numeracao dos recibos (prefixo e proximo numero).
   final String vcReceiptPrefix;

@@ -7,6 +7,7 @@ import '../../profiles/application/profiles_controller.dart';
 import '../data/finance_repository.dart';
 import '../domain/bank_models.dart';
 import '../domain/cash_models.dart';
+import '../domain/dre_models.dart';
 import '../domain/health_models.dart';
 import '../domain/finance_models.dart';
 import '../domain/phase4_models.dart';
@@ -166,6 +167,27 @@ final cashflowProvider = FutureProvider.autoDispose<Cashflow>((ref) async {
         nrCompany: b.company,
         nrBranch: b.branch,
         month: ref.watch(cashflowMonthProvider),
+      );
+});
+
+/// DRE: ano e base (competence | cash).
+final dreYearProvider = StateProvider.autoDispose<int>(
+  (_) => DateTime.now().year,
+);
+final dreBasisProvider = StateProvider.autoDispose<String>((_) => 'competence');
+
+final dreProvider = FutureProvider.autoDispose<DreReport>((ref) async {
+  final b = _branchOf(ref);
+  if (b == null) return const DreReport();
+  final year = ref.watch(dreYearProvider);
+  return ref
+      .read(financeRepositoryProvider)
+      .dre(
+        nrCompany: b.company,
+        nrBranch: b.branch,
+        from: DateTime(year),
+        to: DateTime(year, 12),
+        basis: ref.watch(dreBasisProvider),
       );
 });
 
