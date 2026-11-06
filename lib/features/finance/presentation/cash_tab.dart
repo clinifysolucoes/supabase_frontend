@@ -167,12 +167,16 @@ class _MyCash extends ConsumerWidget {
             ),
             if (s == null) ...[
               Text(
-                status.accounts.isEmpty
+                !status.idEnabled
+                    ? Strings.cashDisabled
+                    : status.accounts.isEmpty
                     ? Strings.cashNoCashAccount
                     : Strings.cashClosed,
                 style: const TextStyle(color: AppColors.muted),
               ),
-              if (canCreate && status.accounts.any((a) => a.isFree)) ...[
+              if (status.idEnabled &&
+                  canCreate &&
+                  status.accounts.any((a) => a.isFree)) ...[
                 const SizedBox(height: AppSpacing.md),
                 Align(
                   alignment: Alignment.centerLeft,

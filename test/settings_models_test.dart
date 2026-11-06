@@ -44,4 +44,26 @@ void main() {
     expect(s.hours, hasLength(1));
     expect(s.clinic.vcForumCity, 'Curitiba');
   });
+  test('BranchSettings le as regras do financeiro', () {
+    final padrao = BranchSettings.fromJson({'settings': <String, dynamic>{}});
+    expect(padrao.itDebtRule, DebtRule.none);
+    expect(padrao.idCashEnabled, isTrue);
+    expect(padrao.itPaymentMethods, BranchSettings.allPaymentMethods);
+    final s = BranchSettings.fromJson({
+      'settings': {
+        'it_debt_rule': 3,
+        'qt_debt_days': 10,
+        'id_cash_enabled': false,
+        'it_payment_methods': [1, 2],
+        'pc_late_fee': 2,
+        'pc_late_interest': 1.5,
+      },
+    });
+    expect(s.itDebtRule, DebtRule.approval);
+    expect(s.qtDebtDays, 10);
+    expect(s.idCashEnabled, isFalse);
+    expect(s.itPaymentMethods, [1, 2]);
+    expect(s.pcLateFee, 2);
+    expect(s.pcLateInterest, 1.5);
+  });
 }

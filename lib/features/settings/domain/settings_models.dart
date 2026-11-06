@@ -73,6 +73,12 @@ class BranchSettings {
     this.idRequireCpf = false,
     this.idRequireMobile = false,
     this.hours = const [],
+    this.itDebtRule = DebtRule.none,
+    this.qtDebtDays = 0,
+    this.idCashEnabled = true,
+    this.itPaymentMethods = allPaymentMethods,
+    this.pcLateFee = 0,
+    this.pcLateInterest = 0,
     this.canUpdate = false,
     this.canEditClinic = false,
   });
@@ -81,6 +87,8 @@ class BranchSettings {
     final s = (j['settings'] as Map?)?.cast<String, dynamic>() ?? const {};
     final p = (j['permission'] as Map?)?.cast<String, dynamic>() ?? const {};
     int i(String k, int d) => (s[k] as num?)?.toInt() ?? d;
+    double d(String k) => (s[k] as num?)?.toDouble() ?? 0;
+    final methods = s['it_payment_methods'];
     return BranchSettings(
       clinic: ClinicData.fromJson(
         (j['clinic'] as Map?)?.cast<String, dynamic>() ?? const {},
@@ -96,6 +104,14 @@ class BranchSettings {
         for (final h in (j['hours'] as List? ?? const []))
           ScheduleRange.fromJson((h as Map).cast<String, dynamic>()),
       ],
+      itDebtRule: i('it_debt_rule', DebtRule.none),
+      qtDebtDays: i('qt_debt_days', 0),
+      idCashEnabled: s['id_cash_enabled'] != false,
+      itPaymentMethods: methods is List
+          ? [for (final m in methods) (m as num).toInt()]
+          : allPaymentMethods,
+      pcLateFee: d('pc_late_fee'),
+      pcLateInterest: d('pc_late_interest'),
       canUpdate: p['id_update'] == true,
       canEditClinic: p['id_clinic'] == true,
     );
@@ -110,8 +126,26 @@ class BranchSettings {
   final bool idRequireCpf;
   final bool idRequireMobile;
   final List<ScheduleRange> hours;
+  final int itDebtRule;
+  final int qtDebtDays;
+  final bool idCashEnabled;
+  final List<int> itPaymentMethods;
+  final double pcLateFee;
+  final double pcLateInterest;
   final bool canUpdate;
   final bool canEditClinic;
 
   static const slotOptions = [5, 15, 20, 30];
+
+  /// Formas de pagamento (od.fin_entry.it_payment_method) aceitas por padrao.
+  static const allPaymentMethods = [1, 2, 3, 4, 5, 6, 7, 9];
+}
+
+/// Paciente com conta vencida ao agendar (od.branch_setting.it_debt_rule).
+abstract final class DebtRule {
+  static const none = 1;
+  static const warn = 2;
+  static const approval = 3;
+  static const block = 4;
+  static const all = [none, warn, approval, block];
 }

@@ -9,6 +9,8 @@ import '../../../shared/formatters/dates.dart';
 import '../../../shared/formatters/numbers.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_number_field.dart';
+import '../../settings/application/settings_controller.dart';
+import '../../settings/domain/settings_models.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../../session/application/permissions.dart';
@@ -50,6 +52,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   String? _error;
   int? _category;
   int? _method;
+  List<int> _methods = BranchSettings.allPaymentMethods;
   int? _account;
   bool _paid = true;
   bool _commission = true;
@@ -81,6 +84,8 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     final nrBranch = ref.read(currentBranchNumberProvider);
     if (nrCompany == null || nrBranch == null) return;
     try {
+      final methods = await loadAcceptedPaymentMethods(ref);
+      if (mounted) setState(() => _methods = methods);
       final d = await ref
           .read(financeRepositoryProvider)
           .checkoutGet(
@@ -328,7 +333,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
               ),
               items: [
                 const DropdownMenuItem(value: null, child: Text('-')),
-                for (final m in PaymentMethod.all)
+                for (final m in _methods)
                   DropdownMenuItem(
                     value: m,
                     child: Text(PaymentMethod.label(m)),

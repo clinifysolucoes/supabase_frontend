@@ -85,6 +85,21 @@ class SettingsController extends AutoDisposeAsyncNotifier<BranchSettings> {
   }
 }
 
+/// Formas de pagamento aceitas ao receber na filial atual (todas se falhar).
+Future<List<int>> loadAcceptedPaymentMethods(WidgetRef ref) async {
+  final c = ref.read(currentCompanyProvider);
+  final b = ref.read(currentBranchNumberProvider);
+  if (c == null || b == null) return BranchSettings.allPaymentMethods;
+  try {
+    final s = await ref
+        .read(settingsRepositoryProvider)
+        .get(nrCompany: c, nrBranch: b);
+    return s.itPaymentMethods;
+  } catch (_) {
+    return BranchSettings.allPaymentMethods;
+  }
+}
+
 final settingsProvider =
     AsyncNotifierProvider.autoDispose<SettingsController, BranchSettings>(
       SettingsController.new,

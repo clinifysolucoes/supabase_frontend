@@ -1252,6 +1252,51 @@ abstract final class Strings {
   static const settingsNextRecord = 'Próximo número';
   static const settingsNextRecordInvalid = 'Informe um número a partir de 1.';
   static const settingsRequired = 'Obrigatórios no cadastro';
+  static const settingsFinance = 'Financeiro';
+  static const settingsFinanceHint =
+      'Pacientes com contas vencidas, caixa do dia, formas de pagamento e acréscimos por atraso.';
+  static const settingsDebt = 'Pacientes com contas vencidas';
+  static const settingsDebtHint =
+      'O que a agenda faz ao marcar consulta de paciente com conta a receber vencida.';
+  static const debtRuleNone = 'Não bloquear';
+  static const debtRuleNoneHint = 'Agenda normalmente.';
+  static const debtRuleWarn = 'Avisar';
+  static const debtRuleWarnHint = 'Agenda e mostra o valor em aberto.';
+  static const debtRuleApproval = 'Aprovação do administrador';
+  static const debtRuleApprovalHint =
+      'Só o administrador da empresa agenda, confirmando (fica no log de atividades).';
+  static const debtRuleBlock = 'Bloquear';
+  static const debtRuleBlockHint =
+      'Não agenda até a conta ser paga (nem como encaixe).';
+  static const settingsDebtDays = 'Tolerância (dias)';
+  static const settingsDebtDaysHint =
+      'Dias depois do vencimento antes de valer.';
+  static const settingsCash = 'Caixa';
+  static const settingsCashEnabled = 'Usar caixa do dia';
+  static const settingsCashEnabledHint =
+      'Abrir e fechar caixa com o valor contado. Desligado, ninguém abre caixa novo.';
+  static const settingsMethods = 'Formas de pagamento aceitas';
+  static const settingsMethodsHint =
+      'Aparecem ao receber uma conta e no fechamento da consulta.';
+  static const settingsMethodsRequired =
+      'Escolha ao menos uma forma de pagamento.';
+  static const settingsLate = 'Multa e juros por atraso';
+  static const settingsLateHint =
+      'Somados automaticamente ao receber uma conta vencida (juros pro rata por dia).';
+  static const settingsLateFee = 'Multa';
+  static const settingsLateInterest = 'Juros de mora';
+  static const settingsPerMonth = '% ao mês';
+  static const settingsPercentRange = 'Informe de 0 a 10%.';
+  static const debtConfirmTitle = 'Paciente com contas vencidas';
+  static String debtConfirmMessage(String amount) =>
+      'Este paciente tem $amount em contas vencidas. Agendar mesmo assim?';
+  static const debtConfirmAction = 'Agendar mesmo assim';
+  static String debtWarning(String amount) =>
+      'Agendado. Atenção: o paciente tem $amount em contas vencidas.';
+  static String finLateIncluded(String fee, String interest) =>
+      'Inclui multa de $fee e juros de $interest.';
+  static const cashDisabled =
+      'O caixa do dia está desligado nas configurações.';
 
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
@@ -1690,6 +1735,19 @@ abstract final class Strings {
         'Fora do horário de atendimento do profissional. Use encaixe para marcar assim mesmo.',
     'PATIENT_CPF_REQUIRED': 'Informe o CPF do paciente.',
     'PATIENT_MOBILE_REQUIRED': 'Informe o celular do paciente.',
+    'SETTINGS_DEBT_INVALID': 'Regra de inadimplentes ou tolerância inválida.',
+    'SETTINGS_METHODS_INVALID':
+        'Escolha ao menos uma forma de pagamento válida.',
+    'SETTINGS_LATE_INVALID': 'Multa e juros devem ficar entre 0 e 10%.',
+    'APPOINTMENT_DEBT_BLOCKED':
+        'Paciente com contas vencidas: a agenda está bloqueada até o pagamento.',
+    'APPOINTMENT_DEBT_APPROVAL':
+        'Paciente com contas vencidas: só o administrador da empresa pode agendar.',
+    'APPOINTMENT_DEBT_CONFIRM':
+        'Paciente com contas vencidas: confirme para agendar.',
+    'FIN_ENTRY_METHOD_NOT_ACCEPTED':
+        'Esta forma de pagamento não é aceita nas configurações da filial.',
+    'FIN_CASH_DISABLED': 'O caixa do dia está desligado nas configurações.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

@@ -13,6 +13,7 @@ import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
+import '../../settings/application/settings_controller.dart';
 import '../application/finance_controllers.dart';
 import '../domain/finance_models.dart';
 import 'attachments_section.dart';
@@ -46,7 +47,16 @@ abstract final class EntryActions {
           readOnly: !canUpdate || entry.isCancelled,
         );
       case 'PAY':
-        final extra = await SettleDialog.show(context, entry, catalog);
+        final methods = entry.itKind == EntryKind.receivable
+            ? await loadAcceptedPaymentMethods(ref)
+            : PaymentMethod.all;
+        if (!context.mounted) return;
+        final extra = await SettleDialog.show(
+          context,
+          entry,
+          catalog,
+          methods: methods,
+        );
         if (extra != null && context.mounted) {
           await _run(context, ref, entry, 'PAY', Strings.finSettled, extra);
         }
@@ -264,18 +274,28 @@ class _EntryDetailsDialog extends StatelessWidget {
 
 /// Baixa: conta, data, valor e forma. Devolve o JSON extra do PAY ou null.
 class SettleDialog extends StatefulWidget {
-  const SettleDialog({super.key, required this.entry, required this.catalog});
+  const SettleDialog({
+    super.key,
+    required this.entry,
+    required this.catalog,
+    this.methods = PaymentMethod.all,
+  });
 
   final FinEntry entry;
   final FinCatalog catalog;
 
+  /// Formas oferecidas (a receber: as aceitas pela filial).
+  final List<int> methods;
+
   static Future<Map<String, dynamic>?> show(
     BuildContext context,
     FinEntry entry,
-    FinCatalog catalog,
-  ) => showDialog<Map<String, dynamic>>(
+    FinCatalog catalog, {
+    List<int> methods = PaymentMethod.all,
+  }) => showDialog<Map<String, dynamic>>(
     context: context,
-    builder: (_) => SettleDialog(entry: entry, catalog: catalog),
+    builder: (_) =>
+        SettleDialog(entry: entry, catalog: catalog, methods: methods),
   );
 
   @override
@@ -296,10 +316,15 @@ class _SettleDialogState extends State<SettleDialog> {
     super.initState();
     final e = widget.entry;
     _date = TextEditingController(text: Dates.toField(DateTime.now()));
-    _amount = TextEditingController(text: Numbers.toField(e.vlAmount));
+    // a receber vencida: ja com multa e juros ate hoje
+    _amount = TextEditingController(
+      text: Numbers.toField(e.vlAmount + e.vlLateTotal),
+    );
     final active = widget.catalog.payableAccounts;
     _account = e.nrAccount ?? (active.isEmpty ? null : active.first.nrAccount);
-    _method = e.itPaymentMethod;
+    _method = widget.methods.contains(e.itPaymentMethod)
+        ? e.itPaymentMethod
+        : null;
   }
 
   @override
@@ -379,6 +404,12 @@ class _SettleDialogState extends State<SettleDialog> {
                 prefixText: 'R\$ ',
                 required: true,
                 positive: true,
+                helper: widget.entry.vlLateTotal > 0
+                    ? Strings.finLateIncluded(
+                        Numbers.money(widget.entry.vlLateFee),
+                        Numbers.money(widget.entry.vlLateInterest),
+                      )
+                    : null,
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<int?>(
@@ -389,7 +420,7 @@ class _SettleDialogState extends State<SettleDialog> {
                 ),
                 items: [
                   const DropdownMenuItem(value: null, child: Text('-')),
-                  for (final m in PaymentMethod.all)
+                  for (final m in widget.methods)
                     DropdownMenuItem(
                       value: m,
                       child: Text(PaymentMethod.label(m)),

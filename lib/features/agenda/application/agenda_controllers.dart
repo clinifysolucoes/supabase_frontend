@@ -128,35 +128,46 @@ class AppointmentsController
     await future;
   }
 
-  Future<int?> create(AppointmentDraft draft) async {
+  /// Cria; devolve o total vencido do paciente quando a filial so avisa.
+  Future<double?> create(
+    AppointmentDraft draft, {
+    bool debtOverride = false,
+  }) async {
     final nrCompany = ref.read(currentCompanyProvider);
     final nrBranch = ref.read(currentBranchNumberProvider);
     if (nrCompany == null || nrBranch == null) return null;
-    final nr = await ref
+    final debt = await ref
         .read(agendaRepositoryProvider)
         .createAppointment(
           nrCompany: nrCompany,
           nrBranch: nrBranch,
           draft: draft,
+          debtOverride: debtOverride,
         );
     await refresh();
-    return nr;
+    return debt;
   }
 
   /// Alteracao parcial (inclusive so a situacao: `{'it_status': 2}`).
-  Future<void> change(int nrAppointment, Map<String, dynamic> changes) async {
+  Future<double?> change(
+    int nrAppointment,
+    Map<String, dynamic> changes, {
+    bool debtOverride = false,
+  }) async {
     final nrCompany = ref.read(currentCompanyProvider);
     final nrBranch = ref.read(currentBranchNumberProvider);
-    if (nrCompany == null || nrBranch == null) return;
-    await ref
+    if (nrCompany == null || nrBranch == null) return null;
+    final debt = await ref
         .read(agendaRepositoryProvider)
         .updateAppointment(
           nrCompany: nrCompany,
           nrBranch: nrBranch,
           nrAppointment: nrAppointment,
           changes: changes,
+          debtOverride: debtOverride,
         );
     await refresh();
+    return debt;
   }
 }
 

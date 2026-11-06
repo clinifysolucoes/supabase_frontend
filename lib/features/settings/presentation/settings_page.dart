@@ -6,24 +6,28 @@ import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/masks.dart';
+import '../../../shared/formatters/numbers.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_empty_state.dart';
+import '../../../shared/widgets/app_number_field.dart';
 import '../../../shared/widgets/app_page_header.dart';
 import '../../../shared/widgets/app_shell.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../agenda/domain/agenda_models.dart';
 import '../../agenda/presentation/week_schedule_editor.dart';
+import '../../finance/domain/finance_models.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/settings_controller.dart';
 import '../domain/settings_models.dart';
 
-enum _Section { clinic, agenda, patients }
+enum _Section { clinic, agenda, patients, finance }
 
 /// Configuracoes da filial: dados da clinica, agenda (intervalo, consultas no
 /// mesmo horario, fora do expediente, horario de funcionamento) e cadastro de
-/// pacientes (prontuario automatico, obrigatorios).
+/// pacientes (prontuario automatico, obrigatorios) e financeiro (inadimplentes,
+/// caixa, formas aceitas, multa e juros).
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
@@ -38,12 +42,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.clinic => Strings.settingsClinic,
     _Section.agenda => Strings.settingsAgenda,
     _Section.patients => Strings.settingsPatients,
+    _Section.finance => Strings.settingsFinance,
   };
 
   IconData _icon(_Section s) => switch (s) {
     _Section.clinic => Icons.storefront_outlined,
     _Section.agenda => Icons.calendar_month_outlined,
     _Section.patients => Icons.badge_outlined,
+    _Section.finance => Icons.account_balance_wallet_outlined,
   };
 
   @override
@@ -114,6 +120,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         settings: s,
                       ),
                       _Section.patients => _PatientsForm(
+                        key: ValueKey(s.hashCode),
+                        settings: s,
+                      ),
+                      _Section.finance => _FinanceForm(
                         key: ValueKey(s.hashCode),
                         settings: s,
                       ),
@@ -660,6 +670,190 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
           onChanged: can ? (v) => setState(() => _mobile = v ?? false) : null,
         ),
       ],
+    );
+  }
+}
+
+class _FinanceForm extends ConsumerStatefulWidget {
+  const _FinanceForm({super.key, required this.settings});
+
+  final BranchSettings settings;
+
+  @override
+  ConsumerState<_FinanceForm> createState() => _FinanceFormState();
+}
+
+class _FinanceFormState extends ConsumerState<_FinanceForm> {
+  final _formKey = GlobalKey<FormState>();
+  late int _rule = widget.settings.itDebtRule;
+  late final _days = TextEditingController(
+    text: '${widget.settings.qtDebtDays}',
+  );
+  late bool _cash = widget.settings.idCashEnabled;
+  late final Set<int> _methods = {...widget.settings.itPaymentMethods};
+  late final _fee = TextEditingController(
+    text: Numbers.toField(widget.settings.pcLateFee),
+  );
+  late final _interest = TextEditingController(
+    text: Numbers.toField(widget.settings.pcLateInterest),
+  );
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _days.dispose();
+    _fee.dispose();
+    _interest.dispose();
+    super.dispose();
+  }
+
+  String _ruleLabel(int r) => switch (r) {
+    DebtRule.warn => Strings.debtRuleWarn,
+    DebtRule.approval => Strings.debtRuleApproval,
+    DebtRule.block => Strings.debtRuleBlock,
+    _ => Strings.debtRuleNone,
+  };
+
+  String _ruleHint(int r) => switch (r) {
+    DebtRule.warn => Strings.debtRuleWarnHint,
+    DebtRule.approval => Strings.debtRuleApprovalHint,
+    DebtRule.block => Strings.debtRuleBlockHint,
+    _ => Strings.debtRuleNoneHint,
+  };
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_methods.isEmpty) {
+      AppSnack.error(context, Strings.settingsMethodsRequired);
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref.read(settingsProvider.notifier).save({
+        'it_debt_rule': _rule,
+        'qt_debt_days': int.tryParse(_days.text.trim()) ?? 0,
+        'id_cash_enabled': _cash,
+        'it_payment_methods': (_methods.toList()..sort()),
+        'pc_late_fee': Numbers.parse(_fee.text) ?? 0,
+        'pc_late_interest': Numbers.parse(_interest.text) ?? 0,
+      });
+      if (mounted) AppSnack.success(context, Strings.savedSuccess);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String? _percent(String? v) {
+    final n = Numbers.parse(v) ?? 0;
+    return n < 0 || n > 10 ? Strings.settingsPercentRange : null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final can = widget.settings.canUpdate && !_saving;
+    return Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: _SectionCard(
+        title: Strings.settingsFinance,
+        hint: Strings.settingsFinanceHint,
+        onSave: widget.settings.canUpdate ? _save : null,
+        saving: _saving,
+        children: [
+          _subtitle(context, Strings.settingsDebt),
+          const Text(
+            Strings.settingsDebtHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          RadioGroup<int>(
+            groupValue: _rule,
+            onChanged: (v) {
+              if (can && v != null) setState(() => _rule = v);
+            },
+            child: Column(
+              children: [
+                for (final r in DebtRule.all)
+                  RadioListTile<int>(
+                    contentPadding: EdgeInsets.zero,
+                    value: r,
+                    enabled: can,
+                    title: Text(_ruleLabel(r)),
+                    subtitle: Text(_ruleHint(r)),
+                  ),
+              ],
+            ),
+          ),
+          if (_rule != DebtRule.none)
+            SizedBox(
+              width: 260,
+              child: AppNumberField(
+                label: Strings.settingsDebtDays,
+                helper: Strings.settingsDebtDaysHint,
+                controller: _days,
+                decimals: 0,
+                enabled: can,
+                validator: (v) {
+                  final n = int.tryParse(v ?? '') ?? 0;
+                  return n < 0 || n > 365 ? '0 – 365' : null;
+                },
+              ),
+            ),
+          _subtitle(context, Strings.settingsCash),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text(Strings.settingsCashEnabled),
+            subtitle: const Text(Strings.settingsCashEnabledHint),
+            value: _cash,
+            onChanged: can ? (v) => setState(() => _cash = v) : null,
+          ),
+          _subtitle(context, Strings.settingsMethods),
+          const Text(
+            Strings.settingsMethodsHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              for (final m in BranchSettings.allPaymentMethods)
+                FilterChip(
+                  label: Text(PaymentMethod.label(m)),
+                  selected: _methods.contains(m),
+                  onSelected: can
+                      ? (v) => setState(
+                          () => v ? _methods.add(m) : _methods.remove(m),
+                        )
+                      : null,
+                ),
+            ],
+          ),
+          _subtitle(context, Strings.settingsLate),
+          const Text(
+            Strings.settingsLateHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _row(context, [
+            AppNumberField(
+              label: Strings.settingsLateFee,
+              controller: _fee,
+              suffixText: '%',
+              enabled: can,
+              validator: _percent,
+            ),
+            AppNumberField(
+              label: Strings.settingsLateInterest,
+              controller: _interest,
+              suffixText: Strings.settingsPerMonth,
+              enabled: can,
+              validator: _percent,
+            ),
+          ]),
+        ],
+      ),
     );
   }
 }

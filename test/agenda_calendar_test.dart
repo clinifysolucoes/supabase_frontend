@@ -97,22 +97,27 @@ class _FakeRepo implements AgendaRepository {
   });
 
   @override
-  Future<int> createAppointment({
+  Future<double?> createAppointment({
     required int nrCompany,
     required int nrBranch,
     required AppointmentDraft draft,
+    bool debtOverride = false,
   }) async {
     created = draft;
-    return 3;
+    return null;
   }
 
   @override
-  Future<void> updateAppointment({
+  Future<double?> updateAppointment({
     required int nrCompany,
     required int nrBranch,
     required int nrAppointment,
     required Map<String, dynamic> changes,
-  }) async => this.changes.add({'nr': nrAppointment, ...changes});
+    bool debtOverride = false,
+  }) async {
+    this.changes.add({'nr': nrAppointment, ...changes});
+    return null;
+  }
 
   @override
   Future<int> createProfessional({
