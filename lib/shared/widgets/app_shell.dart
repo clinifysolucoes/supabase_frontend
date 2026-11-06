@@ -20,6 +20,7 @@ enum AppSection {
   profiles,
   logs,
   settings,
+  budgets,
 }
 
 class _Destination {
@@ -68,6 +69,15 @@ const _patients = _Destination(
   route: '/pacientes',
 );
 
+const _budgets = _Destination(
+  section: AppSection.budgets,
+  code: ScreenCodes.budgets,
+  icon: Icons.request_quote_outlined,
+  selectedIcon: Icons.request_quote_rounded,
+  label: Strings.budgets,
+  route: '/orcamentos',
+);
+
 const _finance = _Destination(
   section: AppSection.finance,
   code: ScreenCodes.finance,
@@ -86,7 +96,14 @@ const _pricing = _Destination(
   route: '/precificacao',
 );
 
-const _mainItems = [_dashboard, _agenda, _patients, _finance, _pricing];
+const _mainItems = [
+  _dashboard,
+  _agenda,
+  _patients,
+  _budgets,
+  _finance,
+  _pricing,
+];
 
 /// Itens do quadrado de administracao (ao lado do Dashboard).
 const _adminItems = [
