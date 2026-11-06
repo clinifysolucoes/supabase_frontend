@@ -252,88 +252,103 @@ class _Sidebar extends StatelessWidget {
             ),
             child: Center(child: AppLogo(size: 32, showWordmark: wide)),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _NavTile(
-                    destination: _dashboard,
-                    selected: section == AppSection.dashboard,
-                    wide: wide,
-                    onTap: () => onGo(_dashboard),
-                  ),
-                ),
-                if (adminItems.isNotEmpty) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  _AdminSquare(
-                    open: adminOpen,
-                    highlighted: adminSelected,
-                    onTap: onToggleAdmin,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          for (final d in mainItems.where((d) => d != _dashboard))
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.sm,
-                AppSpacing.xs,
-                AppSpacing.sm,
-                0,
-              ),
-              child: _NavTile(
-                destination: d,
-                selected: d.section == section,
-                wide: wide,
-                onTap: () => onGo(d),
-              ),
-            ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            alignment: Alignment.topCenter,
-            child: adminOpen && adminItems.isNotEmpty
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.sm,
-                      AppSpacing.sm,
-                      AppSpacing.sm,
-                      0,
+          // Itens rolam quando a janela e baixa (logo fica fixo).
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                    child: Row(
                       children: [
-                        if (wide)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.md,
-                              AppSpacing.xs,
-                              AppSpacing.md,
-                              AppSpacing.xs,
-                            ),
-                            child: Text(
-                              Strings.adminMenu.toUpperCase(),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: AppColors.muted,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1,
-                                  ),
-                            ),
-                          ),
-                        for (final d in adminItems)
-                          _NavTile(
-                            destination: d,
-                            selected: d.section == section,
+                        Expanded(
+                          child: _NavTile(
+                            destination: _dashboard,
+                            selected: section == AppSection.dashboard,
                             wide: wide,
-                            onTap: () => onGo(d),
+                            onTap: () => onGo(_dashboard),
                           ),
+                        ),
+                        if (adminItems.isNotEmpty) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          _AdminSquare(
+                            open: adminOpen,
+                            highlighted: adminSelected,
+                            onTap: onToggleAdmin,
+                          ),
+                        ],
                       ],
                     ),
-                  )
-                : const SizedBox.shrink(),
+                  ),
+                  for (final d in mainItems.where((d) => d != _dashboard))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.sm,
+                        AppSpacing.xs,
+                        AppSpacing.sm,
+                        0,
+                      ),
+                      child: _NavTile(
+                        destination: d,
+                        selected: d.section == section,
+                        wide: wide,
+                        onTap: () => onGo(d),
+                      ),
+                    ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    alignment: Alignment.topCenter,
+                    child: adminOpen && adminItems.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (wide)
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      AppSpacing.md,
+                                      AppSpacing.xs,
+                                      AppSpacing.md,
+                                      AppSpacing.xs,
+                                    ),
+                                    child: Text(
+                                      Strings.adminMenu.toUpperCase(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: AppColors.muted,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 1,
+                                          ),
+                                    ),
+                                  ),
+                                for (final d in adminItems)
+                                  _NavTile(
+                                    destination: d,
+                                    selected: d.section == section,
+                                    wide: wide,
+                                    onTap: () => onGo(d),
+                                  ),
+                              ],
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
