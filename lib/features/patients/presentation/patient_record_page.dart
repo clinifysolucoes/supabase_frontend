@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../budgets/presentation/budgets_page.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
@@ -208,7 +209,22 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
                           onAddNote: _addNote,
                           onDeleteNote: _deleteNote,
                         ),
-                        for (final t in _tabs.skip(1))
+                        AppEmptyState(
+                          icon: Icons.construction_rounded,
+                          title: Strings.moduleSoon(_tabs[1]),
+                          subtitle: Strings.moduleSoonSubtitle,
+                        ),
+                        ref.watch(canReadProvider(ScreenCodes.budgets))
+                            ? BudgetList(
+                                nrPatient: p.nrPatient,
+                                vcPatient: p.vcName,
+                              )
+                            : const AppEmptyState(
+                                icon: Icons.lock_outline_rounded,
+                                title: Strings.noPermissionTitle,
+                                subtitle: Strings.noPermissionSubtitle,
+                              ),
+                        for (final t in _tabs.skip(3))
                           AppEmptyState(
                             icon: Icons.construction_rounded,
                             title: Strings.moduleSoon(t),

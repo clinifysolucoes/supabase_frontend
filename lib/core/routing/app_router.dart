@@ -16,6 +16,7 @@ import '../../features/session/domain/screen_codes.dart';
 import '../../features/session/presentation/branch_selection_page.dart';
 import '../../features/session/presentation/no_company_page.dart';
 import '../../features/auth/presentation/mfa_page.dart';
+import '../../features/budgets/presentation/budgets_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
 import '../../features/users/presentation/users_page.dart';
 import '../../shared/widgets/splash_page.dart';
@@ -35,6 +36,7 @@ abstract final class AppRoutes {
   static const agenda = '/agenda';
   static const finance = '/financeiro';
   static const settings = '/configuracoes';
+  static const budgets = '/orcamentos';
 
   /// Ficha de um paciente.
   static String patient(int nrPatient) => '$patients/$nrPatient';
@@ -52,6 +54,7 @@ abstract final class AppRoutes {
     agenda: ScreenCodes.agenda,
     finance: ScreenCodes.finance,
     settings: ScreenCodes.settings,
+    budgets: ScreenCodes.budgets,
   };
 
   /// Tela exigida por [location]: a rota exata ou o prefixo (`/pacientes/3`).
@@ -146,6 +149,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const DashboardPage(),
       ),
       GoRoute(path: AppRoutes.users, builder: (_, __) => const UsersPage()),
+      GoRoute(path: AppRoutes.budgets, builder: (_, __) => const BudgetsPage()),
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, __) => const SettingsPage(),

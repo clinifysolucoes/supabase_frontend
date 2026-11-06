@@ -10,4 +10,5 @@ abstract final class ScreenCodes {
   static const agenda = 'AGENDA';
   static const finance = 'FINANCE';
   static const settings = 'SETTINGS';
+  static const budgets = 'BUDGETS';
 }

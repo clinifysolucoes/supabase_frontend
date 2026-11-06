@@ -766,6 +766,12 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
   late final _dreCsll = TextEditingController(
     text: Numbers.toField(widget.settings.pcDreCsll),
   );
+  late final _budgetMax = TextEditingController(
+    text: Numbers.toField(widget.settings.pcBudgetMaxDiscount),
+  );
+  late final _budgetDays = TextEditingController(
+    text: '${widget.settings.qtBudgetValidDays}',
+  );
   late final _receiptPrefix = TextEditingController(
     text: widget.settings.vcReceiptPrefix,
   );
@@ -783,6 +789,8 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
     _dreIncome.dispose();
     _dreCsll.dispose();
     _receiptPrefix.dispose();
+    _budgetMax.dispose();
+    _budgetDays.dispose();
     _receiptNext.dispose();
     super.dispose();
   }
@@ -820,6 +828,8 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
         'pc_dre_income_tax': Numbers.parse(_dreIncome.text) ?? 0,
         'pc_dre_csll': Numbers.parse(_dreCsll.text) ?? 0,
         'vc_receipt_prefix': _receiptPrefix.text.trim().toUpperCase(),
+        'pc_budget_max_discount': Numbers.parse(_budgetMax.text) ?? 10,
+        'qt_budget_valid_days': int.tryParse(_budgetDays.text.trim()) ?? 30,
         'nr_next_receipt': int.tryParse(_receiptNext.text.trim()) ?? 1,
       });
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
@@ -969,6 +979,34 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
               suffixText: '%',
               enabled: can,
               validator: _taxPercent,
+            ),
+          ]),
+          _subtitle(context, Strings.settingsBudgets),
+          const Text(
+            Strings.settingsBudgetsHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _row(context, [
+            AppNumberField(
+              label: Strings.settingsBudgetMax,
+              controller: _budgetMax,
+              suffixText: '%',
+              enabled: can,
+              validator: (v) {
+                final n = Numbers.parse(v) ?? 0;
+                return n < 0 || n > 100 ? '0 – 100' : null;
+              },
+            ),
+            AppNumberField(
+              label: Strings.settingsBudgetDays,
+              controller: _budgetDays,
+              decimals: 0,
+              enabled: can,
+              validator: (v) {
+                final n = int.tryParse(v ?? '') ?? 0;
+                return n < 1 || n > 365 ? '1 – 365' : null;
+              },
             ),
           ]),
           _subtitle(context, Strings.settingsReceipts),

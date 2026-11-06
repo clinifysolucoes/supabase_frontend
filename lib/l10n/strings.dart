@@ -1352,6 +1352,88 @@ abstract final class Strings {
   static const receiptPayerDocument = 'CPF ou CNPJ de quem pagou';
   static const receiptPayerDocumentHint = 'Vazio = CPF do paciente';
   static const receiptDescription = 'Referente a';
+  static const settingsBudgets = 'Orçamentos';
+  static const settingsBudgetsHint =
+      'Acima do desconto máximo, só o administrador da empresa aprova o orçamento.';
+  static const settingsBudgetMax = 'Desconto máximo sem aprovação';
+  static const settingsBudgetDays = 'Validade padrão (dias)';
+  static const budgets = 'Orçamentos';
+  static const budgetsSubtitle =
+      'Planos de tratamento dos pacientes: desconto, aprovação e contas a receber.';
+  static const budgetNew = 'Novo orçamento';
+  static String budgetEdit(int n) => 'Orçamento $n';
+  static String budgetNumber(int n) => 'Orçamento nº $n';
+  static const budgetNumberLabel = 'Número';
+  static const budgetOpen = 'Em aberto';
+  static const budgetPending = 'Aguardando aprovação';
+  static const budgetAccepted = 'Aprovado pelo paciente';
+  static const budgetAcceptedShort = 'Aprovados';
+  static const budgetRefused = 'Recusado';
+  static const budgetCancelled = 'Cancelado';
+  static const budgetExpired = 'Vencido';
+  static const budgetAll = 'Todos';
+  static const budgetSearch = 'Buscar paciente ou título';
+  static const budgetEmpty = 'Nenhum orçamento';
+  static const budgetEmptyHint =
+      'Crie um orçamento a partir dos procedimentos da precificação.';
+  static String budgetItemsCount(int n) => n == 1 ? '1 item' : '$n itens';
+  static const budgetChoosePatient = 'Escolha o paciente';
+  static const budgetPatientRequired = 'Escolha o paciente.';
+  static const budgetItemsRequired = 'Inclua ao menos um procedimento.';
+  static const budgetTitle = 'Título';
+  static const budgetTitleHint = 'Ex.: Reabilitação superior';
+  static const budgetDate = 'Data';
+  static const budgetValid = 'Válido até';
+  static const budgetValidHint = 'Vazio = validade padrão';
+  static const budgetItems = 'Procedimentos';
+  static const budgetAddProcedure = 'Adicionar procedimento';
+  static const budgetAddFree = 'Item livre';
+  static const budgetFreeItem = 'Item';
+  static const budgetNoItems = 'Nenhum procedimento ainda.';
+  static const budgetNoProcedures = 'Nenhum procedimento encontrado.';
+  static const budgetItemDescription = 'Procedimento';
+  static const budgetTooth = 'Dente/região';
+  static const budgetQty = 'Qtd.';
+  static const budgetUnit = 'Valor unitário';
+  static const budgetDiscount = 'Desconto';
+  static const budgetSubtotal = 'Subtotal';
+  static const budgetTotal = 'Total';
+  static const budgetInstallments = 'Parcelas';
+  static String budgetOverMax(String max) =>
+      'Desconto acima de $max: o orçamento fica aguardando a aprovação do administrador.';
+  static const budgetSaved = 'Orçamento salvo.';
+  static const budgetPendingInfo =
+      'Orçamento salvo. O desconto passou do máximo e aguarda o administrador.';
+  static String budgetPendingHint(String max) =>
+      'O desconto passa de $max: só o administrador da empresa aprova.';
+  static String budgetApprovedBy(String who) => 'aprovado por $who';
+  static const budgetTerms = 'Pagamento';
+  static const budgetEntries = 'Contas a receber';
+  static const budgetEntryOpen = 'Em aberto';
+  static const budgetEntryPaid = 'Pago';
+  static const budgetPdf = 'PDF';
+  static const budgetPdfDone = 'PDF do orçamento gerado.';
+  static const budgetRefuse = 'Recusado';
+  static const budgetRefuseConfirm =
+      'Marcar o orçamento como recusado pelo paciente?';
+  static const budgetRefusedDone = 'Orçamento recusado.';
+  static const budgetCancel = 'Cancelar orçamento';
+  static const budgetCancelConfirm = 'Cancelar este orçamento?';
+  static const budgetCancelAcceptedConfirm =
+      'As contas a receber em aberto do orçamento também serão canceladas.';
+  static const budgetCancelledDone = 'Orçamento cancelado.';
+  static const budgetReopen = 'Reabrir';
+  static const budgetReopenedDone = 'Orçamento reaberto.';
+  static const budgetApproveDiscount = 'Aprovar desconto';
+  static const budgetDiscountApproved = 'Desconto aprovado.';
+  static const budgetAccept = 'Paciente aprovou';
+  static String budgetAcceptHint(String total) =>
+      'Gera as contas a receber de $total no Financeiro (categoria Tratamentos).';
+  static String budgetInstallmentOf(String v) => 'Parcelas de $v';
+  static const budgetFirstDue = '1º vencimento';
+  static const budgetAcceptConfirm = 'Aprovar e gerar contas';
+  static const budgetAcceptedDone =
+      'Orçamento aprovado: contas a receber geradas.';
   static const settingsReceipts = 'Recibos';
   static const settingsReceiptsHint =
       'Numeração dos recibos emitidos pelos recebimentos (Financeiro › conta paga › Emitir recibo).';
@@ -1916,6 +1998,30 @@ abstract final class Strings {
     'MFA_AAL_REQUIRED':
         'Confirme o código do app autenticador antes de fazer isso.',
     'MFA_ERROR': 'Não foi possível configurar o app autenticador.',
+    'BUDGET_ACTION_INVALID': 'Ação inválida no orçamento.',
+    'BUDGET_BRANCH_REQUIRED': 'Filial não informada.',
+    'BUDGET_FORBIDDEN': 'Você não tem permissão para esta ação nos orçamentos.',
+    'BUDGET_REQUIRED': 'Orçamento não informado.',
+    'BUDGET_NOT_FOUND': 'Orçamento não encontrado.',
+    'BUDGET_STATUS_INVALID': 'A situação do orçamento não permite esta ação.',
+    'BUDGET_VALUE_INVALID': 'Valor inválido no orçamento.',
+    'BUDGET_PATIENT_INVALID': 'Paciente inválido ou inativo.',
+    'BUDGET_PROFESSIONAL_INVALID': 'Profissional inválido ou inativo.',
+    'BUDGET_DATE_INVALID':
+        'A validade precisa ser depois da data do orçamento.',
+    'BUDGET_ITEMS_REQUIRED': 'Inclua ao menos um procedimento.',
+    'BUDGET_ITEM_INVALID': 'Item {Item} do orçamento inválido.',
+    'BUDGET_PROCEDURE_INVALID': 'Procedimento do item {Item} não encontrado.',
+    'BUDGET_DISCOUNT_INVALID': 'Desconto inválido (entre zero e o subtotal).',
+    'BUDGET_DISCOUNT_FORBIDDEN':
+        'Só o administrador da empresa aprova o desconto.',
+    'BUDGET_EXPIRED': 'Orçamento vencido: altere a validade antes de aprovar.',
+    'BUDGET_EMPTY': 'O orçamento está sem valor.',
+    'BUDGET_HAS_PAYMENTS':
+        'Já há parcela paga: estorne no Financeiro antes de cancelar.',
+    'BUDGET_FILTER_INVALID': 'Filtro inválido.',
+    'SETTINGS_BUDGET_INVALID':
+        'Desconto máximo (0 a 100%) ou validade (1 a 365 dias) inválidos.',
     'EXPORT_BRANCH_REQUIRED': 'Filial não informada.',
     'EXPORT_FORBIDDEN': 'Você não tem permissão para exportar estes dados.',
     'EXPORT_KIND_INVALID': 'Tipo de planilha inválido.',

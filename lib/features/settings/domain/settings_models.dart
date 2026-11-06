@@ -82,6 +82,8 @@ class BranchSettings {
     this.pcDreIncomeTax = 0,
     this.pcDreCsll = 0,
     this.vcReceiptPrefix = '',
+    this.pcBudgetMaxDiscount = 10,
+    this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
     this.canUpdate = false,
@@ -122,6 +124,9 @@ class BranchSettings {
       pcDreIncomeTax: d('pc_dre_income_tax'),
       pcDreCsll: d('pc_dre_csll'),
       vcReceiptPrefix: s['vc_receipt_prefix']?.toString() ?? '',
+      pcBudgetMaxDiscount:
+          (s['pc_budget_max_discount'] as num?)?.toDouble() ?? 10,
+      qtBudgetValidDays: i('qt_budget_valid_days', 30),
       nrNextReceipt: i('nr_next_receipt', 1),
       itMfaPolicy:
           ((j['security'] as Map?)?['it_mfa_policy'] as num?)?.toInt() ?? 0,
@@ -154,6 +159,10 @@ class BranchSettings {
 
   /// Numeracao dos recibos (prefixo e proximo numero).
   final String vcReceiptPrefix;
+
+  /// Orcamentos: desconto maximo sem aprovacao (%) e validade padrao (dias).
+  final double pcBudgetMaxDiscount;
+  final int qtBudgetValidDays;
   final int nrNextReceipt;
 
   /// 2FA da empresa: 0 nao exige | 1 administradores | 2 todos.
