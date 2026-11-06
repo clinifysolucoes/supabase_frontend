@@ -20,6 +20,7 @@ class ClinicData {
     this.vcTechnicalCro,
     this.vcTechnicalCroState,
     this.vcForumCity,
+    this.vcTimezone,
   });
 
   factory ClinicData.fromJson(Map<String, dynamic> j) => ClinicData(
@@ -40,6 +41,7 @@ class ClinicData {
     vcTechnicalCro: j['vc_technical_cro']?.toString(),
     vcTechnicalCroState: j['vc_technical_cro_state']?.toString(),
     vcForumCity: j['vc_forum_city']?.toString(),
+    vcTimezone: j['vc_timezone']?.toString(),
   );
 
   final String vcName;
@@ -59,6 +61,7 @@ class ClinicData {
   final String? vcTechnicalCro;
   final String? vcTechnicalCroState;
   final String? vcForumCity;
+  final String? vcTimezone;
 }
 
 /// Configuracoes da filial (ad.settings_get).
@@ -83,6 +86,11 @@ class BranchSettings {
     this.pcDreCsll = 0,
     this.vcReceiptPrefix = '',
     this.pcBudgetMaxDiscount = 10,
+    this.idBudgetRequestApproval = true,
+    this.idBudgetAdminBelowMin = true,
+    this.idBudgetReductionAsDiscount = false,
+    this.itOpenRule = DebtRule.none,
+    this.itLateEdit = 0,
     this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
@@ -127,6 +135,11 @@ class BranchSettings {
       pcBudgetMaxDiscount:
           (s['pc_budget_max_discount'] as num?)?.toDouble() ?? 10,
       qtBudgetValidDays: i('qt_budget_valid_days', 30),
+      idBudgetRequestApproval: s['id_budget_request_approval'] != false,
+      idBudgetAdminBelowMin: s['id_budget_admin_below_min'] != false,
+      idBudgetReductionAsDiscount: s['id_budget_reduction_as_discount'] == true,
+      itOpenRule: i('it_open_rule', DebtRule.none),
+      itLateEdit: i('it_late_edit', 0),
       nrNextReceipt: i('nr_next_receipt', 1),
       itMfaPolicy:
           ((j['security'] as Map?)?['it_mfa_policy'] as num?)?.toInt() ?? 0,
@@ -163,6 +176,26 @@ class BranchSettings {
   /// Orcamentos: desconto maximo sem aprovacao (%) e validade padrao (dias).
   final double pcBudgetMaxDiscount;
   final int qtBudgetValidDays;
+  final bool idBudgetRequestApproval;
+  final bool idBudgetAdminBelowMin;
+  final bool idBudgetReductionAsDiscount;
+
+  /// Paciente com conta em aberto (nao vencida) ao agendar (DebtRule).
+  final int itOpenRule;
+
+  /// Multa e juros na baixa: 0 editaveis | 1 so administrador | 2 nao.
+  final int itLateEdit;
+
+  /// Fusos do Brasil (ad.branch.vc_timezone).
+  static const timezones = [
+    'America/Sao_Paulo',
+    'America/Manaus',
+    'America/Cuiaba',
+    'America/Porto_Velho',
+    'America/Boa_Vista',
+    'America/Rio_Branco',
+    'America/Noronha',
+  ];
   final int nrNextReceipt;
 
   /// 2FA da empresa: 0 nao exige | 1 administradores | 2 todos.

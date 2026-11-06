@@ -502,6 +502,7 @@ class _AgendaFormState extends ConsumerState<_AgendaForm> {
   late int _slot = widget.settings.qtSlotMinutes;
   late int _parallel = widget.settings.qtMaxParallel;
   late bool _outside = widget.settings.idAllowOutsideHours;
+  late String _tz = widget.settings.clinic.vcTimezone ?? 'America/Sao_Paulo';
   late List<ScheduleRange> _hours = [...widget.settings.hours];
   bool _saving = false;
 
@@ -519,6 +520,12 @@ class _AgendaFormState extends ConsumerState<_AgendaForm> {
         'id_allow_outside_hours': _outside,
         'hours': [for (final h in _hours) h.toJson()],
       });
+      if (widget.settings.canEditClinic &&
+          _tz != (widget.settings.clinic.vcTimezone ?? 'America/Sao_Paulo')) {
+        await ref.read(settingsProvider.notifier).saveClinic({
+          'vc_timezone': _tz,
+        });
+      }
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
     } catch (e) {
       if (mounted) AppSnack.error(context, describeError(e));
@@ -582,6 +589,31 @@ class _AgendaFormState extends ConsumerState<_AgendaForm> {
           subtitle: const Text(Strings.settingsOutsideHint),
           value: _outside,
           onChanged: can ? (v) => setState(() => _outside = v) : null,
+        ),
+        _subtitle(context, Strings.settingsTimezone),
+        SizedBox(
+          width: 360,
+          child: DropdownButtonFormField<String>(
+            isExpanded: true,
+            initialValue: BranchSettings.timezones.contains(_tz)
+                ? _tz
+                : BranchSettings.timezones.first,
+            decoration: InputDecoration(
+              helperText: widget.settings.canEditClinic
+                  ? null
+                  : Strings.settingsClinicReadOnly,
+            ),
+            items: [
+              for (final z in BranchSettings.timezones)
+                DropdownMenuItem(
+                  value: z,
+                  child: Text(Strings.timezoneLabel(z)),
+                ),
+            ],
+            onChanged: can && widget.settings.canEditClinic
+                ? (v) => setState(() => _tz = v ?? _tz)
+                : null,
+          ),
         ),
         _subtitle(context, Strings.settingsBusinessHours),
         const Text(
@@ -746,6 +778,11 @@ class _FinanceForm extends ConsumerStatefulWidget {
 class _FinanceFormState extends ConsumerState<_FinanceForm> {
   final _formKey = GlobalKey<FormState>();
   late int _rule = widget.settings.itDebtRule;
+  late int _openRule = widget.settings.itOpenRule;
+  late int _lateEdit = widget.settings.itLateEdit;
+  late bool _budgetRequest = widget.settings.idBudgetRequestApproval;
+  late bool _budgetBelowMin = widget.settings.idBudgetAdminBelowMin;
+  late bool _budgetReduction = widget.settings.idBudgetReductionAsDiscount;
   late final _days = TextEditingController(
     text: '${widget.settings.qtDebtDays}',
   );
@@ -819,6 +856,11 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
     try {
       await ref.read(settingsProvider.notifier).save({
         'it_debt_rule': _rule,
+        'it_open_rule': _openRule,
+        'it_late_edit': _lateEdit,
+        'id_budget_request_approval': _budgetRequest,
+        'id_budget_admin_below_min': _budgetBelowMin,
+        'id_budget_reduction_as_discount': _budgetReduction,
         'qt_debt_days': int.tryParse(_days.text.trim()) ?? 0,
         'id_cash_enabled': _cash,
         'it_payment_methods': (_methods.toList()..sort()),
@@ -900,6 +942,29 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
                 },
               ),
             ),
+          _subtitle(context, Strings.settingsOpen),
+          const Text(
+            Strings.settingsOpenHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          RadioGroup<int>(
+            groupValue: _openRule,
+            onChanged: (v) {
+              if (can && v != null) setState(() => _openRule = v);
+            },
+            child: Column(
+              children: [
+                for (final r in DebtRule.all)
+                  RadioListTile<int>(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    value: r,
+                    enabled: can,
+                    title: Text(_ruleLabel(r)),
+                  ),
+              ],
+            ),
+          ),
           _subtitle(context, Strings.settingsCash),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -952,6 +1017,29 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
               validator: _percent,
             ),
           ]),
+          const SizedBox(height: AppSpacing.sm),
+          DropdownButtonFormField<int>(
+            isExpanded: true,
+            initialValue: _lateEdit,
+            decoration: const InputDecoration(
+              labelText: Strings.settingsLateEdit,
+            ),
+            items: const [
+              DropdownMenuItem(
+                value: 0,
+                child: Text(Strings.settingsLateEdit0),
+              ),
+              DropdownMenuItem(
+                value: 1,
+                child: Text(Strings.settingsLateEdit1),
+              ),
+              DropdownMenuItem(
+                value: 2,
+                child: Text(Strings.settingsLateEdit2),
+              ),
+            ],
+            onChanged: can ? (v) => setState(() => _lateEdit = v ?? 0) : null,
+          ),
           _subtitle(context, Strings.settingsDre),
           const Text(
             Strings.settingsDreHint,
@@ -1009,6 +1097,27 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
               },
             ),
           ]),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text(Strings.settingsBudgetRequest),
+            subtitle: const Text(Strings.settingsBudgetRequestHint),
+            value: _budgetRequest,
+            onChanged: can ? (v) => setState(() => _budgetRequest = v) : null,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text(Strings.settingsBudgetBelowMin),
+            subtitle: const Text(Strings.settingsBudgetBelowMinHint),
+            value: _budgetBelowMin,
+            onChanged: can ? (v) => setState(() => _budgetBelowMin = v) : null,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text(Strings.settingsBudgetReduction),
+            subtitle: const Text(Strings.settingsBudgetReductionHint),
+            value: _budgetReduction,
+            onChanged: can ? (v) => setState(() => _budgetReduction = v) : null,
+          ),
           _subtitle(context, Strings.settingsReceipts),
           const Text(
             Strings.settingsReceiptsHint,
