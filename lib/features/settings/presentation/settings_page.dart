@@ -1,0 +1,665 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/errors/app_error.dart';
+import '../../../core/responsive/breakpoints.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../l10n/strings.dart';
+import '../../../shared/formatters/masks.dart';
+import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_empty_state.dart';
+import '../../../shared/widgets/app_page_header.dart';
+import '../../../shared/widgets/app_shell.dart';
+import '../../../shared/widgets/app_snack.dart';
+import '../../../shared/widgets/app_text_field.dart';
+import '../../agenda/domain/agenda_models.dart';
+import '../../agenda/presentation/week_schedule_editor.dart';
+import '../../session/application/permissions.dart';
+import '../../session/domain/screen_codes.dart';
+import '../application/settings_controller.dart';
+import '../domain/settings_models.dart';
+
+enum _Section { clinic, agenda, patients }
+
+/// Configuracoes da filial: dados da clinica, agenda (intervalo, consultas no
+/// mesmo horario, fora do expediente, horario de funcionamento) e cadastro de
+/// pacientes (prontuario automatico, obrigatorios).
+class SettingsPage extends ConsumerStatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  _Section _section = _Section.clinic;
+
+  String _label(_Section s) => switch (s) {
+    _Section.clinic => Strings.settingsClinic,
+    _Section.agenda => Strings.settingsAgenda,
+    _Section.patients => Strings.settingsPatients,
+  };
+
+  IconData _icon(_Section s) => switch (s) {
+    _Section.clinic => Icons.storefront_outlined,
+    _Section.agenda => Icons.calendar_month_outlined,
+    _Section.patients => Icons.badge_outlined,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (!ref.watch(canReadProvider(ScreenCodes.settings))) {
+      return const AppShell(
+        section: AppSection.settings,
+        child: AppEmptyState(
+          icon: Icons.lock_outline_rounded,
+          title: Strings.noPermissionTitle,
+          subtitle: Strings.noPermissionSubtitle,
+        ),
+      );
+    }
+    final async = ref.watch(settingsProvider);
+    final mobile = context.isMobile;
+    final nav = [
+      for (final s in _Section.values)
+        mobile
+            ? Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.xs),
+                child: ChoiceChip(
+                  avatar: Icon(_icon(s), size: 18),
+                  label: Text(_label(s)),
+                  selected: _section == s,
+                  onSelected: (_) => setState(() => _section = s),
+                ),
+              )
+            : ListTile(
+                leading: Icon(_icon(s)),
+                title: Text(_label(s)),
+                selected: _section == s,
+                selectedTileColor: AppColors.mint,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                onTap: () => setState(() => _section = s),
+              ),
+    ];
+    return AppShell(
+      section: AppSection.settings,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AppPageHeader(
+              title: Strings.settingsTitle,
+              subtitle: Strings.settingsSubtitle,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: async.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => AppEmptyState.error(
+                  message: describeError(e),
+                  onRetry: () => ref.invalidate(settingsProvider),
+                ),
+                data: (s) {
+                  final body = SingleChildScrollView(
+                    child: switch (_section) {
+                      _Section.clinic => _ClinicForm(
+                        key: ValueKey(s.clinic),
+                        settings: s,
+                      ),
+                      _Section.agenda => _AgendaForm(
+                        key: ValueKey(s.hashCode),
+                        settings: s,
+                      ),
+                      _Section.patients => _PatientsForm(
+                        key: ValueKey(s.hashCode),
+                        settings: s,
+                      ),
+                    },
+                  );
+                  return mobile
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(children: nav),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Expanded(child: body),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 230,
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(AppSpacing.sm),
+                                  child: Column(children: nav),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(child: body),
+                          ],
+                        );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Moldura de cada secao: titulo, dica, conteudo e o Salvar.
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.title,
+    required this.hint,
+    required this.children,
+    this.onSave,
+    this.saving = false,
+  });
+
+  final String title;
+  final String hint;
+  final List<Widget> children;
+  final VoidCallback? onSave;
+  final bool saving;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            Text(hint, style: const TextStyle(color: AppColors.muted)),
+            const SizedBox(height: AppSpacing.lg),
+            ...children,
+            if (onSave != null) ...[
+              const SizedBox(height: AppSpacing.lg),
+              Align(
+                alignment: Alignment.centerRight,
+                child: AppButton(
+                  label: Strings.save,
+                  expanded: false,
+                  loading: saving,
+                  onPressed: onSave,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _subtitle(BuildContext context, String text) => Padding(
+  padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.sm),
+  child: Text(
+    text,
+    style: Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+  ),
+);
+
+/// Campos lado a lado (empilhados no celular).
+Widget _row(BuildContext context, List<Widget> children) => context.isMobile
+    ? Column(
+        children: [
+          for (final c in children) ...[
+            c,
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ],
+      )
+    : Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const SizedBox(width: AppSpacing.md),
+              Expanded(child: children[i]),
+            ],
+          ],
+        ),
+      );
+
+class _ClinicForm extends ConsumerStatefulWidget {
+  const _ClinicForm({super.key, required this.settings});
+
+  final BranchSettings settings;
+
+  @override
+  ConsumerState<_ClinicForm> createState() => _ClinicFormState();
+}
+
+class _ClinicFormState extends ConsumerState<_ClinicForm> {
+  final _formKey = GlobalKey<FormState>();
+  late final ClinicData _c = widget.settings.clinic;
+  late final _name = TextEditingController(text: _c.vcName);
+  late final _legal = TextEditingController(text: _c.vcLegalName);
+  late final _cnpj = TextEditingController(
+    text: _c.vcCnpj == null ? '' : Masks.format(MaskType.cnpj, _c.vcCnpj!),
+  );
+  late final _email = TextEditingController(text: _c.vcEmail);
+  late final _phone = TextEditingController(
+    text: _c.vcPhone == null ? '' : Masks.format(MaskType.phone, _c.vcPhone!),
+  );
+  late final _phone2 = TextEditingController(
+    text: _c.vcPhoneExtra == null
+        ? ''
+        : Masks.format(MaskType.phone, _c.vcPhoneExtra!),
+  );
+  late final _zip = TextEditingController(
+    text: _c.vcZipCode == null ? '' : Masks.format(MaskType.cep, _c.vcZipCode!),
+  );
+  late final _address = TextEditingController(text: _c.vcAddress);
+  late final _number = TextEditingController(text: _c.vcAddressNumber);
+  late final _extra = TextEditingController(text: _c.vcAddressExtra);
+  late final _district = TextEditingController(text: _c.vcDistrict);
+  late final _city = TextEditingController(text: _c.vcCity);
+  late final _state = TextEditingController(text: _c.vcState);
+  late final _techName = TextEditingController(text: _c.vcTechnicalName);
+  late final _techCro = TextEditingController(text: _c.vcTechnicalCro);
+  late final _techState = TextEditingController(text: _c.vcTechnicalCroState);
+  late final _forum = TextEditingController(text: _c.vcForumCity);
+  late bool _sameForum = _c.vcForumCity == null;
+  bool _saving = false;
+
+  List<TextEditingController> get _all => [
+    _name,
+    _legal,
+    _cnpj,
+    _email,
+    _phone,
+    _phone2,
+    _zip,
+    _address,
+    _number,
+    _extra,
+    _district,
+    _city,
+    _state,
+    _techName,
+    _techCro,
+    _techState,
+    _forum,
+  ];
+
+  @override
+  void dispose() {
+    for (final c in _all) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  String? _v(TextEditingController c) =>
+      c.text.trim().isEmpty ? null : c.text.trim();
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    setState(() => _saving = true);
+    try {
+      await ref.read(settingsProvider.notifier).saveClinic({
+        'vc_name': _name.text.trim(),
+        'vc_legal_name': _v(_legal),
+        'vc_cnpj': _v(_cnpj),
+        'vc_email': _v(_email),
+        'vc_phone': _v(_phone) == null ? null : Masks.unmask(_phone.text),
+        'vc_phone_extra': _v(_phone2),
+        'vc_zip_code': _v(_zip),
+        'vc_address': _v(_address),
+        'vc_address_number': _v(_number),
+        'vc_address_extra': _v(_extra),
+        'vc_district': _v(_district),
+        'vc_city': _v(_city),
+        'vc_state': _v(_state),
+        'vc_technical_name': _v(_techName),
+        'vc_technical_cro': _v(_techCro),
+        'vc_technical_cro_state': _v(_techState),
+        'vc_forum_city': _sameForum ? null : _v(_forum),
+      });
+      if (mounted) AppSnack.success(context, Strings.savedSuccess);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.settings.canEditClinic && !_saving;
+    AppTextField field(
+      String label,
+      TextEditingController c, {
+      MaskType? mask,
+      int? maxLength,
+      TextInputType? keyboard,
+      String? Function(String?)? validator,
+    }) => AppTextField(
+      label: label,
+      controller: c,
+      mask: mask,
+      maxLength: maxLength,
+      keyboardType: keyboard,
+      enabled: enabled,
+      validator: validator,
+    );
+    return Form(
+      key: _formKey,
+      child: _SectionCard(
+        title: Strings.settingsClinic,
+        hint: widget.settings.canEditClinic
+            ? Strings.settingsClinicHint
+            : Strings.settingsClinicReadOnly,
+        onSave: widget.settings.canEditClinic ? _save : null,
+        saving: _saving,
+        children: [
+          _subtitle(context, Strings.settingsClinicData),
+          _row(context, [
+            field(
+              '${Strings.name} *',
+              _name,
+              maxLength: 60,
+              validator: (v) =>
+                  (v ?? '').trim().isEmpty ? Strings.required : null,
+            ),
+            field(Strings.settingsLegalName, _legal, maxLength: 80),
+          ]),
+          _row(context, [
+            field(
+              Strings.settingsCnpj,
+              _cnpj,
+              mask: MaskType.cnpj,
+              keyboard: TextInputType.number,
+            ),
+            field(
+              Strings.email,
+              _email,
+              maxLength: 200,
+              keyboard: TextInputType.emailAddress,
+            ),
+          ]),
+          _row(context, [
+            field(
+              Strings.phone,
+              _phone,
+              mask: MaskType.phone,
+              keyboard: TextInputType.phone,
+            ),
+            field(
+              Strings.settingsPhoneExtra,
+              _phone2,
+              mask: MaskType.phone,
+              keyboard: TextInputType.phone,
+            ),
+          ]),
+          _subtitle(context, Strings.settingsAddress),
+          _row(context, [
+            field(
+              Strings.settingsZip,
+              _zip,
+              mask: MaskType.cep,
+              keyboard: TextInputType.number,
+            ),
+            field(Strings.settingsStreet, _address, maxLength: 60),
+          ]),
+          _row(context, [
+            field(Strings.settingsNumber, _number, maxLength: 10),
+            field(Strings.settingsComplement, _extra, maxLength: 60),
+            field(Strings.settingsDistrict, _district, maxLength: 30),
+          ]),
+          _row(context, [
+            field(Strings.settingsCity, _city, maxLength: 30),
+            field(Strings.settingsState, _state, maxLength: 2),
+          ]),
+          _subtitle(context, Strings.settingsTechnical),
+          _row(context, [
+            field(Strings.settingsTechnicalName, _techName, maxLength: 120),
+            field(Strings.settingsTechnicalCro, _techCro, maxLength: 20),
+            field(Strings.settingsTechnicalState, _techState, maxLength: 2),
+          ]),
+          _subtitle(context, Strings.settingsForum),
+          const Text(
+            Strings.settingsForumHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: const Text(Strings.settingsForumSame),
+            value: _sameForum,
+            onChanged: enabled
+                ? (v) => setState(() => _sameForum = v ?? true)
+                : null,
+          ),
+          if (!_sameForum)
+            field(Strings.settingsForumCity, _forum, maxLength: 60),
+        ],
+      ),
+    );
+  }
+}
+
+class _AgendaForm extends ConsumerStatefulWidget {
+  const _AgendaForm({super.key, required this.settings});
+
+  final BranchSettings settings;
+
+  @override
+  ConsumerState<_AgendaForm> createState() => _AgendaFormState();
+}
+
+class _AgendaFormState extends ConsumerState<_AgendaForm> {
+  late int _slot = widget.settings.qtSlotMinutes;
+  late int _parallel = widget.settings.qtMaxParallel;
+  late bool _outside = widget.settings.idAllowOutsideHours;
+  late List<ScheduleRange> _hours = [...widget.settings.hours];
+  bool _saving = false;
+
+  Future<void> _save() async {
+    final overlap = WeekScheduleEditor.overlapDay(_hours);
+    if (overlap != null) {
+      AppSnack.error(context, Strings.scheduleOverlap(Weekday.label(overlap)));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref.read(settingsProvider.notifier).save({
+        'qt_slot_minutes': _slot,
+        'qt_max_parallel': _parallel,
+        'id_allow_outside_hours': _outside,
+        'hours': [for (final h in _hours) h.toJson()],
+      });
+      if (mounted) AppSnack.success(context, Strings.savedSuccess);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final can = widget.settings.canUpdate && !_saving;
+    return _SectionCard(
+      title: Strings.settingsAgenda,
+      hint: Strings.settingsAgendaHint,
+      onSave: widget.settings.canUpdate ? _save : null,
+      saving: _saving,
+      children: [
+        _subtitle(context, Strings.settingsSlot),
+        Wrap(
+          spacing: AppSpacing.sm,
+          children: [
+            for (final m in BranchSettings.slotOptions)
+              ChoiceChip(
+                label: Text(Strings.minutesShort(m)),
+                selected: _slot == m,
+                onSelected: can ? (_) => setState(() => _slot = m) : null,
+              ),
+          ],
+        ),
+        _subtitle(context, Strings.settingsParallel),
+        Text(
+          Strings.settingsParallelHint,
+          style: const TextStyle(color: AppColors.muted, fontSize: 12),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          children: [
+            IconButton(
+              tooltip: '−',
+              icon: const Icon(Icons.remove_circle_outline),
+              onPressed: can && _parallel > 1
+                  ? () => setState(() => _parallel--)
+                  : null,
+            ),
+            Text(
+              '$_parallel',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+            ),
+            IconButton(
+              tooltip: '+',
+              icon: const Icon(Icons.add_circle_outline),
+              onPressed: can && _parallel < 20
+                  ? () => setState(() => _parallel++)
+                  : null,
+            ),
+          ],
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.settingsOutside),
+          subtitle: const Text(Strings.settingsOutsideHint),
+          value: _outside,
+          onChanged: can ? (v) => setState(() => _outside = v) : null,
+        ),
+        _subtitle(context, Strings.settingsBusinessHours),
+        const Text(
+          Strings.settingsBusinessHoursHint,
+          style: TextStyle(color: AppColors.muted, fontSize: 12),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        WeekScheduleEditor(
+          ranges: _hours,
+          enabled: can,
+          compact: context.isMobile,
+          onChanged: (r) => setState(() => _hours = r),
+        ),
+      ],
+    );
+  }
+}
+
+class _PatientsForm extends ConsumerStatefulWidget {
+  const _PatientsForm({super.key, required this.settings});
+
+  final BranchSettings settings;
+
+  @override
+  ConsumerState<_PatientsForm> createState() => _PatientsFormState();
+}
+
+class _PatientsFormState extends ConsumerState<_PatientsForm> {
+  late bool _auto = widget.settings.idAutoRecordNumber;
+  late final _next = TextEditingController(
+    text: '${widget.settings.nrNextRecord}',
+  );
+  late bool _cpf = widget.settings.idRequireCpf;
+  late bool _mobile = widget.settings.idRequireMobile;
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _next.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final next = int.tryParse(_next.text.trim());
+    if (next == null || next < 1) {
+      AppSnack.error(context, Strings.settingsNextRecordInvalid);
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref.read(settingsProvider.notifier).save({
+        'id_auto_record_number': _auto,
+        'nr_next_record': next,
+        'id_require_cpf': _cpf,
+        'id_require_mobile': _mobile,
+      });
+      if (mounted) AppSnack.success(context, Strings.savedSuccess);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final can = widget.settings.canUpdate && !_saving;
+    return _SectionCard(
+      title: Strings.settingsPatients,
+      hint: Strings.settingsPatientsHint,
+      onSave: widget.settings.canUpdate ? _save : null,
+      saving: _saving,
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.settingsAutoRecord),
+          subtitle: const Text(Strings.settingsAutoRecordHint),
+          value: _auto,
+          onChanged: can ? (v) => setState(() => _auto = v) : null,
+        ),
+        if (_auto)
+          SizedBox(
+            width: 220,
+            child: AppTextField(
+              label: Strings.settingsNextRecord,
+              controller: _next,
+              enabled: can,
+              keyboardType: TextInputType.number,
+            ),
+          ),
+        _subtitle(context, Strings.settingsRequired),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          title: const Text(Strings.cpf),
+          value: _cpf,
+          onChanged: can ? (v) => setState(() => _cpf = v ?? false) : null,
+        ),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          title: const Text(Strings.mobile),
+          value: _mobile,
+          onChanged: can ? (v) => setState(() => _mobile = v ?? false) : null,
+        ),
+      ],
+    );
+  }
+}

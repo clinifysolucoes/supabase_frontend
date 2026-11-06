@@ -1199,6 +1199,60 @@ abstract final class Strings {
   static const userActivated = 'Usuário ativado.';
   static const showOnlyActive = 'Mostrar apenas usuários ativos';
 
+  // Configuracoes
+  static const settingsTitle = 'Configurações';
+  static const settingsSubtitle =
+      'Dados da clínica e regras da agenda e do cadastro de pacientes desta filial.';
+  static const settingsClinic = 'Clínica';
+  static const settingsAgenda = 'Agenda';
+  static const settingsPatients = 'Pacientes';
+  static const settingsClinicHint =
+      'Dados que aparecem nos documentos e contratos da clínica.';
+  static const settingsClinicReadOnly =
+      'Só o administrador da empresa altera os dados da clínica.';
+  static const settingsClinicData = 'Dados cadastrais';
+  static const settingsLegalName = 'Razão social';
+  static const settingsCnpj = 'CNPJ';
+  static const settingsPhoneExtra = 'Telefone adicional';
+  static const settingsAddress = 'Endereço';
+  static const settingsZip = 'CEP';
+  static const settingsStreet = 'Endereço';
+  static const settingsNumber = 'Número';
+  static const settingsComplement = 'Complemento';
+  static const settingsDistrict = 'Bairro';
+  static const settingsCity = 'Cidade';
+  static const settingsState = 'UF';
+  static const settingsTechnical = 'Responsável técnico';
+  static const settingsTechnicalName = 'Nome';
+  static const settingsTechnicalCro = 'CRO';
+  static const settingsTechnicalState = 'UF do CRO';
+  static const settingsForum = 'Foro';
+  static const settingsForumHint =
+      'Cidade onde eventuais disputas dos contratos são resolvidas.';
+  static const settingsForumSame = 'Mesma cidade da clínica';
+  static const settingsForumCity = 'Cidade do foro';
+  static const settingsAgendaHint =
+      'Como a agenda mostra os horários e o que ela deixa marcar.';
+  static const settingsSlot = 'Intervalo de visualização';
+  static String minutesShort(int m) => '$m min';
+  static const settingsParallel = 'Consultas no mesmo horário';
+  static const settingsParallelHint =
+      'Quantas consultas do mesmo profissional podem ocupar o mesmo horário (encaixe não conta).';
+  static const settingsOutside =
+      'Permitir agendar fora do horário dos profissionais';
+  static const settingsOutsideHint =
+      'Desligado, a consulta precisa caber no horário de atendimento do profissional (encaixe passa).';
+  static const settingsBusinessHours = 'Horário de funcionamento da clínica';
+  static const settingsBusinessHoursHint =
+      'Dias e horários em que a clínica abre. Dia sem faixa = fechado.';
+  static const settingsPatientsHint = 'Regras do cadastro de pacientes.';
+  static const settingsAutoRecord = 'Número de prontuário automático';
+  static const settingsAutoRecordHint =
+      'Cada paciente novo sem número recebe o próximo da sequência.';
+  static const settingsNextRecord = 'Próximo número';
+  static const settingsNextRecordInvalid = 'Informe um número a partir de 1.';
+  static const settingsRequired = 'Obrigatórios no cadastro';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -1620,6 +1674,22 @@ abstract final class Strings {
     'USER_PASSWORD_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
     'USER_PASSWORD_BODY_INVALID': 'Dados inválidos.',
     'USER_PASSWORD_METHOD': 'Requisição inválida.',
+    // Backend: configuracoes
+    'SETTINGS_BRANCH_REQUIRED': 'Filial não informada.',
+    'SETTINGS_FORBIDDEN':
+        'Você não tem permissão para alterar as configurações.',
+    'SETTINGS_VALUE_INVALID': 'Valor inválido nas configurações.',
+    'SETTINGS_SLOT_INVALID': 'Escolha 5, 15, 20 ou 30 minutos.',
+    'SETTINGS_PARALLEL_INVALID': 'Informe de 1 a 20 consultas.',
+    'SETTINGS_RECORD_INVALID': 'Informe um número a partir de 1.',
+    'SETTINGS_HOURS_INVALID':
+        'Horário de funcionamento inválido (faixas que se sobrepõem?).',
+    'BRANCH_UPDATE_PHONE_INVALID': 'Telefone adicional inválido.',
+    'BRANCH_UPDATE_STATE_INVALID': 'UF do CRO inválida.',
+    'APPOINTMENT_OUTSIDE_HOURS':
+        'Fora do horário de atendimento do profissional. Use encaixe para marcar assim mesmo.',
+    'PATIENT_CPF_REQUIRED': 'Informe o CPF do paciente.',
+    'PATIENT_MOBILE_REQUIRED': 'Informe o celular do paciente.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

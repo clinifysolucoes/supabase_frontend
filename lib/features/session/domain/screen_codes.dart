@@ -9,4 +9,5 @@ abstract final class ScreenCodes {
   static const patients = 'PATIENTS';
   static const agenda = 'AGENDA';
   static const finance = 'FINANCE';
+  static const settings = 'SETTINGS';
 }

@@ -14,6 +14,7 @@ import '../../../shared/widgets/searchable_dropdown.dart';
 import '../application/agenda_controllers.dart';
 import '../data/agenda_repository.dart';
 import '../domain/agenda_models.dart';
+import 'week_schedule_editor.dart';
 
 /// Novo profissional (professional = null) ou edicao: nome, conselho, cor na
 /// agenda, intervalo dos horarios, usuario do sistema vinculado e horario de
@@ -333,7 +334,7 @@ class _ProfessionalFormDialogState
           children: [
             for (var i = 0; i < Weekday.all.length; i++) ...[
               if (i > 0) const Divider(height: 1),
-              _DayRow(
+              ScheduleDayRow(
                 day: Weekday.all[i],
                 ranges: _rangesOf(Weekday.all[i]),
                 enabled: _canEdit,
@@ -463,83 +464,6 @@ class _ColorPicker extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-/// Um dia da semana: faixas (clique para alterar, x para remover) e "+ faixa".
-class _DayRow extends StatelessWidget {
-  const _DayRow({
-    required this.day,
-    required this.ranges,
-    required this.enabled,
-    required this.compact,
-    required this.onAdd,
-    required this.onEdit,
-    required this.onRemove,
-  });
-
-  final int day;
-  final List<ScheduleRange> ranges;
-  final bool enabled;
-  final bool compact;
-  final VoidCallback onAdd;
-  final ValueChanged<ScheduleRange> onEdit;
-  final ValueChanged<ScheduleRange> onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    final chips = Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        if (ranges.isEmpty)
-          const Text(Strings.dayOff, style: TextStyle(color: AppColors.muted)),
-        for (final r in ranges)
-          InputChip(
-            label: Text(DayMinutes.range(r.qtMinuteStart, r.qtMinuteEnd)),
-            onPressed: enabled ? () => onEdit(r) : null,
-            onDeleted: enabled ? () => onRemove(r) : null,
-            deleteButtonTooltipMessage: Strings.remove,
-          ),
-        if (enabled)
-          ActionChip(
-            avatar: const Icon(Icons.add_rounded, size: 18),
-            label: const Text(Strings.addRange),
-            onPressed: onAdd,
-          ),
-      ],
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: compact
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  Weekday.label(day),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                chips,
-              ],
-            )
-          : Row(
-              children: [
-                SizedBox(
-                  width: 96,
-                  child: Text(
-                    Weekday.label(day),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                Expanded(child: chips),
-              ],
-            ),
     );
   }
 }
