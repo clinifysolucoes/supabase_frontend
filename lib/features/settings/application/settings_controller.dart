@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_gateway.dart';
 import '../../profiles/application/profiles_controller.dart';
+import '../data/data_export.dart';
 import '../domain/settings_models.dart';
+import '../domain/trash_models.dart';
 
 /// RPCs da tela Configuracoes.
 class SettingsRepository {
@@ -32,6 +34,49 @@ class SettingsRepository {
       ...fields,
     }),
   );
+
+  /// Planilha (ad.data_export): colunas e linhas.
+  Future<ExportTable> export({
+    required int nrCompany,
+    required int nrBranch,
+    required ExportKind kind,
+    Map<String, dynamic> params = const {},
+  }) async => ExportTable.fromJson(
+    await _gateway.rpc('data_export', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'vc_kind': kind.code,
+      ...params,
+    }),
+  );
+
+  /// Lixeira (ad.trash_list).
+  Future<TrashData> trash({
+    required int nrCompany,
+    required int nrBranch,
+    String? kind,
+    String? search,
+  }) async => TrashData.fromJson(
+    await _gateway.rpc('trash_list', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      if (kind != null) 'vc_kind': kind,
+      if (search != null && search.isNotEmpty) 'vc_search': search,
+    }),
+  );
+
+  /// Restaura um item da lixeira (ad.trash_restore).
+  Future<void> restore({
+    required int nrCompany,
+    required int nrBranch,
+    required TrashItem item,
+  }) => _gateway.rpc('trash_restore', {
+    'nr_company': nrCompany,
+    'nr_branch': nrBranch,
+    'vc_kind': item.vcKind,
+    'nr_key': item.nrKey,
+    if (item.nrParent != null) 'nr_parent': item.nrParent,
+  });
 
   /// Dados da clinica (administrador da empresa).
   Future<void> saveClinic({

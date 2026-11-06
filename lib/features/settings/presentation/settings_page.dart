@@ -6,6 +6,8 @@ import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/masks.dart';
+import '../../../shared/files/file_download.dart';
+import '../../../shared/formatters/dates.dart';
 import '../../../shared/formatters/numbers.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_empty_state.dart';
@@ -19,10 +21,13 @@ import '../../agenda/presentation/week_schedule_editor.dart';
 import '../../finance/domain/finance_models.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
+import '../../profiles/application/profiles_controller.dart';
 import '../application/settings_controller.dart';
+import '../data/data_export.dart';
 import '../domain/settings_models.dart';
+import '../domain/trash_models.dart';
 
-enum _Section { clinic, agenda, patients, finance }
+enum _Section { clinic, agenda, patients, finance, export, trash }
 
 /// Configuracoes da filial: dados da clinica, agenda (intervalo, consultas no
 /// mesmo horario, fora do expediente, horario de funcionamento) e cadastro de
@@ -43,6 +48,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.agenda => Strings.settingsAgenda,
     _Section.patients => Strings.settingsPatients,
     _Section.finance => Strings.settingsFinance,
+    _Section.export => Strings.settingsExport,
+    _Section.trash => Strings.settingsTrash,
   };
 
   IconData _icon(_Section s) => switch (s) {
@@ -50,6 +57,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.agenda => Icons.calendar_month_outlined,
     _Section.patients => Icons.badge_outlined,
     _Section.finance => Icons.account_balance_wallet_outlined,
+    _Section.export => Icons.file_download_outlined,
+    _Section.trash => Icons.restore_from_trash_outlined,
   };
 
   @override
@@ -127,6 +136,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         key: ValueKey(s.hashCode),
                         settings: s,
                       ),
+                      _Section.export => _ExportForm(settings: s),
+                      _Section.trash => const _TrashList(),
                     },
                   );
                   return mobile
@@ -592,12 +603,27 @@ class _PatientsForm extends ConsumerStatefulWidget {
 }
 
 class _PatientsFormState extends ConsumerState<_PatientsForm> {
+  static String _requiredLabel(String o) => switch (o) {
+    PatientRequired.rg => Strings.rg,
+    PatientRequired.gender => Strings.gender,
+    PatientRequired.maritalStatus => Strings.maritalStatus,
+    PatientRequired.education => Strings.education,
+    PatientRequired.source => Strings.howFound,
+    PatientRequired.referral => Strings.referredBy,
+    PatientRequired.mobile => Strings.mobile,
+    PatientRequired.phone => Strings.landline,
+    PatientRequired.email => Strings.email,
+    PatientRequired.address => Strings.settingsRequiredAddress,
+    PatientRequired.profession => Strings.profession,
+    PatientRequired.plan => Strings.settingsRequiredPlan,
+    _ => o,
+  };
+
   late bool _auto = widget.settings.idAutoRecordNumber;
   late final _next = TextEditingController(
     text: '${widget.settings.nrNextRecord}',
   );
-  late bool _cpf = widget.settings.idRequireCpf;
-  late bool _mobile = widget.settings.idRequireMobile;
+  late final Set<String> _required = {...widget.settings.vcPatientRequired};
   bool _saving = false;
 
   @override
@@ -617,8 +643,10 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
       await ref.read(settingsProvider.notifier).save({
         'id_auto_record_number': _auto,
         'nr_next_record': next,
-        'id_require_cpf': _cpf,
-        'id_require_mobile': _mobile,
+        'vc_patient_required': [
+          for (final o in PatientRequired.all)
+            if (_required.contains(o)) o,
+        ],
       });
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
     } catch (e) {
@@ -655,19 +683,44 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
             ),
           ),
         _subtitle(context, Strings.settingsRequired),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          title: const Text(Strings.cpf),
-          value: _cpf,
-          onChanged: can ? (v) => setState(() => _cpf = v ?? false) : null,
+        const Text(
+          Strings.settingsRequiredFixedHint,
+          style: TextStyle(color: AppColors.muted, fontSize: 12),
         ),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          title: const Text(Strings.mobile),
-          value: _mobile,
-          onChanged: can ? (v) => setState(() => _mobile = v ?? false) : null,
+        for (final label in const [
+          Strings.fullName,
+          Strings.birthDate,
+          Strings.cpf,
+        ])
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(label),
+            subtitle: const Text(Strings.settingsRequiredAlways),
+            value: true,
+            onChanged: null,
+          ),
+        _subtitle(context, Strings.settingsRequiredOptional),
+        const Text(
+          Strings.settingsRequiredOptionalHint,
+          style: TextStyle(color: AppColors.muted, fontSize: 12),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final o in PatientRequired.all)
+              FilterChip(
+                label: Text(_requiredLabel(o)),
+                selected: _required.contains(o),
+                onSelected: can
+                    ? (v) => setState(
+                        () => v ? _required.add(o) : _required.remove(o),
+                      )
+                    : null,
+              ),
+          ],
         ),
       ],
     );
@@ -853,6 +906,430 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
             ),
           ]),
         ],
+      ),
+    );
+  }
+}
+
+class _ExportForm extends ConsumerStatefulWidget {
+  const _ExportForm({required this.settings});
+
+  final BranchSettings settings;
+
+  @override
+  ConsumerState<_ExportForm> createState() => _ExportFormState();
+}
+
+class _ExportFormState extends ConsumerState<_ExportForm> {
+  final _formKey = GlobalKey<FormState>();
+  late final _from = TextEditingController(
+    text: Dates.toField(DateTime(DateTime.now().year, DateTime.now().month)),
+  );
+  late final _to = TextEditingController(
+    text: Dates.toField(
+      DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
+    ),
+  );
+  int? _finKind;
+  bool _inactive = false;
+  ExportKind? _busy;
+
+  @override
+  void dispose() {
+    _from.dispose();
+    _to.dispose();
+    super.dispose();
+  }
+
+  String _code(ExportKind k) => switch (k) {
+    ExportKind.patients => ScreenCodes.patients,
+    ExportKind.finance => ScreenCodes.finance,
+    ExportKind.procedures => ScreenCodes.pricing,
+    ExportKind.agenda => ScreenCodes.agenda,
+  };
+
+  String _label(ExportKind k) => switch (k) {
+    ExportKind.patients => Strings.exportPatients,
+    ExportKind.finance => Strings.exportFinance,
+    ExportKind.procedures => Strings.exportProcedures,
+    ExportKind.agenda => Strings.exportAgenda,
+  };
+
+  String _hint(ExportKind k) => switch (k) {
+    ExportKind.patients => Strings.exportPatientsHint,
+    ExportKind.finance => Strings.exportFinanceHint,
+    ExportKind.procedures => Strings.exportProceduresHint,
+    ExportKind.agenda => Strings.exportAgendaHint,
+  };
+
+  IconData _icon(ExportKind k) => switch (k) {
+    ExportKind.patients => Icons.people_outline_rounded,
+    ExportKind.finance => Icons.account_balance_wallet_outlined,
+    ExportKind.procedures => Icons.medical_services_outlined,
+    ExportKind.agenda => Icons.calendar_month_outlined,
+  };
+
+  bool _periodic(ExportKind k) =>
+      k == ExportKind.finance || k == ExportKind.agenda;
+
+  Future<void> _export(ExportKind kind) async {
+    final c = ref.read(currentCompanyProvider);
+    final b = ref.read(currentBranchNumberProvider);
+    if (c == null || b == null) return;
+    final params = <String, dynamic>{};
+    if (_periodic(kind)) {
+      if (!(_formKey.currentState?.validate() ?? false)) return;
+      final from = Dates.parseField(_from.text)!;
+      final to = Dates.parseField(_to.text)!;
+      if (to.isBefore(from) || to.difference(from).inDays > 400) {
+        AppSnack.error(context, Strings.exportPeriodInvalid);
+        return;
+      }
+      params['dt_from'] = Dates.toIso(from);
+      params['dt_to'] = Dates.toIso(to);
+      if (kind == ExportKind.finance && _finKind != null) {
+        params['it_kind'] = _finKind;
+      }
+    } else {
+      params['id_include_inactive'] = _inactive;
+    }
+    setState(() => _busy = kind);
+    try {
+      final table = await ref
+          .read(settingsRepositoryProvider)
+          .export(nrCompany: c, nrBranch: b, kind: kind, params: params);
+      if (table.rows.isEmpty) {
+        if (mounted) AppSnack.info(context, Strings.exportEmpty);
+        return;
+      }
+      final now = DateTime.now();
+      await FileDownload.saveXlsx(
+        name: DataExportXlsx.fileName(kind, now),
+        bytes: DataExportXlsx.build(table, sheetName: _label(kind)),
+      );
+      if (mounted) {
+        AppSnack.success(context, Strings.exportRows(table.rows.length));
+      }
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _busy = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allowed = widget.settings.canUpdate;
+    String? date(String? v) =>
+        Dates.parseField(v) == null ? Strings.invalidDate : null;
+    return Form(
+      key: _formKey,
+      child: _SectionCard(
+        title: Strings.settingsExport,
+        hint: Strings.settingsExportHint,
+        children: [
+          if (!allowed)
+            const Text(
+              Strings.exportForbidden,
+              style: TextStyle(color: AppColors.muted),
+            )
+          else ...[
+            _subtitle(context, Strings.exportOptions),
+            _row(context, [
+              AppTextField(
+                label: Strings.exportFrom,
+                controller: _from,
+                mask: MaskType.date,
+                keyboardType: TextInputType.number,
+                validator: date,
+              ),
+              AppTextField(
+                label: Strings.exportTo,
+                controller: _to,
+                mask: MaskType.date,
+                keyboardType: TextInputType.number,
+                validator: date,
+              ),
+              DropdownButtonFormField<int?>(
+                isExpanded: true,
+                initialValue: _finKind,
+                decoration: const InputDecoration(
+                  labelText: Strings.exportFinanceKind,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(Strings.exportBoth),
+                  ),
+                  DropdownMenuItem(
+                    value: 1,
+                    child: Text(Strings.exportReceivable),
+                  ),
+                  DropdownMenuItem(
+                    value: 2,
+                    child: Text(Strings.exportPayable),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _finKind = v),
+              ),
+            ]),
+            const Text(
+              Strings.exportPeriodHint,
+              style: TextStyle(color: AppColors.muted, fontSize: 12),
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text(Strings.exportInactive),
+              value: _inactive,
+              onChanged: (v) => setState(() => _inactive = v ?? false),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            for (final k in ExportKind.values)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  color: AppColors.mint,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Wrap(
+                      spacing: AppSpacing.md,
+                      runSpacing: AppSpacing.sm,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceBetween,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 360),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(_icon(k), color: AppColors.primary),
+                              const SizedBox(width: AppSpacing.md),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _label(k),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      ref.watch(canReadProvider(_code(k)))
+                                          ? _hint(k)
+                                          : Strings.exportNoScreen,
+                                      style: const TextStyle(
+                                        color: AppColors.muted,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        AppButton(
+                          label: Strings.exportExcel,
+                          icon: Icons.file_download_outlined,
+                          expanded: false,
+                          loading: _busy == k,
+                          onPressed:
+                              _busy == null &&
+                                  ref.watch(canReadProvider(_code(k)))
+                              ? () => _export(k)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TrashList extends ConsumerStatefulWidget {
+  const _TrashList();
+
+  @override
+  ConsumerState<_TrashList> createState() => _TrashListState();
+}
+
+class _TrashListState extends ConsumerState<_TrashList> {
+  final _search = TextEditingController();
+  TrashData? _data;
+  Object? _error;
+  String? _kind;
+  int? _restoring;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final c = ref.read(currentCompanyProvider);
+    final b = ref.read(currentBranchNumberProvider);
+    if (c == null || b == null) return;
+    setState(() => _loading = true);
+    try {
+      final d = await ref
+          .read(settingsRepositoryProvider)
+          .trash(
+            nrCompany: c,
+            nrBranch: b,
+            kind: _kind,
+            search: _search.text.trim(),
+          );
+      if (mounted) {
+        setState(() {
+          _data = d;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _restore(int index, TrashItem item) async {
+    final c = ref.read(currentCompanyProvider);
+    final b = ref.read(currentBranchNumberProvider);
+    if (c == null || b == null) return;
+    setState(() => _restoring = index);
+    try {
+      await ref
+          .read(settingsRepositoryProvider)
+          .restore(nrCompany: c, nrBranch: b, item: item);
+      if (mounted) AppSnack.success(context, Strings.trashRestored);
+      await _load();
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _restoring = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final d = _data;
+    return _SectionCard(
+      title: Strings.settingsTrash,
+      hint: Strings.settingsTrashHint,
+      children: [
+        AppTextField(
+          label: Strings.search,
+          controller: _search,
+          prefixIcon: Icons.search_rounded,
+          textInputAction: TextInputAction.search,
+          onFieldSubmitted: (_) => _load(),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (d != null && d.kinds.length > 1)
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: [
+              ChoiceChip(
+                label: const Text(Strings.trashAll),
+                selected: _kind == null,
+                onSelected: (_) {
+                  setState(() => _kind = null);
+                  _load();
+                },
+              ),
+              for (final k in d.kinds)
+                ChoiceChip(
+                  avatar: Icon(TrashKind.icon(k), size: 18),
+                  label: Text(TrashKind.label(k)),
+                  selected: _kind == k,
+                  onSelected: (_) {
+                    setState(() => _kind = k);
+                    _load();
+                  },
+                ),
+            ],
+          ),
+        const SizedBox(height: AppSpacing.md),
+        if (_error != null)
+          AppEmptyState.error(message: describeError(_error!), onRetry: _load)
+        else if (d == null || (_loading && d.items.isEmpty))
+          const Center(child: CircularProgressIndicator())
+        else if (d.items.isEmpty)
+          const AppEmptyState(
+            icon: Icons.delete_outline_rounded,
+            title: Strings.trashEmpty,
+            subtitle: Strings.trashEmptyHint,
+          )
+        else
+          for (var i = 0; i < d.items.length; i++)
+            _TrashTile(
+              item: d.items[i],
+              restoring: _restoring == i,
+              onRestore: _restoring == null && d.items[i].idRestore
+                  ? () => _restore(i, d.items[i])
+                  : null,
+            ),
+      ],
+    );
+  }
+}
+
+class _TrashTile extends StatelessWidget {
+  const _TrashTile({
+    required this.item,
+    required this.restoring,
+    required this.onRestore,
+  });
+
+  final TrashItem item;
+  final bool restoring;
+  final VoidCallback? onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    final who = item.vcUser == null ? '' : ' · ${item.vcUser}';
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: AppColors.mint,
+          child: Icon(TrashKind.icon(item.vcKind), color: AppColors.primary),
+        ),
+        title: Text(item.vcTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          '${TrashKind.label(item.vcKind)} · ${item.vcDetail}\n'
+          '${Strings.trashDeletedAt(Dates.formatTime(item.dhDeleted))}$who',
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        isThreeLine: true,
+        trailing: restoring
+            ? const SizedBox.square(
+                dimension: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : TextButton.icon(
+                onPressed: onRestore,
+                icon: const Icon(Icons.restore_rounded),
+                label: const Text(Strings.trashRestore),
+              ),
       ),
     );
   }
