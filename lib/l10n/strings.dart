@@ -1646,6 +1646,52 @@ abstract final class Strings {
   static const moveDown = 'Descer';
   static const addQuestion = 'Adicionar pergunta';
 
+  // Documentos
+  static const emitDocument = 'Emitir documento';
+  static const noDocuments = 'Nenhum documento emitido';
+  static const noDocumentsHint =
+      'Atestados, receitas, contratos e declarações ficam guardados aqui.';
+  static String medicationCount(int n) =>
+      n == 1 ? '1 medicamento' : '$n medicamentos';
+  static const downloadPdf = 'Baixar PDF';
+  static const deleteDocument = 'Excluir documento';
+  static const deleteDocumentConfirm =
+      'O documento sai do prontuário (fica no histórico de atividades).';
+  static const documentDeleted = 'Documento excluído.';
+  static const medicationsRequired = 'Inclua ao menos um medicamento.';
+  static const documentBodyRequired = 'Preencha o texto do documento.';
+  static const documentSaved = 'Documento emitido.';
+  static const documentTitle = 'Título';
+  static String documentExtra(String e) => switch (e) {
+    'dias' => 'Dias de afastamento',
+    'cid' => 'CID',
+    'hora_inicio' => 'Hora de início',
+    'hora_fim' => 'Hora de término',
+    'valor' => 'Valor',
+    'texto' => 'Tratamento / descrição',
+    _ => e,
+  };
+  static const fillDocument = 'Preencher o texto';
+  static const prescriptionHeader = 'Cabeçalho da receita';
+  static const documentText = 'Texto do documento';
+  static const addMedication = 'Adicionar medicamento (busque pelo nome)';
+  static const controlledMedication = 'Controle especial';
+  static const dosage = 'Posologia';
+  static const quantity = 'Quantidade';
+  static const documentTemplates = 'Modelos de documento';
+  static const documentTemplatesHint =
+      'Atestado, receituário, contrato, declaração e termos. Os campos entre chaves são preenchidos com os dados do paciente na emissão.';
+  static const documentKind = 'Tipo';
+  static const documentFieldsHint = 'Clique num campo para inserir no texto:';
+  static const medications = 'Medicamentos';
+  static const medicationsHint =
+      'Catálogo usado no receituário. Confira a posologia de referência antes de usar.';
+  static const newMedication = 'Novo medicamento';
+  static const editMedication = 'Alterar medicamento';
+  static const medicationName = 'Nome (princípio ativo)';
+  static const presentation = 'Apresentação';
+  static const medicationUse = 'Via';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2198,6 +2244,31 @@ abstract final class Strings {
     'TOOTH_MARK_TOOTH_INVALID': 'Dente inválido.',
     'TOOTH_MARK_VALUE_INVALID': 'Condição, faces, situação ou data inválida.',
     'TOOTH_MARK_NOT_FOUND': 'Marcação não encontrada.',
+    'DOCUMENT_TEMPLATE_ACTION_INVALID': 'Ação inválida no modelo de documento.',
+    'DOCUMENT_TEMPLATE_FORBIDDEN':
+        'Você não tem permissão para alterar os modelos de documento.',
+    'DOCUMENT_TEMPLATE_NOT_FOUND': 'Modelo de documento não encontrado.',
+    'DOCUMENT_TEMPLATE_NAME_REQUIRED': 'Informe o nome do modelo.',
+    'DOCUMENT_TEMPLATE_BODY_REQUIRED': 'Preencha o texto do modelo.',
+    'DOCUMENT_TEMPLATE_VALUE_INVALID':
+        'Tipo, situação ou texto inválido no modelo.',
+    'MEDICATION_ACTION_INVALID': 'Ação inválida no medicamento.',
+    'MEDICATION_FORBIDDEN':
+        'Você não tem permissão para alterar os medicamentos.',
+    'MEDICATION_NOT_FOUND': 'Medicamento não encontrado.',
+    'MEDICATION_NAME_REQUIRED': 'Informe o nome do medicamento.',
+    'MEDICATION_VALUE_INVALID': 'Via de uso ou situação inválida.',
+    'PATIENT_DOCUMENT_ACTION_INVALID': 'Ação inválida no documento.',
+    'PATIENT_DOCUMENT_FORBIDDEN':
+        'Você não tem permissão para emitir documentos.',
+    'PATIENT_DOCUMENT_VALUE_INVALID':
+        'Tipo, data ou texto inválido no documento.',
+    'PATIENT_DOCUMENT_TITLE_REQUIRED': 'Informe o título do documento.',
+    'PATIENT_DOCUMENT_BODY_REQUIRED': 'Preencha o texto do documento.',
+    'PATIENT_DOCUMENT_ITEMS_REQUIRED': 'Inclua ao menos um medicamento.',
+    'PATIENT_DOCUMENT_ITEM_INVALID': 'Medicamento {Item} inválido.',
+    'PATIENT_DOCUMENT_PROFESSIONAL_INVALID': 'Profissional inválido.',
+    'PATIENT_DOCUMENT_NOT_FOUND': 'Documento não encontrado.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

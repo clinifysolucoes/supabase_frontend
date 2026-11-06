@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../clinical_record/presentation/anamnesis_models_section.dart';
+import '../../documents/presentation/document_settings_sections.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
@@ -147,7 +148,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         key: ValueKey(s.hashCode),
                         settings: s,
                       ),
-                      _Section.record => const AnamnesisModelsSection(),
+                      _Section.record => const Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AnamnesisModelsSection(),
+                          SizedBox(height: AppSpacing.md),
+                          DocumentTemplatesSection(),
+                          SizedBox(height: AppSpacing.md),
+                          MedicationsSection(),
+                        ],
+                      ),
                       _Section.finance => _FinanceForm(
                         key: ValueKey(s.hashCode),
                         settings: s,
