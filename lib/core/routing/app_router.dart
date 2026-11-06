@@ -63,10 +63,15 @@ abstract final class AppRoutes {
   }
 }
 
-/// Com a sessao pronta: rotas transitorias vao ao dashboard e rota sem
-/// permissao de leitura tambem (o menu ja a esconde; isto cobre URL digitada).
-String? _guardReady(SessionState session, String location) {
-  if (AppRoutes.transient.contains(location)) return AppRoutes.dashboard;
+/// Com a sessao pronta: rotas transitorias vao para [pending] (a rota pedida
+/// antes da sessao carregar, ex.: F5 em /configuracoes) ou ao dashboard; rota
+/// sem permissao de leitura vai ao dashboard (o menu ja a esconde; isto cobre
+/// URL digitada).
+String? _guardReady(SessionState session, String location, {String? pending}) {
+  if (AppRoutes.transient.contains(location)) {
+    final target = pending ?? AppRoutes.dashboard;
+    return _guardReady(session, Uri.parse(target).path) ?? target;
+  }
   final code = AppRoutes.screenFor(location);
   if (code != null && !(session.selected?.canRead(code) ?? false)) {
     return AppRoutes.dashboard;
@@ -90,6 +95,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   final listenable = _SessionListenable(ref);
   ref.onDispose(listenable.dispose);
 
+  // Rota interna pedida enquanto a sessao nao estava pronta (recarregar a
+  // pagina ou abrir um link): volta para ela depois do splash/login.
+  String? pending;
+
   return GoRouter(
     initialLocation: AppRoutes.dashboard,
     refreshListenable: listenable,
@@ -97,14 +106,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       final session = ref.read(sessionControllerProvider);
       final location = state.matchedLocation;
 
-      String? stay(String target) => location == target ? null : target;
+      String? stay(String target) {
+        if (location == target) return null;
+        if (!AppRoutes.transient.contains(location)) {
+          pending = state.uri.toString();
+        }
+        return target;
+      }
 
+      if (session.status == SessionStatus.ready) {
+        final to = _guardReady(session, location, pending: pending);
+        pending = null;
+        return to;
+      }
       return switch (session.status) {
         SessionStatus.loading => stay(AppRoutes.splash),
         SessionStatus.signedOut => stay(AppRoutes.login),
         SessionStatus.noCompany => stay(AppRoutes.noCompany),
-        SessionStatus.needsSelection => stay(AppRoutes.selectBranch),
-        SessionStatus.ready => _guardReady(session, location),
+        _ => stay(AppRoutes.selectBranch),
       };
     },
     routes: [
