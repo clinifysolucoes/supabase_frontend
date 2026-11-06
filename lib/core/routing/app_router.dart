@@ -15,6 +15,7 @@ import '../../features/session/application/session_controller.dart';
 import '../../features/session/domain/screen_codes.dart';
 import '../../features/session/presentation/branch_selection_page.dart';
 import '../../features/session/presentation/no_company_page.dart';
+import '../../features/auth/presentation/mfa_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
 import '../../features/users/presentation/users_page.dart';
 import '../../shared/widgets/splash_page.dart';
@@ -24,6 +25,7 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const selectBranch = '/selecionar-filial';
   static const noCompany = '/sem-empresa';
+  static const mfa = '/verificacao';
   static const dashboard = '/dashboard';
   static const users = '/usuarios';
   static const profiles = '/perfis';
@@ -38,7 +40,7 @@ abstract final class AppRoutes {
   static String patient(int nrPatient) => '$patients/$nrPatient';
 
   /// Rotas que nao fazem sentido com a sessao pronta.
-  static const transient = {splash, login, selectBranch, noCompany};
+  static const transient = {splash, login, selectBranch, noCompany, mfa};
 
   /// Tela (ad.screen.vc_code) que cada rota interna exige poder LER.
   static const screenOf = {
@@ -123,12 +125,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         SessionStatus.loading => stay(AppRoutes.splash),
         SessionStatus.signedOut => stay(AppRoutes.login),
         SessionStatus.noCompany => stay(AppRoutes.noCompany),
+        SessionStatus.mfaRequired => stay(AppRoutes.mfa),
         _ => stay(AppRoutes.selectBranch),
       };
     },
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashPage()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginPage()),
+      GoRoute(path: AppRoutes.mfa, builder: (_, __) => const MfaPage()),
       GoRoute(
         path: AppRoutes.selectBranch,
         builder: (_, __) => const BranchSelectionPage(),

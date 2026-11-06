@@ -26,8 +26,9 @@ import '../application/settings_controller.dart';
 import '../data/data_export.dart';
 import '../domain/settings_models.dart';
 import '../domain/trash_models.dart';
+import 'security_section.dart';
 
-enum _Section { clinic, agenda, patients, finance, export, trash }
+enum _Section { clinic, agenda, patients, finance, security, export, trash }
 
 /// Configuracoes da filial: dados da clinica, agenda (intervalo, consultas no
 /// mesmo horario, fora do expediente, horario de funcionamento) e cadastro de
@@ -48,6 +49,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.agenda => Strings.settingsAgenda,
     _Section.patients => Strings.settingsPatients,
     _Section.finance => Strings.settingsFinance,
+    _Section.security => Strings.settingsSecurity,
     _Section.export => Strings.settingsExport,
     _Section.trash => Strings.settingsTrash,
   };
@@ -57,6 +59,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.agenda => Icons.calendar_month_outlined,
     _Section.patients => Icons.badge_outlined,
     _Section.finance => Icons.account_balance_wallet_outlined,
+    _Section.security => Icons.shield_outlined,
     _Section.export => Icons.file_download_outlined,
     _Section.trash => Icons.restore_from_trash_outlined,
   };
@@ -134,6 +137,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                       _Section.finance => _FinanceForm(
                         key: ValueKey(s.hashCode),
+                        settings: s,
+                      ),
+                      _Section.security => SecuritySection(
+                        key: ValueKey(s.itMfaPolicy),
                         settings: s,
                       ),
                       _Section.export => _ExportForm(settings: s),

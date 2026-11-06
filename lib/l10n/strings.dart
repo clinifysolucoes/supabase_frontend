@@ -1360,6 +1360,41 @@ abstract final class Strings {
   static const settingsReceiptNext = 'Próximo número';
   static const cashDisabled =
       'O caixa do dia está desligado nas configurações.';
+  static const settingsSecurity = 'Segurança';
+  static const settingsSecurityHint =
+      'Verificação em duas etapas com um app autenticador (Google Authenticator, Microsoft Authenticator, Authy...).';
+  static const mfaPolicyTitle = 'Exigir verificação em duas etapas';
+  static const mfaPolicyHint =
+      'Quem precisa da verificação só entra na clínica depois de digitar o código do app autenticador.';
+  static const mfaPolicyNone = 'Não exigir';
+  static const mfaPolicyAdmins = 'Exigir dos administradores';
+  static const mfaPolicyAll = 'Exigir de todos os usuários';
+  static const mfaPolicyOnlyAdmin =
+      'Só o administrador da empresa altera esta regra.';
+  static const mfaPolicyNeedsOwn =
+      'Para exigir dos outros, ative primeiro a verificação na sua conta.';
+  static const mfaMine = 'Sua conta';
+  static const mfaMineOn = 'Verificação em duas etapas ativa nesta conta.';
+  static const mfaMineOff =
+      'Sua conta ainda não usa a verificação em duas etapas.';
+  static const mfaEnable = 'Ativar app autenticador';
+  static const mfaDisable = 'Remover app autenticador';
+  static const mfaDisableConfirm =
+      'Sem o app autenticador, o login volta a pedir só a senha (e a clínica pode exigir de novo).';
+  static const mfaRemoved = 'App autenticador removido.';
+  static const mfaEnabled = 'Verificação em duas etapas ativada.';
+  static const mfaTitle = 'Verificação em duas etapas';
+  static const mfaVerifyHint =
+      'Abra o app autenticador no celular e digite o código de 6 dígitos da Clinify.';
+  static const mfaEnrollHint =
+      'A clínica exige a verificação em duas etapas. Leia o QR code com um app autenticador (Google Authenticator, Microsoft Authenticator, Authy) e digite o código que aparecer.';
+  static const mfaEnrollHintVoluntary =
+      'Leia o QR code com um app autenticador e digite o código que aparecer.';
+  static const mfaSecretLabel = 'Não consegue ler? Digite esta chave no app:';
+  static const mfaCode = 'Código de 6 dígitos';
+  static const mfaCodeInvalidLocal = 'Digite os 6 números do app.';
+  static const mfaConfirm = 'Confirmar';
+  static const mfaUseOtherAccount = 'Sair e usar outra conta';
   static const settingsExport = 'Exportar';
   static const settingsExportHint =
       'Planilhas Excel com os dados da filial. Cada exportação fica no log de atividades.';
@@ -1870,6 +1905,17 @@ abstract final class Strings {
     'FIN_RECEIPT_DOCUMENT_INVALID': 'CPF ou CNPJ de quem pagou inválido.',
     'FIN_RECEIPT_REASON_REQUIRED': 'Informe o motivo do cancelamento.',
     'SETTINGS_RECEIPT_INVALID': 'Prefixo ou próximo número do recibo inválido.',
+    'SESSION_MFA_REQUIRED':
+        'A clínica exige a verificação em duas etapas (app autenticador).',
+    'COMPANY_UPDATE_MFA_INVALID':
+        'Regra de verificação em duas etapas inválida.',
+    'COMPANY_UPDATE_MFA_FIRST':
+        'Ative a verificação em duas etapas na sua conta antes de exigir dos outros.',
+    'MFA_CODE_INVALID':
+        'Código inválido ou expirado. Confira o app e tente de novo.',
+    'MFA_AAL_REQUIRED':
+        'Confirme o código do app autenticador antes de fazer isso.',
+    'MFA_ERROR': 'Não foi possível configurar o app autenticador.',
     'EXPORT_BRANCH_REQUIRED': 'Filial não informada.',
     'EXPORT_FORBIDDEN': 'Você não tem permissão para exportar estes dados.',
     'EXPORT_KIND_INVALID': 'Tipo de planilha inválido.',

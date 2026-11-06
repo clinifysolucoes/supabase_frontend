@@ -18,6 +18,10 @@ enum SessionStatus {
   /// Logado, mas sem nenhuma filial acessivel (primeiro acesso ou bloqueado).
   noCompany,
 
+  /// A conta tem app autenticador sem o codigo confirmado nesta sessao, ou a
+  /// empresa exige 2FA: tela de verificacao (cadastrar ou digitar o codigo).
+  mfaRequired,
+
   /// Mais de uma filial acessivel: pop-up de selecao.
   needsSelection,
 
@@ -112,6 +116,15 @@ class SessionController extends Notifier<SessionState> {
       throw AppError.unexpected(e);
     }
 
+    // 2FA: conta com app autenticador ainda sem o codigo nesta sessao, ou
+    // empresa que exige 2FA e nao deixou entrar
+    final mfa = await _gateway.mfaStatus();
+    if (mfa.needsChallenge ||
+        (!context.hasAccess && context.requiresMfa && !mfa.isVerifiedSession)) {
+      state = SessionState(status: SessionStatus.mfaRequired, context: context);
+      return;
+    }
+
     if (!context.hasAccess) {
       state = SessionState(status: SessionStatus.noCompany, context: context);
       return;
@@ -156,6 +169,16 @@ class SessionController extends Notifier<SessionState> {
           })
           .catchError((_) {}),
     );
+  }
+
+  /// Depois de confirmar o 2FA: recarrega o contexto (agora com aal2).
+  Future<void> afterMfa() async {
+    try {
+      await _load();
+    } on AppError catch (e) {
+      await _dropSession();
+      state = SessionState.signedOut(error: e);
+    }
   }
 
   Future<void> signOut() async {
