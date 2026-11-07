@@ -1692,6 +1692,34 @@ abstract final class Strings {
   static const presentation = 'Apresentação';
   static const medicationUse = 'Via';
 
+  // Fotos e exames
+  static String fileTooLarge(String name) => '$name passa de 20 MB.';
+  static String filesSelected(int n) =>
+      n == 1 ? '1 arquivo selecionado' : '$n arquivos selecionados';
+  static String uploading(int i, int n) => 'Enviando $i de $n...';
+  static String filesUploaded(int n) =>
+      n == 1 ? 'Arquivo enviado.' : '$n arquivos enviados.';
+  static String filesFailed(String detail) =>
+      'Não foi possível enviar: $detail';
+  static const deleteFile = 'Excluir arquivo';
+  static const deleteFileConfirm =
+      'O arquivo é apagado do armazenamento e sai do prontuário.';
+  static const fileDeleted = 'Arquivo excluído.';
+  static String allCount(int n) => 'Todos ($n)';
+  static const addPhotos = 'Enviar fotos';
+  static const addExams = 'Enviar exames';
+  static const noPhotos = 'Nenhuma foto';
+  static const noExams = 'Nenhum exame';
+  static const filesHint =
+      'Imagens (JPG, PNG, WEBP, HEIC) e PDF de até 20 MB; nos exames também DICOM.';
+  static const fileNoPreview =
+      'Este arquivo não tem pré-visualização no navegador: use Baixar.';
+  static const download = 'Baixar';
+  static const category = 'Categoria';
+  static const fileDate = 'Data';
+  static const futureDate = 'A data não pode ser futura.';
+  static const description = 'Descrição';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2269,6 +2297,19 @@ abstract final class Strings {
     'PATIENT_DOCUMENT_ITEM_INVALID': 'Medicamento {Item} inválido.',
     'PATIENT_DOCUMENT_PROFESSIONAL_INVALID': 'Profissional inválido.',
     'PATIENT_DOCUMENT_NOT_FOUND': 'Documento não encontrado.',
+    'PATIENT_FILE_ACTION_INVALID': 'Ação inválida no arquivo.',
+    'PATIENT_FILE_FORBIDDEN':
+        'Você não tem permissão para alterar fotos e exames.',
+    'PATIENT_FILE_VALUE_INVALID':
+        'Categoria, data ou dados do arquivo inválidos.',
+    'PATIENT_FILE_TYPE_INVALID': 'Tipo de arquivo não aceito.',
+    'PATIENT_FILE_TOO_LARGE': 'O arquivo passa de 20 MB.',
+    'PATIENT_FILE_NOT_FOUND': 'Arquivo não encontrado.',
+    'PATIENT_FILE_STORAGE_FAILED':
+        'Falha no armazenamento do arquivo. Tente de novo.',
+    'PATIENT_FILE_BACKEND_ERROR':
+        'Falha ao registrar o arquivo. Tente de novo.',
+    'PATIENT_FILE_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
