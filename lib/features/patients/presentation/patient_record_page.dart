@@ -7,6 +7,8 @@ import '../../clinical_record/presentation/evolution_tab.dart';
 import '../../clinical_record/presentation/odontogram_tab.dart';
 import '../../clinical_record/presentation/record_common.dart';
 import '../../documents/presentation/documents_tab.dart';
+import '../../patient_files/domain/patient_file_models.dart';
+import '../../patient_files/presentation/patient_files_tab.dart';
 import '../../clinical_record/application/clinical_record_controllers.dart';
 
 import '../../../core/errors/app_error.dart';
@@ -239,18 +241,15 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
                         AnamnesisTab(nrPatient: p.nrPatient),
                         EvolutionTab(nrPatient: p.nrPatient),
                         OdontogramTab(nrPatient: p.nrPatient),
-                        AppEmptyState(
-                          icon: Icons.construction_rounded,
-                          title: Strings.moduleSoon(_tabs[7]),
-                          subtitle: Strings.moduleSoonSubtitle,
+                        PatientFilesTab(
+                          nrPatient: p.nrPatient,
+                          type: PatientFileType.photo,
                         ),
                         DocumentsTab(nrPatient: p.nrPatient),
-                        for (final t in _tabs.skip(9))
-                          AppEmptyState(
-                            icon: Icons.construction_rounded,
-                            title: Strings.moduleSoon(t),
-                            subtitle: Strings.moduleSoonSubtitle,
-                          ),
+                        PatientFilesTab(
+                          nrPatient: p.nrPatient,
+                          type: PatientFileType.exam,
+                        ),
                       ],
                     ),
                   ),

@@ -37,4 +37,20 @@ abstract final class FilePick {
     if (picked == null || bytes == null) return null;
     return (name: picked.name, bytes: bytes);
   }
+
+  /// Escolhe varios arquivos (fotos/exames). Lista vazia = cancelou.
+  static Future<List<({String name, Uint8List bytes})>> files({
+    required List<String> extensions,
+  }) async {
+    final r = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: extensions,
+      allowMultiple: true,
+      withData: true,
+    );
+    return [
+      for (final f in r?.files ?? const <PlatformFile>[])
+        if (f.bytes != null) (name: f.name, bytes: f.bytes!),
+    ];
+  }
 }
