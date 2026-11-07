@@ -188,6 +188,7 @@ class PatientDocument {
     this.vcCouncil,
     this.vcUser,
     this.items = const [],
+    this.qtSignatures = 0,
   });
 
   factory PatientDocument.fromJson(Map<String, dynamic> j) => PatientDocument(
@@ -200,6 +201,7 @@ class PatientDocument {
     vcCouncil: _str(j['vc_council']),
     vcUser: _str(j['vc_user']),
     items: _list(j['items']).map(Medication.fromJson).toList(),
+    qtSignatures: _int(j['qt_signatures']),
   );
 
   final int nrDocument;
@@ -211,6 +213,7 @@ class PatientDocument {
   final String? vcCouncil;
   final String? vcUser;
   final List<Medication> items;
+  final int qtSignatures;
 
   bool get hasControlled => items.any((i) => i.idControlled);
 }

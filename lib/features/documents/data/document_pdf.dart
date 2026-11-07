@@ -6,6 +6,8 @@ import 'package:pdf/widgets.dart' as pw;
 import '../../../shared/formatters/dates.dart';
 import '../../../shared/formatters/masks.dart';
 import '../../finance/domain/receipt_models.dart';
+import '../../signatures/data/signature_pdf.dart';
+import '../../signatures/domain/signature_models.dart';
 import '../domain/document_models.dart';
 
 /// PDF de um documento do paciente (A4): cabecalho da clinica, titulo, texto
@@ -30,6 +32,7 @@ abstract final class DocumentPdf {
     PatientDocument d, {
     required DocumentPatient patient,
     required ReceiptIssuer issuer,
+    List<Signature> signatures = const [],
   }) async {
     final i = issuer;
     final pdf = pw.Document(
@@ -166,22 +169,24 @@ abstract final class DocumentPdf {
               '${city.isEmpty ? '' : '$city, '}${Dates.format(d.dtDocument)}',
             ),
           pw.SizedBox(height: 40),
-          pw.Center(
-            child: pw.SizedBox(
-              width: 260,
-              child: pw.Column(
-                children: [
-                  pw.Container(height: 0.8, color: PdfColors.black),
-                  pw.SizedBox(height: 4),
-                  pw.Text(
-                    d.vcProfessional ?? i.vcTechnicalName ?? '',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
-                  if (d.vcCouncil != null) small(d.vcCouncil!),
-                ],
+          if (signatures.isNotEmpty) SignaturePdf.block(signatures),
+          if (signatures.isEmpty)
+            pw.Center(
+              child: pw.SizedBox(
+                width: 260,
+                child: pw.Column(
+                  children: [
+                    pw.Container(height: 0.8, color: PdfColors.black),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      d.vcProfessional ?? i.vcTechnicalName ?? '',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    if (d.vcCouncil != null) small(d.vcCouncil!),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

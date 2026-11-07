@@ -15,6 +15,9 @@ import '../../agenda/application/agenda_controllers.dart';
 import '../application/document_controllers.dart';
 import '../data/document_pdf.dart';
 import '../domain/document_models.dart';
+import '../../signatures/data/signature_repository.dart';
+import '../../signatures/domain/signature_models.dart';
+import '../../signatures/presentation/signature_dialog.dart';
 
 IconData documentIcon(DocumentKind k) => switch (k) {
   DocumentKind.certificate => Icons.medical_information_outlined,
@@ -30,18 +33,47 @@ class DocumentsTab extends ConsumerWidget {
 
   final int nrPatient;
 
+  SignatureKey _sigKey(PatientDocument d) => (
+    target: SignatureTarget.document,
+    nrPatient: nrPatient,
+    key: d.nrDocument,
+  );
+
+  Future<void> _sign(
+    BuildContext context,
+    WidgetRef ref,
+    PatientDocumentList list,
+    PatientDocument d,
+  ) async {
+    final signed = await SignatureDialog.show(
+      context,
+      signatureKey: _sigKey(d),
+      title: d.vcTitle,
+      patientName: list.patient.vcName,
+      patientCpf: list.patient.vcCpf,
+      canSign: list.canCreate,
+    );
+    if (signed) ref.invalidate(patientDocumentsProvider(nrPatient));
+  }
+
   Future<void> _pdf(
     BuildContext context,
+    WidgetRef ref,
     PatientDocumentList list,
     PatientDocument d,
   ) async {
     try {
+      final sigs = d.qtSignatures == 0
+          ? const <Signature>[]
+          : (await ref.read(signatureRepositoryProvider).list(_sigKey(d)))
+                .signatures;
       await FileDownload.savePdf(
         name: DocumentPdf.fileName(d),
         bytes: await DocumentPdf.build(
           d,
           patient: list.patient,
           issuer: list.issuer,
+          signatures: sigs,
         ),
       );
     } catch (e) {
@@ -102,14 +134,29 @@ class DocumentsTab extends ConsumerWidget {
                       Strings.medicationCount(d.items.length),
                   ].join(' · '),
                 ),
-                onTap: () => _pdf(context, list, d),
+                onTap: () => _pdf(context, ref, list, d),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (d.qtSignatures > 0 || list.canCreate)
+                      TextButton.icon(
+                        onPressed: () => _sign(context, ref, list, d),
+                        icon: Icon(
+                          d.qtSignatures > 0
+                              ? Icons.verified_outlined
+                              : Icons.draw_outlined,
+                          size: 18,
+                        ),
+                        label: Text(
+                          d.qtSignatures > 0
+                              ? Strings.signedCount(d.qtSignatures)
+                              : Strings.collectSignature,
+                        ),
+                      ),
                     IconButton(
                       tooltip: Strings.downloadPdf,
                       icon: const Icon(Icons.picture_as_pdf_outlined),
-                      onPressed: () => _pdf(context, list, d),
+                      onPressed: () => _pdf(context, ref, list, d),
                     ),
                     if (list.canUpdate)
                       IconButton(
