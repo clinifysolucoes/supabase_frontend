@@ -7,6 +7,8 @@ import '../../../shared/formatters/dates.dart';
 import '../../../shared/formatters/masks.dart';
 import '../../../shared/formatters/numbers.dart';
 import '../../finance/domain/finance_models.dart';
+import '../../signatures/data/signature_pdf.dart';
+import '../../signatures/domain/signature_models.dart';
 import '../domain/budget_models.dart';
 
 /// PDF do orcamento (A4): emitente, paciente, itens com dente/regiao,
@@ -21,7 +23,10 @@ abstract final class BudgetPdf {
 
   static String fileName(Budget b) => 'orcamento_${b.nrBudget}';
 
-  static Future<Uint8List> build(Budget b) async {
+  static Future<Uint8List> build(
+    Budget b, {
+    List<Signature> signatures = const [],
+  }) async {
     final i = b.issuer;
     final pdf = pw.Document(
       title: 'Orçamento ${b.nrBudget}',
@@ -197,18 +202,20 @@ abstract final class BudgetPdf {
             pw.Text(b.vcNotes!),
           ],
           pw.SizedBox(height: 50),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-            children: [
-              _signature(b.vcPatient, 'Paciente ou responsável'),
-              _signature(
-                i.vcLegalName ?? i.vcName,
-                technical == null
-                    ? 'Clínica'
-                    : 'Responsável técnico: $technical',
-              ),
-            ],
-          ),
+          if (signatures.isNotEmpty) SignaturePdf.block(signatures),
+          if (signatures.isEmpty)
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+              children: [
+                _signature(b.vcPatient, 'Paciente ou responsável'),
+                _signature(
+                  i.vcLegalName ?? i.vcName,
+                  technical == null
+                      ? 'Clínica'
+                      : 'Responsável técnico: $technical',
+                ),
+              ],
+            ),
         ],
       ),
     );
