@@ -470,15 +470,30 @@ class AppointmentBlock extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        a.headline,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          fontStyle: consult ? null : FontStyle.italic,
-                        ),
+                      Row(
+                        children: [
+                          if (a.isOnline)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 3),
+                              child: Icon(
+                                Icons.public_rounded,
+                                size: 12,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              a.headline,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                fontStyle: consult ? null : FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       Flexible(
                         child: Text(

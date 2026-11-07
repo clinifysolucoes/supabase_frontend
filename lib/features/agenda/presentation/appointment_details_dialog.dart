@@ -197,6 +197,7 @@ class _AppointmentDetailsDialogState
               if ((_a.vcNotes ?? '').isNotEmpty)
                 line(Icons.notes_rounded, _a.vcNotes!),
               if (_a.idFitIn) line(Icons.call_split_rounded, Strings.fitIn),
+              if (_a.isOnline) line(Icons.public_rounded, Strings.onlineOrigin),
               if (_a.isConsultation) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
