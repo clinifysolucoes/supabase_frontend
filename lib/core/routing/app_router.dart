@@ -17,6 +17,7 @@ import '../../features/session/presentation/branch_selection_page.dart';
 import '../../features/session/presentation/no_company_page.dart';
 import '../../features/auth/presentation/mfa_page.dart';
 import '../../features/budgets/presentation/budgets_page.dart';
+import '../../features/online_booking/presentation/online_booking_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
 import '../../features/users/presentation/users_page.dart';
 import '../../shared/widgets/splash_page.dart';
@@ -37,6 +38,9 @@ abstract final class AppRoutes {
   static const finance = '/financeiro';
   static const settings = '/configuracoes';
   static const budgets = '/orcamentos';
+
+  /// Pagina publica de agendamento (sem login).
+  static const onlineBooking = '/agendar';
 
   /// Ficha de um paciente.
   static String patient(int nrPatient) => '$patients/$nrPatient';
@@ -110,6 +114,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final session = ref.read(sessionControllerProvider);
       final location = state.matchedLocation;
+      // pagina publica: nunca redireciona (nem para o login)
+      if (location.startsWith('${AppRoutes.onlineBooking}/')) return null;
 
       String? stay(String target) {
         if (location == target) return null;
@@ -150,6 +156,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.users, builder: (_, __) => const UsersPage()),
       GoRoute(path: AppRoutes.budgets, builder: (_, __) => const BudgetsPage()),
+      GoRoute(
+        path: '${AppRoutes.onlineBooking}/:slug',
+        builder: (_, s) =>
+            OnlineBookingPage(slug: s.pathParameters['slug'] ?? ''),
+      ),
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, __) => const SettingsPage(),

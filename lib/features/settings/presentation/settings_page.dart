@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../clinical_record/presentation/anamnesis_models_section.dart';
 import '../../documents/presentation/document_settings_sections.dart';
+import '../../online_booking/presentation/online_booking_section.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
@@ -35,6 +36,7 @@ enum _Section {
   agenda,
   patients,
   record,
+  online,
   finance,
   security,
   export,
@@ -60,6 +62,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.agenda => Strings.settingsAgenda,
     _Section.patients => Strings.settingsPatients,
     _Section.record => Strings.settingsRecord,
+    _Section.online => Strings.settingsOnline,
     _Section.finance => Strings.settingsFinance,
     _Section.security => Strings.settingsSecurity,
     _Section.export => Strings.settingsExport,
@@ -71,6 +74,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.agenda => Icons.calendar_month_outlined,
     _Section.patients => Icons.badge_outlined,
     _Section.record => Icons.assignment_outlined,
+    _Section.online => Icons.public_rounded,
     _Section.finance => Icons.account_balance_wallet_outlined,
     _Section.security => Icons.shield_outlined,
     _Section.export => Icons.file_download_outlined,
@@ -158,6 +162,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           MedicationsSection(),
                         ],
                       ),
+                      _Section.online => const OnlineBookingSection(),
                       _Section.finance => _FinanceForm(
                         key: ValueKey(s.hashCode),
                         settings: s,

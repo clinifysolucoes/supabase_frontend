@@ -297,6 +297,7 @@ class Appointment {
     this.vcCreatedBy,
     this.dhCreated,
     this.itFinStatus,
+    this.itOrigin = 1,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
@@ -326,6 +327,7 @@ class Appointment {
     itFinStatus: json['it_fin_status'] == null
         ? null
         : _int(json['it_fin_status']),
+    itOrigin: _int(json['it_origin'] ?? 1),
   );
 
   final int nrAppointment;
@@ -352,6 +354,11 @@ class Appointment {
 
   /// Selo do financeiro (so para quem le o financeiro): [FinSeal].
   final int? itFinStatus;
+
+  /// 1 agenda | 2 agendamento online (pagina publica).
+  final int itOrigin;
+
+  bool get isOnline => itOrigin == 2;
 
   bool get isConsultation => itType == AppointmentType.consultation;
   bool get isClinicWide => !isConsultation && nrProfessional == null;

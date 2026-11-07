@@ -1720,6 +1720,49 @@ abstract final class Strings {
   static const futureDate = 'A data não pode ser futura.';
   static const description = 'Descrição';
 
+  // Agendamento online
+  static const settingsOnline = 'Agendamento online';
+  static const onlineSettingsHint =
+      'Página pública onde o paciente escolhe o profissional e um horário livre. A consulta entra na agenda como Agendado, com o selo Online, para a recepção confirmar.';
+  static const onlineEnabled = 'Página de agendamento ligada';
+  static const onlineSlug = 'Endereço da página';
+  static const copyLink = 'Copiar link';
+  static const linkCopied = 'Link copiado.';
+  static const onlineDaysAhead = 'Até quantos dias à frente';
+  static const onlineMinHours = 'Antecedência mínima (horas)';
+  static const onlineMessage = 'Mensagem na página (orientações)';
+  static const onlineProfessionals = 'Profissionais na página';
+  static const onlineNoProfessionals =
+      'Cadastre profissionais na Agenda para oferecer horários.';
+  static String onlineDuration(int m) =>
+      'Consulta de $m minutos (horário de atendimento do profissional)';
+  static const onlineTitle = 'Agende sua consulta';
+  static const onlineUnavailable = 'Agendamento indisponível';
+  static const onlineChooseProfessional = 'Escolha o profissional';
+  static const onlineChooseDay = 'Escolha o dia';
+  static const onlineChooseTime = 'Escolha o horário';
+  static const onlineNoSlots =
+      'Sem horários livres neste dia. Tente outro dia.';
+  static const onlineYourData = 'Seus dados';
+  static const emailOptional = 'E-mail (opcional)';
+  static const onlineReason = 'Motivo da consulta (opcional)';
+  static const onlinePrivacy =
+      'Seus dados são usados só pela clínica para o seu atendimento.';
+  static String onlineConfirm(String when) => 'Confirmar $when';
+  static const onlineBooked = 'Consulta agendada!';
+  static String onlineBookedText(String when, String prof, String clinic) =>
+      '$when com $prof na $clinic. A clínica pode entrar em contato para confirmar.';
+  static String weekdayShort(int weekday) => const [
+    'seg',
+    'ter',
+    'qua',
+    'qui',
+    'sex',
+    'sáb',
+    'dom',
+  ][(weekday - 1) % 7];
+  static const onlineOrigin = 'Agendado pela página online';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2310,6 +2353,34 @@ abstract final class Strings {
     'PATIENT_FILE_BACKEND_ERROR':
         'Falha ao registrar o arquivo. Tente de novo.',
     'PATIENT_FILE_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
+    'ONLINE_BOOKING_BRANCH_REQUIRED': 'Selecione a filial.',
+    'ONLINE_BOOKING_FORBIDDEN':
+        'Você não tem permissão para o agendamento online.',
+    'ONLINE_BOOKING_VALUE_INVALID':
+        'Dias à frente (1 a 180) ou antecedência (0 a 168 horas) inválidos.',
+    'ONLINE_BOOKING_SLUG_INVALID':
+        'Endereço inválido: use de 3 a 40 letras, números e hífen.',
+    'ONLINE_BOOKING_SLUG_TAKEN': 'Este endereço já é usado por outra clínica.',
+    'ONLINE_BOOKING_PROFESSIONAL_INVALID':
+        'Profissional não disponível para agendamento online.',
+    'ONLINE_BOOKING_NO_PROFESSIONAL':
+        'Marque ao menos um profissional para ligar a página.',
+    'ONLINE_BOOKING_ACTION_INVALID': 'Ação inválida.',
+    'ONLINE_BOOKING_NOT_FOUND':
+        'Esta página de agendamento não existe ou está desligada.',
+    'ONLINE_BOOKING_DATE_INVALID': 'Dia fora do período de agendamento.',
+    'ONLINE_BOOKING_SLOT_TAKEN':
+        'Este horário acabou de ser ocupado. Escolha outro.',
+    'ONLINE_BOOKING_NAME_REQUIRED': 'Informe seu nome completo.',
+    'ONLINE_BOOKING_CPF_INVALID': 'CPF inválido.',
+    'ONLINE_BOOKING_BIRTH_INVALID': 'Data de nascimento inválida.',
+    'ONLINE_BOOKING_MOBILE_INVALID': 'Celular inválido.',
+    'ONLINE_BOOKING_EMAIL_INVALID': 'E-mail inválido.',
+    'ONLINE_BOOKING_LIMIT':
+        'Você já tem consultas marcadas pela internet. Fale com a clínica para marcar outra.',
+    'ONLINE_BOOKING_PATIENT_INACTIVE':
+        'Não foi possível agendar pela internet. Fale com a clínica.',
+    'ONLINE_BOOKING_BACKEND_ERROR': 'Falha ao agendar. Tente de novo.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
