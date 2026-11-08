@@ -16,6 +16,9 @@ import '../../finance/domain/finance_models.dart';
 import '../application/budget_controllers.dart';
 import '../data/budget_pdf.dart';
 import '../domain/budget_models.dart';
+import '../../signatures/data/signature_repository.dart';
+import '../../signatures/domain/signature_models.dart';
+import '../../signatures/presentation/signature_dialog.dart';
 import 'budget_form_dialog.dart';
 
 /// Cor da situacao do orcamento.
@@ -147,11 +150,27 @@ class _BudgetDetailDialogState extends ConsumerState<BudgetDetailDialog> {
     if (nr != null) await _load();
   }
 
+  SignatureKey _sigKey(Budget b) =>
+      (target: SignatureTarget.budget, nrPatient: b.nrPatient, key: b.nrBudget);
+
+  Future<void> _sign(Budget b) => SignatureDialog.show(
+    context,
+    signatureKey: _sigKey(b),
+    title: 'Orçamento ${b.nrBudget}',
+    patientName: b.vcPatient,
+    patientCpf: b.vcPatientCpf,
+    canSign:
+        b.canUpdate && (b.isEditable || b.itStatus == BudgetStatus.accepted),
+  );
+
   Future<void> _pdf(Budget b) async {
     try {
+      final sigs =
+          (await ref.read(signatureRepositoryProvider).list(_sigKey(b)))
+              .signatures;
       await FileDownload.savePdf(
         name: BudgetPdf.fileName(b),
-        bytes: await BudgetPdf.build(b),
+        bytes: await BudgetPdf.build(b, signatures: sigs),
       );
       if (mounted) AppSnack.success(context, Strings.budgetPdfDone);
     } catch (e) {
@@ -312,6 +331,11 @@ class _BudgetDetailDialogState extends ConsumerState<BudgetDetailDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text(Strings.close),
+        ),
+        TextButton.icon(
+          onPressed: () => _sign(b),
+          icon: const Icon(Icons.draw_outlined),
+          label: const Text(Strings.signatures),
         ),
         TextButton.icon(
           onPressed: () => _pdf(b),

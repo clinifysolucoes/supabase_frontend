@@ -1763,6 +1763,27 @@ abstract final class Strings {
   ][(weekday - 1) % 7];
   static const onlineOrigin = 'Agendado pela página online';
 
+  // Assinatura eletronica
+  static const signatures = 'Assinaturas';
+  static const noSignatures = 'Ainda sem assinaturas.';
+  static const newSignature = 'Nova assinatura';
+  static const signerName = 'Nome de quem assina';
+  static const cpfOptional = 'CPF (opcional)';
+  static const signHere = 'Assine no quadro abaixo (dedo, caneta ou mouse):';
+  static const clear = 'Limpar';
+  static const sign = 'Assinar';
+  static const signatureEmpty = 'Faça a assinatura no quadro.';
+  static const signatureConsentRequired = 'Marque o aceite para assinar.';
+  static const signatureConsent =
+      'Li o conteúdo e concordo em assiná-lo eletronicamente. Data, hora, IP e este traço ficam registrados.';
+  static const signatureSaved = 'Assinatura registrada.';
+  static const signatureChanged =
+      'O conteúdo foi alterado depois de alguma assinatura: ela não vale para a versão atual.';
+  static const signatureInvalidShort = 'conteúdo alterado depois';
+  static const collectSignature = 'Assinar';
+  static String signedCount(int n) =>
+      n == 1 ? '1 assinatura' : '$n assinaturas';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2381,6 +2402,20 @@ abstract final class Strings {
     'ONLINE_BOOKING_PATIENT_INACTIVE':
         'Não foi possível agendar pela internet. Fale com a clínica.',
     'ONLINE_BOOKING_BACKEND_ERROR': 'Falha ao agendar. Tente de novo.',
+    'SIGNATURE_BRANCH_REQUIRED': 'Selecione a filial.',
+    'SIGNATURE_TARGET_INVALID':
+        'Documento ou orçamento inválido para assinatura.',
+    'SIGNATURE_FORBIDDEN':
+        'Você não tem permissão para coletar assinaturas aqui.',
+    'SIGNATURE_NOT_FOUND': 'Documento ou orçamento não encontrado.',
+    'SIGNATURE_STATUS_INVALID':
+        'Este documento ou orçamento não pode mais ser assinado (excluído, recusado ou cancelado).',
+    'SIGNATURE_SIGNER_INVALID': 'Escolha quem está assinando.',
+    'SIGNATURE_NAME_REQUIRED': 'Informe o nome de quem assina.',
+    'SIGNATURE_CPF_INVALID': 'CPF de quem assina inválido.',
+    'SIGNATURE_IMAGE_INVALID':
+        'A assinatura não foi capturada. Assine de novo.',
+    'SIGNATURE_CONSENT_REQUIRED': 'Marque o aceite para assinar.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
