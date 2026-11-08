@@ -1784,6 +1784,46 @@ abstract final class Strings {
   static String signedCount(int n) =>
       n == 1 ? '1 assinatura' : '$n assinaturas';
 
+  // WhatsApp
+  static const settingsWhatsapp = 'WhatsApp';
+  static const waHint =
+      'Alertas pelo WhatsApp Cloud API da Meta com o número da clínica. Cada alerta usa um modelo de mensagem aprovado na Meta (o nome do modelo vai abaixo).';
+  static const waEnabled = 'Envio de alertas ligado';
+  static const waConnection = 'Conexão com a Meta';
+  static const waPhoneNumberId = 'Phone number ID';
+  static const waWabaId = 'WhatsApp Business Account ID';
+  static const waDisplayPhone = 'Número da clínica';
+  static const waToken = 'Chave de acesso (token permanente)';
+  static String waTokenSaved(String when) =>
+      'Chave salva em $when (guardada cifrada; preencha só para trocar).';
+  static const waTokenMissing = 'Nenhuma chave salva ainda.';
+  static const waAlerts = 'Alertas';
+  static const waTemplate = 'Nome do modelo na Meta';
+  static const waReminder = 'Lembrete da consulta';
+  static const waReminderHint =
+      'Antes da consulta Agendado, com os botões Confirmar (a consulta vira Confirmado) e Remarcar (fica anotado na consulta). Corpo: {{1}} nome, {{2}} clínica, {{3}} data, {{4}} hora, {{5}} profissional.';
+  static const waReminderHours = 'Horas antes';
+  static const waBooked = 'Aviso de agendamento';
+  static const waBookedHint =
+      'Logo depois que a consulta é marcada (inclusive pela página online). Mesmos parâmetros do lembrete, sem botões.';
+  static const waBirthday = 'Aniversário';
+  static const waBirthdayHint =
+      'Parabéns no dia. Corpo: {{1}} nome, {{2}} clínica.';
+  static const waReturn = 'Retorno';
+  static const waReturnHint =
+      'Na data do alerta de retorno da ficha. Corpo: {{1}} nome, {{2}} clínica, {{3}} texto do alerta.';
+  static const waSendHour = 'Aniversário e retorno a partir das (hora)';
+  static const waTest = 'Testar a conexão';
+  static const waTestHint =
+      'Envia o modelo padrão hello_world da Meta para o celular informado.';
+  static const waSendTest = 'Enviar teste';
+  static const waTestSent = 'Mensagem de teste enviada.';
+  static const waLast30 = 'Mensagens dos últimos 30 dias.';
+  static const waHistory = 'Histórico de mensagens';
+  static const waNoMessages = 'Nenhuma mensagem.';
+  static const waAppointment = 'consulta';
+  static String waShowing(int n, int total) => 'Mostrando $n de $total.';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2416,6 +2456,21 @@ abstract final class Strings {
     'SIGNATURE_IMAGE_INVALID':
         'A assinatura não foi capturada. Assine de novo.',
     'SIGNATURE_CONSENT_REQUIRED': 'Marque o aceite para assinar.',
+    'WHATSAPP_BRANCH_REQUIRED': 'Selecione a filial.',
+    'WHATSAPP_FORBIDDEN': 'Você não tem permissão para configurar o WhatsApp.',
+    'WHATSAPP_VALUE_INVALID': 'Valor inválido na configuração do WhatsApp.',
+    'WHATSAPP_TEMPLATE_INVALID':
+        'Nome de modelo inválido: use letras minúsculas, números e _.',
+    'WHATSAPP_NOT_CONFIGURED':
+        'Informe o Phone number ID e salve a chave de acesso antes de ligar.',
+    'WHATSAPP_ACTION_INVALID': 'Ação inválida.',
+    'WHATSAPP_TOKEN_INVALID': 'Chave de acesso inválida.',
+    'WHATSAPP_PHONE_INVALID': 'Celular inválido.',
+    'WHATSAPP_SEND_FAILED': 'A Meta recusou o envio: {Detail}',
+    'WHATSAPP_ENCRYPTION_UNAVAILABLE':
+        'Cifra da chave não configurada no servidor (WHATSAPP_ENC_KEY).',
+    'WHATSAPP_BACKEND_ERROR': 'Falha no servidor do WhatsApp. Tente de novo.',
+    'WHATSAPP_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
