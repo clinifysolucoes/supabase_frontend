@@ -31,6 +31,7 @@ import '../../session/domain/screen_codes.dart';
 import '../application/patients_controllers.dart';
 import '../domain/patient_models.dart';
 import 'patient_form_dialog.dart';
+import 'patient_summary_tabs.dart';
 import 'patient_widgets.dart';
 
 /// Ficha do paciente: cabecalho (avatar, nome, CPF, idade, situacao, acoes),
@@ -52,6 +53,7 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
     Strings.tabOverview,
     Strings.tabAppointments,
     Strings.tabBudgets,
+    Strings.tabTreatmentPlan,
     Strings.tabFinance,
     Strings.tabAnamnesis,
     Strings.tabEvolution,
@@ -218,11 +220,7 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
                           onAddNote: _addNote,
                           onDeleteNote: _deleteNote,
                         ),
-                        AppEmptyState(
-                          icon: Icons.construction_rounded,
-                          title: Strings.moduleSoon(_tabs[1]),
-                          subtitle: Strings.moduleSoonSubtitle,
-                        ),
+                        PatientAppointmentsTab(nrPatient: p.nrPatient),
                         ref.watch(canReadProvider(ScreenCodes.budgets))
                             ? BudgetList(
                                 nrPatient: p.nrPatient,
@@ -233,11 +231,8 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
                                 title: Strings.noPermissionTitle,
                                 subtitle: Strings.noPermissionSubtitle,
                               ),
-                        AppEmptyState(
-                          icon: Icons.construction_rounded,
-                          title: Strings.moduleSoon(_tabs[3]),
-                          subtitle: Strings.moduleSoonSubtitle,
-                        ),
+                        TreatmentPlanTab(nrPatient: p.nrPatient),
+                        PatientFinanceTab(nrPatient: p.nrPatient),
                         AnamnesisTab(nrPatient: p.nrPatient),
                         EvolutionTab(nrPatient: p.nrPatient),
                         OdontogramTab(nrPatient: p.nrPatient),

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_gateway.dart';
 import '../domain/patient_models.dart';
+import '../domain/patient_summary_models.dart';
 
 /// Filtros de `patient_list`.
 class PatientFilters {
@@ -127,6 +128,19 @@ class PatientRepository {
       'nr_note': nrNote,
     });
   }
+
+  /// Abas Agendamentos, Financeiro e Plano de tratamento da ficha.
+  Future<PatientSummary> summary({
+    required int nrCompany,
+    required int nrBranch,
+    required int nrPatient,
+  }) async => PatientSummary.fromJson(
+    await _gateway.rpc('patient_summary_get', {
+      'nr_company': nrCompany,
+      'nr_branch': nrBranch,
+      'nr_patient': nrPatient,
+    }),
+  );
 }
 
 final patientRepositoryProvider = Provider<PatientRepository>(
