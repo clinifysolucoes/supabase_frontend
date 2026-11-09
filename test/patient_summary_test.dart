@@ -110,6 +110,18 @@ void main() {
     expect(s.finance!.entries[1].isPaid, isTrue);
     expect(s.plan!.single.qtDone, 1);
     expect(s.plan!.single.progress, 0.5);
+    expect(s.finance!.entries.first.title, 'Orçamento 3 (1/2)');
+    expect(
+      const PatientEntry(
+        nrEntry: 9,
+        vcDescription: 'Plano (2/2)',
+        vlAmount: 1,
+        itStatus: 1,
+        nrInstallment: 2,
+        qtInstallments: 2,
+      ).title,
+      'Plano (2/2)',
+    );
   });
 
   test('Sem permissao a parte vem null', () {

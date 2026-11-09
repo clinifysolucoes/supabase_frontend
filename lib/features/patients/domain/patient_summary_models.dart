@@ -98,6 +98,14 @@ class PatientEntry {
 
   bool get isPaid => itStatus == 2;
 
+  /// Descricao com a parcela, sem repetir quando ja vem nela ("(1/2)").
+  String get title {
+    final n = nrInstallment, q = qtInstallments;
+    if (n == null || q == null || q <= 1) return vcDescription;
+    final tag = '($n/$q)';
+    return vcDescription.contains(tag) ? vcDescription : '$vcDescription $tag';
+  }
+
   bool isOverdue(DateTime today) =>
       itStatus == 1 &&
       dtDue != null &&
