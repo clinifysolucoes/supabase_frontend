@@ -52,6 +52,7 @@ class AnamnesisModelsSection extends ConsumerWidget {
                   ),
                   if (list.canUpdate)
                     AppButton(
+                      expanded: false,
                       label: Strings.newModel,
                       icon: Icons.add_rounded,
                       onPressed: () => AnamnesisModelDialog.show(context),
@@ -346,11 +347,17 @@ class _AnamnesisModelDialogState extends ConsumerState<AnamnesisModelDialog> {
     ),
     actions: [
       AppButton(
+        expanded: false,
         label: Strings.cancel,
         variant: AppButtonVariant.text,
         onPressed: _saving ? null : () => Navigator.of(context).pop(),
       ),
-      AppButton(label: Strings.save, loading: _saving, onPressed: _save),
+      AppButton(
+        expanded: false,
+        label: Strings.save,
+        loading: _saving,
+        onPressed: _save,
+      ),
     ],
   );
 }

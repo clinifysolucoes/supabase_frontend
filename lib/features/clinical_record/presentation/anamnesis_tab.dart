@@ -30,6 +30,7 @@ class AnamnesisTab extends ConsumerWidget {
           title: Strings.anamnesisHistory,
           action: r.canCreate
               ? AppButton(
+                  expanded: false,
                   label: Strings.fillAnamnesis,
                   icon: Icons.assignment_add,
                   onPressed: () => AnamnesisFillDialog.show(context, nrPatient),
@@ -291,11 +292,13 @@ class _AnamnesisFillDialogState extends ConsumerState<AnamnesisFillDialog> {
       ),
       actions: [
         AppButton(
+          expanded: false,
           label: Strings.cancel,
           variant: AppButtonVariant.text,
           onPressed: _saving ? null : () => Navigator.of(context).pop(),
         ),
         AppButton(
+          expanded: false,
           label: Strings.save,
           loading: _saving,
           onPressed: _model == null ? null : _save,

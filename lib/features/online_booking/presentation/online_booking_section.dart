@@ -209,6 +209,7 @@ class _OnlineBookingFormState extends ConsumerState<_OnlineBookingForm> {
               Align(
                 alignment: Alignment.centerRight,
                 child: AppButton(
+                  expanded: false,
                   label: Strings.save,
                   loading: _saving,
                   onPressed: _save,

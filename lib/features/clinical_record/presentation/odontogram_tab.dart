@@ -446,12 +446,14 @@ class _ToothDialogState extends ConsumerState<ToothDialog> {
       ),
       actions: [
         AppButton(
+          expanded: false,
           label: Strings.close,
           variant: AppButtonVariant.text,
           onPressed: _saving ? null : () => Navigator.of(context).pop(),
         ),
         if (widget.canCreate)
           AppButton(
+            expanded: false,
             label: Strings.addMark,
             loading: _saving,
             onPressed: () => _call(

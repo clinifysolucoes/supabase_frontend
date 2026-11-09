@@ -71,6 +71,7 @@ class EvolutionTab extends ConsumerWidget {
             title: Strings.evolutionHistory,
             action: r.canCreate
                 ? AppButton(
+                    expanded: false,
                     label: Strings.newEvolution,
                     icon: Icons.add_rounded,
                     onPressed: add,
@@ -354,11 +355,17 @@ class _EvolutionDialogState extends ConsumerState<EvolutionDialog> {
       ),
       actions: [
         AppButton(
+          expanded: false,
           label: Strings.cancel,
           variant: AppButtonVariant.text,
           onPressed: _saving ? null : () => Navigator.of(context).pop(),
         ),
-        AppButton(label: Strings.save, loading: _saving, onPressed: _save),
+        AppButton(
+          expanded: false,
+          label: Strings.save,
+          loading: _saving,
+          onPressed: _save,
+        ),
       ],
     );
   }

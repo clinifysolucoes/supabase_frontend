@@ -178,6 +178,7 @@ class _PatientFilesTabState extends ConsumerState<PatientFilesTab> {
                 ),
                 if (view.list.canCreate)
                   AppButton(
+                    expanded: false,
                     label:
                         _progress ??
                         (isPhoto ? Strings.addPhotos : Strings.addExams),
@@ -376,6 +377,7 @@ class _FileViewerDialog extends StatelessWidget {
           label: const Text(Strings.download),
         ),
         AppButton(
+          expanded: false,
           label: Strings.close,
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -497,11 +499,12 @@ class _FileMetaDialogState extends State<_FileMetaDialog> {
     ),
     actions: [
       AppButton(
+        expanded: false,
         label: Strings.cancel,
         variant: AppButtonVariant.text,
         onPressed: () => Navigator.of(context).pop(),
       ),
-      AppButton(label: Strings.save, onPressed: _ok),
+      AppButton(expanded: false, label: Strings.save, onPressed: _ok),
     ],
   );
 }
