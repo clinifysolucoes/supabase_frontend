@@ -85,4 +85,15 @@ void main() {
     );
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
   });
+
+  test('Medicamento digitado fora do catalogo', () {
+    const m = Medication(vcName: 'Gelo local');
+    expect(m.isTyped, isTrue);
+    final j = m
+        .copyWith(use: MedicationUse.topical, vcDosage: '15 min')
+        .toItemJson();
+    expect(j.containsKey('nr_medication'), isFalse);
+    expect(j['it_use'], 3);
+    expect(j['vc_dosage'], '15 min');
+  });
 }

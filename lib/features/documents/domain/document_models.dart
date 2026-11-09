@@ -153,13 +153,20 @@ class Medication {
     'id_controlled': idControlled,
   };
 
-  Medication copyWith({String? vcDosage, String? vcQuantity}) => Medication(
+  /// Digitado no receituario (fora do catalogo).
+  bool get isTyped => nrMedication == null;
+
+  Medication copyWith({
+    String? vcDosage,
+    String? vcQuantity,
+    MedicationUse? use,
+  }) => Medication(
     nrMedication: nrMedication,
     vcName: vcName,
     vcPresentation: vcPresentation,
     vcDosage: vcDosage ?? this.vcDosage,
     vcQuantity: vcQuantity ?? this.vcQuantity,
-    use: use,
+    use: use ?? this.use,
     idControlled: idControlled,
     itStatus: itStatus,
   );

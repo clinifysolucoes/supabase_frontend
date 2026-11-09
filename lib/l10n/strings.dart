@@ -1625,6 +1625,8 @@ abstract final class Strings {
   static const toothMarkSaved = 'Dente marcado.';
   static const toothMarkRemoved = 'Marcação removida.';
   static const anamnesisModels = 'Modelos de anamnese';
+  static const anamnesisSpecialty = 'Especialidade do modelo';
+  static const anySpecialty = 'Qualquer especialidade';
   static const anamnesisModelsHint =
       'Perguntas usadas ao preencher a anamnese do paciente. Marque o alerta nas perguntas em que "sim" precisa de atenção.';
   static const newModel = 'Novo modelo';
@@ -1674,8 +1676,11 @@ abstract final class Strings {
   static const fillDocument = 'Preencher o texto';
   static const prescriptionHeader = 'Cabeçalho da receita';
   static const documentText = 'Texto do documento';
-  static const addMedication = 'Adicionar medicamento (busque pelo nome)';
+  static const addMedication =
+      'Adicionar medicamento (busque no catálogo ou digite o nome)';
   static const controlledMedication = 'Controle especial';
+  static String medicationTyped(String name) =>
+      'Usar "$name" (fora do catálogo)';
   static const dosage = 'Posologia';
   static const quantity = 'Quantidade';
   static const documentTemplates = 'Modelos de documento';
@@ -1762,6 +1767,17 @@ abstract final class Strings {
     'dom',
   ][(weekday - 1) % 7];
   static const onlineOrigin = 'Agendado pela página online';
+  static const waConfirmedByPatient = 'Paciente confirmou pelo WhatsApp';
+  static const waRescheduleByPatient =
+      'Paciente pediu para remarcar pelo WhatsApp';
+  static String waReminderStatus(int s) => switch (s) {
+    1 || 5 => 'Lembrete do WhatsApp na fila',
+    2 => 'Lembrete do WhatsApp enviado',
+    3 => 'Lembrete do WhatsApp entregue',
+    4 => 'Lembrete do WhatsApp lido',
+    9 => 'Lembrete do WhatsApp não foi enviado',
+    _ => 'Lembrete do WhatsApp cancelado',
+  };
 
   // Assinatura eletronica
   static const signatures = 'Assinaturas';

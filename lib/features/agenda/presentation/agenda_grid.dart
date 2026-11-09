@@ -472,6 +472,15 @@ class AppointmentBlock extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          if (a.waReschedule)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 3),
+                              child: Icon(
+                                Icons.event_repeat_rounded,
+                                size: 12,
+                                color: AppColors.danger,
+                              ),
+                            ),
                           if (a.isOnline)
                             const Padding(
                               padding: EdgeInsets.only(right: 3),
