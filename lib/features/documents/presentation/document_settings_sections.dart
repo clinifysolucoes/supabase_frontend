@@ -81,6 +81,7 @@ class DocumentTemplatesSection extends ConsumerWidget {
         hint: Strings.documentTemplatesHint,
         action: list.canUpdate
             ? AppButton(
+                expanded: false,
                 label: Strings.newModel,
                 icon: Icons.add_rounded,
                 onPressed: () =>
@@ -280,11 +281,17 @@ class _DocumentTemplateDialogState
     ),
     actions: [
       AppButton(
+        expanded: false,
         label: Strings.cancel,
         variant: AppButtonVariant.text,
         onPressed: _saving ? null : () => Navigator.of(context).pop(),
       ),
-      AppButton(label: Strings.save, loading: _saving, onPressed: _save),
+      AppButton(
+        expanded: false,
+        label: Strings.save,
+        loading: _saving,
+        onPressed: _save,
+      ),
     ],
   );
 }
@@ -318,6 +325,7 @@ class _MedicationsSectionState extends ConsumerState<MedicationsSection> {
           hint: Strings.medicationsHint,
           action: list.canUpdate
               ? AppButton(
+                  expanded: false,
                   label: Strings.newMedication,
                   icon: Icons.add_rounded,
                   onPressed: () => MedicationDialog.show(context),
@@ -516,11 +524,17 @@ class _MedicationDialogState extends ConsumerState<MedicationDialog> {
     ),
     actions: [
       AppButton(
+        expanded: false,
         label: Strings.cancel,
         variant: AppButtonVariant.text,
         onPressed: _saving ? null : () => Navigator.of(context).pop(),
       ),
-      AppButton(label: Strings.save, loading: _saving, onPressed: _save),
+      AppButton(
+        expanded: false,
+        label: Strings.save,
+        loading: _saving,
+        onPressed: _save,
+      ),
     ],
   );
 }

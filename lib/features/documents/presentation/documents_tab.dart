@@ -104,6 +104,7 @@ class DocumentsTab extends ConsumerWidget {
               ),
               if (list.canCreate)
                 AppButton(
+                  expanded: false,
                   label: Strings.emitDocument,
                   icon: Icons.note_add_outlined,
                   onPressed: () => DocumentEmitDialog.show(context, nrPatient),
@@ -574,11 +575,13 @@ class _DocumentEmitDialogState extends ConsumerState<DocumentEmitDialog> {
       ),
       actions: [
         AppButton(
+          expanded: false,
           label: Strings.cancel,
           variant: AppButtonVariant.text,
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
         ),
         AppButton(
+          expanded: false,
           label: Strings.emitDocument,
           loading: _busy,
           onPressed: t == null ? null : _save,

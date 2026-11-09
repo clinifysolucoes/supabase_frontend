@@ -297,6 +297,7 @@ class _SignatureDialogState extends ConsumerState<SignatureDialog> {
       ),
       actions: [
         AppButton(
+          expanded: false,
           label: Strings.close,
           variant: AppButtonVariant.text,
           onPressed: _saving
@@ -305,6 +306,7 @@ class _SignatureDialogState extends ConsumerState<SignatureDialog> {
         ),
         if (widget.canSign)
           AppButton(
+            expanded: false,
             label: Strings.sign,
             icon: Icons.draw_rounded,
             loading: _saving,

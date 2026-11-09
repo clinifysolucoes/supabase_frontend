@@ -198,7 +198,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             SizedBox(
                               width: 230,
                               child: Card(
-                                child: Padding(
+                                // com muitas secoes o menu passa da altura: rola
+                                child: SingleChildScrollView(
                                   padding: const EdgeInsets.all(AppSpacing.sm),
                                   child: Column(children: nav),
                                 ),

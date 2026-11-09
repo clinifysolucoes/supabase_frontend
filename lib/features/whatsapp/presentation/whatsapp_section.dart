@@ -344,6 +344,7 @@ class _WhatsappFormState extends ConsumerState<_WhatsappForm> {
               Align(
                 alignment: Alignment.centerRight,
                 child: AppButton(
+                  expanded: false,
                   label: Strings.save,
                   loading: _saving,
                   onPressed: _save,
@@ -371,6 +372,7 @@ class _WhatsappFormState extends ConsumerState<_WhatsappForm> {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   AppButton(
+                    expanded: false,
                     label: Strings.waSendTest,
                     icon: Icons.send_rounded,
                     variant: AppButtonVariant.secondary,
