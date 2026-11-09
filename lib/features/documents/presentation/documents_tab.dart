@@ -222,9 +222,14 @@ class _MedRow {
   final Medication med;
   final TextEditingController dosage;
   final TextEditingController quantity;
+  late MedicationUse use = med.use;
 
   Map<String, dynamic> toJson() => med
-      .copyWith(vcDosage: dosage.text.trim(), vcQuantity: quantity.text.trim())
+      .copyWith(
+        vcDosage: dosage.text.trim(),
+        vcQuantity: quantity.text.trim(),
+        use: use,
+      )
       .toItemJson();
 }
 
@@ -236,6 +241,7 @@ class _DocumentEmitDialogState extends ConsumerState<DocumentEmitDialog> {
   final Map<String, TextEditingController> _extra = {};
   final List<_MedRow> _meds = [];
   bool _busy = false;
+  TextEditingController? _medSearch;
 
   @override
   void dispose() {
@@ -442,30 +448,48 @@ class _DocumentEmitDialogState extends ConsumerState<DocumentEmitDialog> {
                   if (_isPrescription) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Autocomplete<Medication>(
-                      displayStringForOption: (m) => m.title,
+                      displayStringForOption: (m) => m.isTyped
+                          ? Strings.medicationTyped(m.vcName)
+                          : m.title,
                       optionsBuilder: (v) {
-                        final q = v.text.trim().toLowerCase();
+                        final typed = v.text.trim();
+                        final q = typed.toLowerCase();
                         if (q.isEmpty) {
                           return const Iterable<Medication>.empty();
                         }
-                        return meds
-                            .where((m) => m.title.toLowerCase().contains(q))
-                            .take(12);
-                      },
-                      onSelected: (m) => setState(() => _meds.add(_MedRow(m))),
-                      fieldViewBuilder: (context, ctl, focus, submit) =>
-                          TextField(
-                            controller: ctl,
-                            focusNode: focus,
-                            decoration: const InputDecoration(
-                              labelText: Strings.addMedication,
-                              prefixIcon: Icon(Icons.search_rounded),
+                        return [
+                          ...meds
+                              .where((m) => m.title.toLowerCase().contains(q))
+                              .take(12),
+                          // sempre da para usar o que foi digitado
+                          if (typed.length >= 3)
+                            Medication(
+                              vcName: typed.substring(
+                                0,
+                                typed.length > 120 ? 120 : typed.length,
+                              ),
                             ),
-                            onSubmitted: (_) {
-                              submit();
-                              ctl.clear();
-                            },
+                        ];
+                      },
+                      onSelected: (m) {
+                        setState(() => _meds.add(_MedRow(m)));
+                        // limpa a busca para o proximo medicamento
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _medSearch?.clear(),
+                        );
+                      },
+                      fieldViewBuilder: (context, ctl, focus, submit) {
+                        _medSearch = ctl;
+                        return TextField(
+                          controller: ctl,
+                          focusNode: focus,
+                          decoration: const InputDecoration(
+                            labelText: Strings.addMedication,
+                            prefixIcon: Icon(Icons.search_rounded),
                           ),
+                          onSubmitted: (_) => submit(),
+                        );
+                      },
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     for (final (i, m) in _meds.indexed)
@@ -479,12 +503,28 @@ class _DocumentEmitDialogState extends ConsumerState<DocumentEmitDialog> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      '${i + 1}. ${m.med.title} · ${m.med.use.label}',
+                                      m.med.isTyped
+                                          ? '${i + 1}. ${m.med.title}'
+                                          : '${i + 1}. ${m.med.title} · ${m.med.use.label}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
+                                  if (m.med.isTyped)
+                                    DropdownButton<MedicationUse>(
+                                      value: m.use,
+                                      underline: const SizedBox.shrink(),
+                                      items: [
+                                        for (final u in MedicationUse.values)
+                                          DropdownMenuItem(
+                                            value: u,
+                                            child: Text(u.label),
+                                          ),
+                                      ],
+                                      onChanged: (u) =>
+                                          setState(() => m.use = u ?? m.use),
+                                    ),
                                   if (m.med.idControlled)
                                     const Tooltip(
                                       message: Strings.controlledMedication,

@@ -298,6 +298,8 @@ class Appointment {
     this.dhCreated,
     this.itFinStatus,
     this.itOrigin = 1,
+    this.itWaStatus,
+    this.vcWaReply,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
@@ -328,6 +330,10 @@ class Appointment {
         ? null
         : _int(json['it_fin_status']),
     itOrigin: _int(json['it_origin'] ?? 1),
+    itWaStatus: json['it_wa_status'] == null
+        ? null
+        : _int(json['it_wa_status']),
+    vcWaReply: json['vc_wa_reply']?.toString(),
   );
 
   final int nrAppointment;
@@ -359,6 +365,14 @@ class Appointment {
   final int itOrigin;
 
   bool get isOnline => itOrigin == 2;
+
+  /// Lembrete do WhatsApp: situacao (od.whatsapp_message.it_status) e resposta
+  /// do paciente (CONFIRM | RESCHEDULE); null = sem lembrete.
+  final int? itWaStatus;
+  final String? vcWaReply;
+
+  bool get waConfirmed => vcWaReply == 'CONFIRM';
+  bool get waReschedule => vcWaReply == 'RESCHEDULE';
 
   bool get isConsultation => itType == AppointmentType.consultation;
   bool get isClinicWide => !isConsultation && nrProfessional == null;

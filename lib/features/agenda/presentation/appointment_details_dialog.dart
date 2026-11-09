@@ -198,6 +198,18 @@ class _AppointmentDetailsDialogState
                 line(Icons.notes_rounded, _a.vcNotes!),
               if (_a.idFitIn) line(Icons.call_split_rounded, Strings.fitIn),
               if (_a.isOnline) line(Icons.public_rounded, Strings.onlineOrigin),
+              if (_a.waConfirmed)
+                line(
+                  Icons.mark_chat_read_outlined,
+                  Strings.waConfirmedByPatient,
+                ),
+              if (_a.waReschedule)
+                line(Icons.event_repeat_rounded, Strings.waRescheduleByPatient),
+              if (_a.itWaStatus != null && _a.vcWaReply == null)
+                line(
+                  Icons.chat_outlined,
+                  Strings.waReminderStatus(_a.itWaStatus!),
+                ),
               if (_a.isConsultation) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(

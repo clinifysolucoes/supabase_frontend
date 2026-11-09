@@ -7,6 +7,8 @@ import '../../../l10n/strings.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../pricing/application/pricing_controllers.dart';
+import '../../pricing/domain/pricing_models.dart';
 import '../application/clinical_record_controllers.dart';
 import '../domain/clinical_record_models.dart';
 
@@ -120,6 +122,7 @@ class _AnamnesisModelDialogState extends ConsumerState<AnamnesisModelDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.model?.vcName ?? '');
   late bool _active = widget.model?.isActive ?? true;
+  late int? _specialty = widget.model?.nrSpecialty;
   late final List<_Row> _rows = [
     for (final q in widget.model?.questions ?? const <AnamnesisQuestion>[])
       _Row(q),
@@ -151,6 +154,7 @@ class _AnamnesisModelDialogState extends ConsumerState<AnamnesisModelDialog> {
             fields: {
               'vc_name': _name.text.trim(),
               if (widget.model != null) 'it_status': _active ? 1 : 90,
+              'nr_specialty': _specialty,
               'questions': [
                 for (final r in _rows)
                   AnamnesisQuestion(
@@ -195,6 +199,42 @@ class _AnamnesisModelDialogState extends ConsumerState<AnamnesisModelDialog> {
                 maxLength: 80,
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? Strings.required : null,
+              ),
+              Builder(
+                builder: (context) {
+                  final specialties =
+                      ref.watch(specialtyCatalogProvider).valueOrNull ??
+                      const <Specialty>[];
+                  final current = widget.model?.vcSpecialty;
+                  return DropdownButtonFormField<int?>(
+                    initialValue: _specialty,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: Strings.anamnesisSpecialty,
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text(Strings.anySpecialty),
+                      ),
+                      for (final sp in specialties)
+                        DropdownMenuItem(
+                          value: sp.nrSpecialty,
+                          child: Text(sp.vcName),
+                        ),
+                      // especialidade atual inativa (ou sem permissao de ver a lista)
+                      if (_specialty != null &&
+                          !specialties.any(
+                            (sp) => sp.nrSpecialty == _specialty,
+                          ))
+                        DropdownMenuItem(
+                          value: _specialty,
+                          child: Text(current ?? Strings.anamnesisSpecialty),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _specialty = v),
+                  );
+                },
               ),
               if (widget.model != null)
                 SwitchListTile(

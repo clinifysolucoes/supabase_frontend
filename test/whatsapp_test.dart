@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:odonto_app/features/agenda/domain/agenda_models.dart';
 import 'package:odonto_app/features/whatsapp/domain/whatsapp_models.dart';
 
 void main() {
@@ -41,5 +42,23 @@ void main() {
     expect(WaStatus.label(m.itStatus), 'Lida');
     expect(m.replyLabel, 'Confirmou');
     expect(p.qtTotal, 7);
+  });
+
+  test('Agenda le a resposta do lembrete do WhatsApp', () {
+    Appointment a(Map<String, dynamic> extra) => Appointment.fromJson({
+      'nr_appointment': 1,
+      'dh_start': '2026-11-09T13:00:00Z',
+      'dh_end': '2026-11-09T14:00:00Z',
+      ...extra,
+    });
+    expect(
+      a({'it_wa_status': 4, 'vc_wa_reply': 'CONFIRM'}).waConfirmed,
+      isTrue,
+    );
+    expect(
+      a({'it_wa_status': 4, 'vc_wa_reply': 'RESCHEDULE'}).waReschedule,
+      isTrue,
+    );
+    expect(a({}).itWaStatus, isNull);
   });
 }
