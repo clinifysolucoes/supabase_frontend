@@ -694,7 +694,8 @@ abstract final class Strings {
   static const openRecord = 'Abrir ficha';
   static const nextAppointment = 'Próximo agendamento';
   static const noNextAppointment = 'Sem próximo agendamento';
-  static const noNextAppointmentHint = 'A agenda chega em breve.';
+  static const noNextAppointmentHint =
+      'Nenhuma consulta futura marcada na agenda.';
   static const noAnamnesis = 'Sem anamnese';
   static const noAnamnesisHint = 'A anamnese digital chega em breve.';
   static const returnAlert = 'Alerta de retorno';
@@ -1842,6 +1843,7 @@ abstract final class Strings {
 
   // Abas da ficha (agendamentos, financeiro, plano)
   static const tabTreatmentPlan = 'Plano de tratamento';
+  static String budgetNo(int n) => 'Orçamento $n';
   static const upcomingAppointments = 'Próximas consultas';
   static const pastAppointments = 'Histórico';
   static const noPatientAppointments = 'Nenhuma consulta';

@@ -32,6 +32,7 @@ import '../application/patients_controllers.dart';
 import '../domain/patient_models.dart';
 import 'patient_form_dialog.dart';
 import 'patient_summary_tabs.dart';
+import '../../agenda/domain/agenda_models.dart';
 import 'patient_widgets.dart';
 
 /// Ficha do paciente: cabecalho (avatar, nome, CPF, idade, situacao, acoes),
@@ -534,10 +535,37 @@ class _Overview extends StatelessWidget {
     final side = [
       _SideCard(
         title: Strings.nextAppointment,
-        child: const _EmptyHint(
-          icon: Icons.event_busy_rounded,
-          title: Strings.noNextAppointment,
-          hint: Strings.noNextAppointmentHint,
+        child: Consumer(
+          builder: (context, ref, _) {
+            final s = ref
+                .watch(patientSummaryProvider(record.patient.nrPatient))
+                .valueOrNull;
+            final now = DateTime.now();
+            final next = s?.appointments
+                ?.where(
+                  (a) =>
+                      a.isUpcoming(now) &&
+                      a.itStatus != AppointmentStatus.cancelled,
+                )
+                .lastOrNull;
+            if (next == null) {
+              return _EmptyHint(
+                icon: Icons.event_busy_rounded,
+                title: Strings.noNextAppointment,
+                hint: s != null && !s.canAgenda
+                    ? Strings.noPermissionSubtitle
+                    : Strings.noNextAppointmentHint,
+              );
+            }
+            return _EmptyHint(
+              icon: Icons.event_available_rounded,
+              title: Dates.formatTime(next.dhStart),
+              hint: [
+                ?next.vcProfessional,
+                AppointmentStatus.label(next.itStatus),
+              ].join(' · '),
+            );
+          },
         ),
       ),
       _SideCard(

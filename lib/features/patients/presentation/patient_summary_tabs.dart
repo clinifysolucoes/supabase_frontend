@@ -264,11 +264,7 @@ class PatientFinanceTab extends StatelessWidget {
                       ? AppColors.danger
                       : AppColors.warning,
                 ),
-                title: Text(
-                  e.qtInstallments != null && e.qtInstallments! > 1
-                      ? '${e.vcDescription} (${e.nrInstallment}/${e.qtInstallments})'
-                      : e.vcDescription,
-                ),
+                title: Text(e.title),
                 subtitle: Text(
                   e.isPaid
                       ? '${Strings.paidOn} ${Dates.format(e.dtPaid)} · ${PaymentMethod.label(e.itPaymentMethod)}'
@@ -367,7 +363,7 @@ class TreatmentPlanTab extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            p.vcTitle ?? '${Strings.tabBudgets} ${p.nrBudget}',
+                            p.vcTitle ?? Strings.budgetNo(p.nrBudget),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
@@ -381,7 +377,7 @@ class TreatmentPlanTab extends StatelessWidget {
                     ),
                     Text(
                       [
-                        '${Strings.tabBudgets} ${p.nrBudget}',
+                        Strings.budgetNo(p.nrBudget),
                         Dates.format(p.dtBudget),
                         ?p.vcProfessional,
                         Numbers.money(p.vlTotal),
