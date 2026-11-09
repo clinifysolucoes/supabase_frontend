@@ -1840,6 +1840,31 @@ abstract final class Strings {
   static const waAppointment = 'consulta';
   static String waShowing(int n, int total) => 'Mostrando $n de $total.';
 
+  // Abas da ficha (agendamentos, financeiro, plano)
+  static const tabTreatmentPlan = 'Plano de tratamento';
+  static const upcomingAppointments = 'Próximas consultas';
+  static const pastAppointments = 'Histórico';
+  static const noPatientAppointments = 'Nenhuma consulta';
+  static const noPatientAppointmentsHint =
+      'As consultas marcadas na agenda para este paciente aparecem aqui.';
+  static const patientOpen = 'Em aberto';
+  static String patientOverdue(int n) =>
+      n == 1 ? 'Vencido (1 conta)' : 'Vencido ($n contas)';
+  static const patientPaid = 'Pago';
+  static const patientEntries = 'Contas a receber';
+  static const noPatientEntries = 'Nenhuma conta a receber.';
+  static const receipts = 'Recibos';
+  static const noPatientReceipts = 'Nenhum recibo emitido.';
+  static const paidOn = 'Pago em';
+  static const dueOn = 'Vence em';
+  static const noTreatmentPlan = 'Nenhum plano de tratamento';
+  static const noTreatmentPlanHint =
+      'Os orçamentos aprovados viram o plano; cada item marcado na evolução conta como realizado.';
+  static String planProgress(int done, int total) =>
+      '$done de $total realizados';
+  static const doneOn = 'Realizado em';
+  static const toDo = 'A realizar';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
