@@ -9,6 +9,7 @@ import '../../features/patients/presentation/patient_record_page.dart';
 import '../../features/patients/presentation/patients_page.dart';
 import '../../features/agenda/presentation/agenda_page.dart';
 import '../../features/finance/presentation/finance_page.dart';
+import '../../features/reports/presentation/reports_page.dart';
 import '../../features/pricing/presentation/pricing_page.dart';
 import '../../features/profiles/presentation/profiles_page.dart';
 import '../../features/session/application/session_controller.dart';
@@ -38,6 +39,7 @@ abstract final class AppRoutes {
   static const finance = '/financeiro';
   static const settings = '/configuracoes';
   static const budgets = '/orcamentos';
+  static const reports = '/relatorios';
 
   /// Pagina publica de agendamento (sem login).
   static const onlineBooking = '/agendar';
@@ -59,6 +61,7 @@ abstract final class AppRoutes {
     finance: ScreenCodes.finance,
     settings: ScreenCodes.settings,
     budgets: ScreenCodes.budgets,
+    reports: ScreenCodes.reports,
   };
 
   /// Tela exigida por [location]: a rota exata ou o prefixo (`/pacientes/3`).
@@ -173,6 +176,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.pricing, builder: (_, __) => const PricingPage()),
       GoRoute(path: AppRoutes.agenda, builder: (_, __) => const AgendaPage()),
       GoRoute(path: AppRoutes.finance, builder: (_, __) => const FinancePage()),
+      GoRoute(path: AppRoutes.reports, builder: (_, __) => const ReportsPage()),
       GoRoute(
         path: AppRoutes.patients,
         builder: (_, __) => const PatientsPage(),

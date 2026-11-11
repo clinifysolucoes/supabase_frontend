@@ -1867,6 +1867,52 @@ abstract final class Strings {
   static const doneOn = 'Realizado em';
   static const toDo = 'A realizar';
 
+  // Relatorios
+  static const reports = 'Relatórios';
+  static const reportsSubtitle =
+      'Faltas e desmarcações, aniversariantes, procedimentos executados e comissões.';
+  static const reportNoShow = 'Faltas e desmarcações';
+  static const reportBirthdays = 'Aniversariantes';
+  static const reportProcedures = 'Procedimentos executados';
+  static const reportCommissions = 'Pagamentos e comissões';
+  static const reportExport = 'Exportar CSV';
+  static const reportExported = 'Relatório exportado.';
+  static const reportThisMonth = 'Este mês';
+  static const reportLastMonth = 'Mês passado';
+  static const reportNextMonth = 'Próximo mês';
+  static const reportPeriodTooLong = 'Escolha um período de até 1 ano.';
+  static const reportAllProfessionals = 'Todos os profissionais';
+  static const reportNoProfessional = 'Sem profissional';
+  static const reportByProfessional = 'Por profissional';
+  static const reportEmpty = 'Nada encontrado no período.';
+  static String reportTruncated(int shown, int total) =>
+      'Mostrando $shown de $total linhas. Diminua o período para ver tudo.';
+  static const reportPaid = 'Pago';
+  static const reportOpen = 'A pagar';
+  static const reportColDate = 'Data';
+  static const reportColPatient = 'Paciente';
+  static const reportColPhone = 'Celular';
+  static const reportColEmail = 'E-mail';
+  static const reportColProfessional = 'Profissional';
+  static const reportColStatus = 'Situação';
+  static const reportColBirthday = 'Aniversário';
+  static const reportColAge = 'Idade';
+  static const reportColProcedure = 'Procedimento';
+  static const reportColTooth = 'Dente';
+  static const reportColValue = 'Valor';
+  static const reportColCompetence = 'Competência';
+  static const reportColDescription = 'Descrição';
+  static const reportColDue = 'Vencimento';
+  static const reportColPaidOn = 'Pago em';
+  static const reportKpiAppointments = 'Consultas';
+  static const reportKpiNoShow = 'Faltas';
+  static const reportKpiCancelled = 'Desmarcadas';
+  static const reportKpiNoShowRate = 'Taxa de faltas';
+  static const reportKpiPatients = 'Aniversariantes';
+  static const reportKpiProcedures = 'Procedimentos';
+  static const reportKpiValue = 'Valor';
+  static const reportKpiTotal = 'Total';
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2514,6 +2560,11 @@ abstract final class Strings {
         'Cifra da chave não configurada no servidor (WHATSAPP_ENC_KEY).',
     'WHATSAPP_BACKEND_ERROR': 'Falha no servidor do WhatsApp. Tente de novo.',
     'WHATSAPP_UNAUTHORIZED': 'Sessão expirada. Entre de novo.',
+    'REPORT_BRANCH_REQUIRED': 'Filial não informada.',
+    'REPORT_FORBIDDEN': 'Você não tem permissão para ver este relatório.',
+    'REPORT_INVALID': 'Relatório inválido.',
+    'REPORT_PERIOD_INVALID':
+        'Período inválido: a data final deve ser depois da inicial e o período de até 1 ano.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
