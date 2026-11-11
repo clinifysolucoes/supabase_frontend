@@ -1913,6 +1913,82 @@ abstract final class Strings {
   static const reportKpiValue = 'Valor';
   static const reportKpiTotal = 'Total';
 
+  // Estoque
+  static const stock = 'Estoque';
+  static const stockSubtitle =
+      'Saldo dos materiais, alertas de mínimo, compras, saídas e a baixa automática pelos procedimentos.';
+  static const stockTabBalances = 'Saldos';
+  static const stockTabMovements = 'Movimentos';
+  static const stockFilterControlled = 'Controlados';
+  static const stockFilterLow = 'Em alerta';
+  static const stockFilterAll = 'Todos os materiais';
+  static const stockSearch = 'Material';
+  static const stockKpiControlled = 'Materiais controlados';
+  static const stockKpiLow = 'Em alerta';
+  static const stockKpiValue = 'Valor em estoque';
+  static const stockKpiIn = 'Entradas';
+  static const stockKpiOut = 'Saídas manuais';
+  static const stockKpiProcedures = 'Usado nos procedimentos';
+  static const stockKpiAdjust = 'Ajustes';
+  static const stockEmpty = 'Nenhum material aqui';
+  static const stockEmptyHint =
+      'Em "Todos os materiais", ligue o controle de estoque dos materiais da precificação.';
+  static const stockNotControlled = 'Sem controle de estoque';
+  static const stockConfigure = 'Controle e mínimo';
+  static const stockControl = 'Controlar estoque';
+  static const stockControlHint =
+      'Baixa automática pelos procedimentos registrados na evolução.';
+  static String stockMin(String unit) =>
+      unit.isEmpty ? 'Estoque mínimo' : 'Estoque mínimo ($unit)';
+  static const stockMinHint = 'Abaixo dele o material fica em alerta.';
+  static String stockMinShort(String q) => 'mín. $q';
+  static const stockItemSaved = 'Estoque do material salvo.';
+  static String stockUnitCost(String v, String unit) =>
+      unit.isEmpty ? '$v por unidade' : '$v por $unit';
+  static String stockLastMove(String d) => 'último movimento $d';
+  static const stockTypeEntry = 'Entrada';
+  static const stockTypeExit = 'Saída';
+  static const stockTypeAdjust = 'Ajuste';
+  static const stockTypeProcedure = 'Procedimento';
+  static const stockTypeReversal = 'Estorno';
+  static const stockAllTypes = 'Todos';
+  static const stockUnits = 'unidades';
+  static const stockPackages = 'embalagens';
+  static String stockCurrent(String q) => 'Saldo atual: $q';
+  static const stockQtyPackages = 'Quantidade de embalagens';
+  static String stockQtyUnits(String unit) => 'Quantidade ($unit)';
+  static String stockCounted(String unit) => 'Saldo contado ($unit)';
+  static String stockEquals(String q) => '= $q';
+  static const stockQtyInvalid = 'Quantidade inválida.';
+  static const stockDate = 'Data';
+  static const stockTotal = r'Valor total (R$)';
+  static const stockTotalRequired = 'Informe o valor.';
+  static const stockSupplier = 'Fornecedor';
+  static const stockSupplierRequired = 'Escolha o fornecedor.';
+  static const stockDocument = 'Nota fiscal';
+  static const stockPayable = 'Gerar conta a pagar';
+  static const stockPayableHint =
+      'No Financeiro, para o fornecedor, com o valor total.';
+  static const stockDueHint = 'Em branco: a data da entrada';
+  static const stockUpdatePrice = 'Atualizar o preço da embalagem';
+  static String stockUpdatePriceHint(String v) =>
+      'Hoje $v na precificação; passa a ser o valor ÷ embalagens.';
+  static const stockReason = 'Motivo';
+  static String stockMoved(String balance) =>
+      'Movimento lançado. Saldo: $balance.';
+  static String stockMovedPayable(String balance) =>
+      'Movimento lançado e conta a pagar gerada. Saldo: $balance.';
+  static const stockNoChange =
+      'O saldo contado é igual ao atual: nada foi lançado.';
+  static const stockNoMovements = 'Nenhum movimento no período.';
+  static const stockMaterial = 'Material';
+  static const stockType = 'Tipo';
+  static const stockQty = 'Quantidade';
+  static const stockBalance = 'Saldo';
+  static const stockValue = 'Valor';
+  static const stockDetails = 'Detalhes';
+  static const stockTruncated = 'Mostrando os 1000 movimentos mais recentes.';
+
   // Controle Protetico
   static const prosthetic = 'Controle Protético';
   static const prostheticSubtitle =
@@ -2690,6 +2766,21 @@ abstract final class Strings {
     'PROSTHETIC_ENTRY_EXISTS':
         'A conta a pagar já foi gerada: custo e laboratório não podem mudar.',
     'PROSTHETIC_STAGE_INVALID': 'Etapa inválida.',
+    'STOCK_BRANCH_REQUIRED': 'Filial não informada.',
+    'STOCK_FORBIDDEN': 'Você não tem permissão para esta ação no Estoque.',
+    'STOCK_MATERIAL_NOT_FOUND': 'Material não encontrado.',
+    'STOCK_NOT_CONTROLLED': 'Este material não tem controle de estoque.',
+    'STOCK_TYPE_INVALID': 'Tipo de movimento inválido.',
+    'STOCK_VALUE_INVALID': 'Algum valor do movimento é inválido.',
+    'STOCK_INSUFFICIENT': 'Saldo insuficiente: há {Stock} {Unit} em estoque.',
+    'STOCK_SUPPLIER_REQUIRED':
+        'Para gerar a conta a pagar, informe o fornecedor e o valor.',
+    'STOCK_FINANCE_FORBIDDEN':
+        'Você não tem permissão para lançar no Financeiro.',
+    'STOCK_PRICE_FORBIDDEN':
+        'Você não tem permissão para alterar o preço na Precificação.',
+    'STOCK_PERIOD_INVALID':
+        'Período inválido: a data final deve ser depois da inicial e o período de até 1 ano.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

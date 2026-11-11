@@ -23,6 +23,7 @@ enum AppSection {
   budgets,
   reports,
   prosthetic,
+  stock,
 }
 
 class _Destination {
@@ -98,6 +99,15 @@ const _finance = _Destination(
   route: '/financeiro',
 );
 
+const _stock = _Destination(
+  section: AppSection.stock,
+  code: ScreenCodes.stock,
+  icon: Icons.inventory_2_outlined,
+  selectedIcon: Icons.inventory_2_rounded,
+  label: Strings.stock,
+  route: '/estoque',
+);
+
 const _reports = _Destination(
   section: AppSection.reports,
   code: ScreenCodes.reports,
@@ -123,6 +133,7 @@ const _mainItems = [
   _budgets,
   _prosthetic,
   _finance,
+  _stock,
   _reports,
   _pricing,
 ];
