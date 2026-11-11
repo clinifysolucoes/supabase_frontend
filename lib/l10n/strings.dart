@@ -649,6 +649,9 @@ abstract final class Strings {
   static const sourceOther = 'Outros';
   static const referredBy = 'Indicado por';
   static const referredByHint = 'Ex.: Dra. Ana Souza';
+  static const referrerPatient = 'Paciente que indicou';
+  static const referrerChoose = 'Escolha, se quem indicou é paciente';
+  static const referrerClear = 'Remover';
   static const observations = 'Observações';
   static const observationsHint = 'Observações sobre o paciente';
   static const mobileWhatsapp = 'Celular / WhatsApp';
@@ -1913,6 +1916,53 @@ abstract final class Strings {
   static const reportKpiValue = 'Valor';
   static const reportKpiTotal = 'Total';
 
+  // Controle de Indicacao
+  static const referrals = 'Indicações';
+  static const referralsSubtitle =
+      'Quem indicou cada paciente novo, quantos viraram tratamento e o retorno dado a quem indica.';
+  static const refLast12 = 'Últimos 12 meses';
+  static const refLastYear = 'Ano passado';
+  static const refTabReferred = 'Indicados';
+  static const refTabRanking = 'Quem mais indica';
+  static const refTabSources = 'Origem dos pacientes';
+  static const refKpiReferred = 'Indicados';
+  static const refKpiConverted = 'Viraram tratamento';
+  static const refKpiPending = 'Recompensas pendentes';
+  static const refKpiRewards = 'Recompensas dadas';
+  static const refOnlyPending = 'Só recompensas pendentes';
+  static const refEmpty = 'Nenhuma indicação no período';
+  static const refEmptyHint =
+      'Na ficha do paciente, informe o paciente que indicou ou o nome em "Indicado por".';
+  static const refNoPatients = 'Nenhum paciente novo no período.';
+  static const refTruncated = 'Mostrando as 1000 indicações mais recentes.';
+  static String refBy(String who) => 'Indicado por $who';
+  static String refSince(String d) => 'cadastro em $d';
+  static const refConverted = 'Virou tratamento';
+  static String refConvertedValue(String v) => 'Virou tratamento · $v aprovado';
+  static const refNotConverted = 'Ainda sem orçamento aprovado';
+  static const refReward = 'Registrar recompensa';
+  static const refUndo = 'Desfazer';
+  static const refUndoTitle = 'Desfazer a recompensa?';
+  static String refUndoMessage(String who) =>
+      'A recompensa dada a $who por esta indicação volta a ficar pendente.';
+  static const refUndone = 'Recompensa desfeita.';
+  static const refRewarded = 'Recompensa registrada.';
+  static String refRewardTitle(String who) => 'Recompensa para $who';
+  static String refRewardFor(String patient) => 'Pela indicação de $patient';
+  static const refRewardWhat = 'O que foi dado';
+  static const refRewardHint =
+      'Ex.: kit de clareamento, 10% na próxima limpeza';
+  static const refRewardRequired = 'Informe o que foi dado.';
+  static const refRewardValue = r'Valor (R$)';
+  static const refReferrer = 'Quem indicou';
+  static const refApproved = 'Aprovado';
+  static const refReceived = 'Recebido';
+  static const refRewardsCol = 'Recompensas';
+  static String refRewardsPending(int done, int pending) =>
+      '$done ($pending pendente${pending == 1 ? '' : 's'})';
+  static String refSourceCount(int qt, int converted) =>
+      '$qt novo${qt == 1 ? '' : 's'} · $converted em tratamento';
+
   // Estoque
   static const stock = 'Estoque';
   static const stockSubtitle =
@@ -2781,6 +2831,18 @@ abstract final class Strings {
         'Você não tem permissão para alterar o preço na Precificação.',
     'STOCK_PERIOD_INVALID':
         'Período inválido: a data final deve ser depois da inicial e o período de até 1 ano.',
+    'REFERRAL_ACTION_INVALID': 'Ação inválida na recompensa.',
+    'REFERRAL_BRANCH_REQUIRED': 'Filial não informada.',
+    'REFERRAL_FORBIDDEN':
+        'Você não tem permissão para esta ação em Indicações.',
+    'REFERRAL_PERIOD_INVALID':
+        'Período inválido: a data final deve ser depois da inicial e o período de até 2 anos.',
+    'REFERRAL_NOT_REFERRED': 'Este paciente não tem indicação registrada.',
+    'REFERRAL_REWARD_REQUIRED': 'Informe o que foi dado.',
+    'REFERRAL_VALUE_INVALID': 'Algum valor da recompensa é inválido.',
+    'REFERRAL_ALREADY_REWARDED': 'Esta indicação já tem recompensa registrada.',
+    'REFERRAL_REWARD_NOT_FOUND':
+        'Não há recompensa registrada para esta indicação.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
