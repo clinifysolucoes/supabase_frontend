@@ -1913,6 +1913,51 @@ abstract final class Strings {
   static const reportKpiValue = 'Valor';
   static const reportKpiTotal = 'Total';
 
+  // Dashboard Analitico
+  static const dashThisYear = 'Este ano';
+  static const dashOpen = 'Abrir a tela';
+  static const dashRevenue = 'Recebido';
+  static const dashExpense = 'Pago';
+  static const dashResult = 'Resultado';
+  static const dashOverdue = 'A receber vencido';
+  static String dashOverdueCount(int n) => n == 1 ? '1 conta' : '$n contas';
+  static const dashPayableWeek = 'A pagar em 7 dias';
+  static const dashToday = 'Consultas hoje';
+  static String dashTodayConfirmed(int n) =>
+      n == 1 ? '1 confirmada' : '$n confirmadas';
+  static const dashAttended = 'Atendidas';
+  static String dashNoShowHint(int noShow, int cancelled) =>
+      '$noShow faltas · $cancelled desmarcadas';
+  static const dashOnline = 'Agendadas online';
+  static const dashNewPatients = 'Pacientes novos';
+  static const dashActivePatients = 'Pacientes ativos';
+  static const dashBirthdaysToday = 'Aniversariantes hoje';
+  static const dashBudgetsCreated = 'Orçamentos criados';
+  static const dashBudgetsAccepted = 'Orçamentos aprovados';
+  static const dashConversion = 'Conversão';
+  static const dashBudgetsOpen = 'Orçamentos em aberto';
+  static const dashChartFinance = 'Recebido x pago (6 meses)';
+  static const dashChartAttended = 'Consultas atendidas (6 meses)';
+  static const dashChartNewPatients = 'Pacientes novos (6 meses)';
+  static const dashTopProcedures = 'Procedimentos mais executados';
+  static const dashBySource = 'Como os pacientes novos conheceram a clínica';
+  static const dashSourceUnknown = 'Não informado';
+  static String dashDelta(String pc) => '$pc vs. período anterior';
+  static String monthShort(int m) => const [
+    'jan',
+    'fev',
+    'mar',
+    'abr',
+    'mai',
+    'jun',
+    'jul',
+    'ago',
+    'set',
+    'out',
+    'nov',
+    'dez',
+  ][(m - 1) % 12];
+
   static const Map<String, String> _errors = {
     // Auth (Supabase Auth)
     'AUTH_INVALID_CREDENTIALS': 'E-mail ou senha inválidos.',
@@ -2564,6 +2609,10 @@ abstract final class Strings {
     'REPORT_FORBIDDEN': 'Você não tem permissão para ver este relatório.',
     'REPORT_INVALID': 'Relatório inválido.',
     'REPORT_PERIOD_INVALID':
+        'Período inválido: a data final deve ser depois da inicial e o período de até 1 ano.',
+    'DASHBOARD_BRANCH_REQUIRED': 'Filial não informada.',
+    'DASHBOARD_FORBIDDEN': 'Você não tem acesso a esta filial.',
+    'DASHBOARD_PERIOD_INVALID':
         'Período inválido: a data final deve ser depois da inicial e o período de até 1 ano.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
