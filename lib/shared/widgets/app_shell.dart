@@ -22,6 +22,7 @@ enum AppSection {
   settings,
   budgets,
   reports,
+  prosthetic,
 }
 
 class _Destination {
@@ -79,6 +80,15 @@ const _budgets = _Destination(
   route: '/orcamentos',
 );
 
+const _prosthetic = _Destination(
+  section: AppSection.prosthetic,
+  code: ScreenCodes.prosthetic,
+  icon: Icons.precision_manufacturing_outlined,
+  selectedIcon: Icons.precision_manufacturing_rounded,
+  label: Strings.prosthetic,
+  route: '/protese',
+);
+
 const _finance = _Destination(
   section: AppSection.finance,
   code: ScreenCodes.finance,
@@ -111,6 +121,7 @@ const _mainItems = [
   _agenda,
   _patients,
   _budgets,
+  _prosthetic,
   _finance,
   _reports,
   _pricing,
