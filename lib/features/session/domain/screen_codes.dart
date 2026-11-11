@@ -12,4 +12,5 @@ abstract final class ScreenCodes {
   static const settings = 'SETTINGS';
   static const budgets = 'BUDGETS';
   static const reports = 'REPORTS';
+  static const prosthetic = 'PROSTHETIC';
 }

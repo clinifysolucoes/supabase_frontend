@@ -1913,6 +1913,67 @@ abstract final class Strings {
   static const reportKpiValue = 'Valor';
   static const reportKpiTotal = 'Total';
 
+  // Controle Protetico
+  static const prosthetic = 'Controle Protético';
+  static const prostheticSubtitle =
+      'Trabalhos enviados ao laboratório: etapas, prazos, atrasos e custo.';
+  static const prosNew = 'Novo trabalho';
+  static String prosEdit(int n) => 'Trabalho protético $n';
+  static const prosSaved = 'Trabalho protético salvo.';
+  static const prosSearch = 'Paciente, trabalho ou laboratório';
+  static const prosEmpty = 'Nenhum trabalho protético';
+  static const prosEmptySubtitle =
+      'Cadastre coroas, próteses e placas enviadas ao laboratório para acompanhar as etapas e os prazos.';
+  static const prosFilterOpen = 'Em andamento';
+  static const prosFilterLate = 'Atrasados';
+  static const prosFilterDone = 'Instalados';
+  static const prosFilterCancelled = 'Cancelados';
+  static const prosFilterAll = 'Todos';
+  static const prosStageToSend = 'A enviar';
+  static const prosStageAtLab = 'No laboratório';
+  static const prosStageTrial = 'Em prova';
+  static const prosStageReceived = 'Recebido';
+  static const prosStageInstalled = 'Instalado';
+  static const prosStageCancelled = 'Cancelado';
+  static const prosLate = 'Atrasados';
+  static const prosPayableBadge = 'Conta a pagar';
+  static const prosDescription = 'Trabalho';
+  static const prosDescriptionHint = 'Ex.: Coroa metalocerâmica';
+  static const prosDescriptionRequired = 'Informe o trabalho.';
+  static const prosTooth = 'Dente';
+  static const prosShade = 'Cor';
+  static const prosShadeHint = 'Ex.: A2';
+  static const prosLab = 'Laboratório';
+  static const prosLabFree = 'Outro (sem cadastro)';
+  static const prosLabName = 'Nome do laboratório';
+  static const prosLabFreeHint =
+      'Sem cadastro no Financeiro não gera conta a pagar.';
+  static const prosLockedHint =
+      'Conta a pagar já gerada: custo e laboratório não mudam.';
+  static const prosCost = r'Custo do laboratório (R$)';
+  static const prosCostInvalid = 'Valor inválido.';
+  static const prosExpected = 'Previsão de retorno';
+  static const prosSentOn = 'Enviado em';
+  static const prosExpectedOn = 'Previsto para';
+  static const prosReceivedOn = 'Recebido em';
+  static const prosInstalledOn = 'Instalado em';
+  static const prosHistory = 'Histórico';
+  static const prosStageButton = 'Etapa';
+  static String prosStageTitle(String work) => 'Etapa: $work';
+  static const prosCurrentStage = 'Etapa atual';
+  static const prosStepDate = 'Data';
+  static const prosFutureDate = 'A data não pode ser futura.';
+  static const prosDue = 'Vencimento da conta a pagar';
+  static const prosDueHint = 'Em branco: a data do recebimento';
+  static String prosPayableInfo(String value, String lab) =>
+      'Ao receber, será gerada a conta a pagar de $value para $lab.';
+  static const prosStageSave = 'Registrar';
+  static const prosStageSaved = 'Etapa registrada.';
+  static const prosPayableCreated =
+      'Etapa registrada e conta a pagar do laboratório gerada.';
+  static const prosPayableSkipped =
+      'Etapa registrada. A conta a pagar não foi gerada: você não tem permissão no Financeiro.';
+
   // Dashboard Analitico
   static const dashThisYear = 'Este ano';
   static const dashOpen = 'Abrir a tela';
@@ -2614,6 +2675,21 @@ abstract final class Strings {
     'DASHBOARD_FORBIDDEN': 'Você não tem acesso a esta filial.',
     'DASHBOARD_PERIOD_INVALID':
         'Período inválido: a data final deve ser depois da inicial e o período de até 1 ano.',
+    'PROSTHETIC_ACTION_INVALID': 'Ação inválida no trabalho protético.',
+    'PROSTHETIC_BRANCH_REQUIRED': 'Filial não informada.',
+    'PROSTHETIC_FORBIDDEN':
+        'Você não tem permissão para esta ação no Controle Protético.',
+    'PROSTHETIC_NOT_FOUND': 'Trabalho protético não encontrado.',
+    'PROSTHETIC_DESCRIPTION_REQUIRED': 'Informe o trabalho.',
+    'PROSTHETIC_VALUE_INVALID': 'Algum valor do trabalho protético é inválido.',
+    'PROSTHETIC_PROFESSIONAL_INVALID': 'Profissional inválido.',
+    'PROSTHETIC_LAB_INVALID': 'Laboratório inválido.',
+    'PROSTHETIC_ITEM_INVALID': 'Item de orçamento inválido para este paciente.',
+    'PROSTHETIC_CLOSED':
+        'Trabalho instalado ou cancelado não pode ser alterado.',
+    'PROSTHETIC_ENTRY_EXISTS':
+        'A conta a pagar já foi gerada: custo e laboratório não podem mudar.',
+    'PROSTHETIC_STAGE_INVALID': 'Etapa inválida.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
