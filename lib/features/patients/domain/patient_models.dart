@@ -164,7 +164,8 @@ class Patient {
   String get sourceLabel {
     if (itSource == null) return '-';
     final label = PatientSource.label(itSource);
-    return vcReferral == null ? label : '$label: $vcReferral';
+    final by = text('vc_referrer') ?? vcReferral;
+    return by == null ? label : '$label: $by';
   }
 
   bool get hasReturnAlert => dtReturnAlert != null;

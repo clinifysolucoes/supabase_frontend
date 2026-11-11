@@ -10,6 +10,7 @@ import '../../features/patients/presentation/patients_page.dart';
 import '../../features/agenda/presentation/agenda_page.dart';
 import '../../features/finance/presentation/finance_page.dart';
 import '../../features/prosthetic/presentation/prosthetic_page.dart';
+import '../../features/referrals/presentation/referrals_page.dart';
 import '../../features/reports/presentation/reports_page.dart';
 import '../../features/stock/presentation/stock_page.dart';
 import '../../features/pricing/presentation/pricing_page.dart';
@@ -44,6 +45,7 @@ abstract final class AppRoutes {
   static const reports = '/relatorios';
   static const prosthetic = '/protese';
   static const stock = '/estoque';
+  static const referrals = '/indicacoes';
 
   /// Pagina publica de agendamento (sem login).
   static const onlineBooking = '/agendar';
@@ -68,6 +70,7 @@ abstract final class AppRoutes {
     reports: ScreenCodes.reports,
     prosthetic: ScreenCodes.prosthetic,
     stock: ScreenCodes.stock,
+    referrals: ScreenCodes.referrals,
   };
 
   /// Tela exigida por [location]: a rota exata ou o prefixo (`/pacientes/3`).
@@ -188,6 +191,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ProstheticPage(),
       ),
       GoRoute(path: AppRoutes.stock, builder: (_, __) => const StockPage()),
+      GoRoute(
+        path: AppRoutes.referrals,
+        builder: (_, __) => const ReferralsPage(),
+      ),
       GoRoute(
         path: AppRoutes.patients,
         builder: (_, __) => const PatientsPage(),

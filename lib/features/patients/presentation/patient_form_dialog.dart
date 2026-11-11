@@ -13,6 +13,7 @@ import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
 import '../../../shared/widgets/searchable_dropdown.dart';
+import '../../agenda/presentation/patient_picker_dialog.dart';
 import '../../settings/application/settings_controller.dart';
 import '../../settings/domain/settings_models.dart';
 import '../application/patients_controllers.dart';
@@ -338,6 +339,8 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
   late int? _marital = _p?.code('it_marital_status');
   late int? _education = _p?.code('it_education');
   late int? _source = _p?.itSource;
+  late int? _referrer = _p?.code('nr_referrer');
+  late String? _referrerName = _p?.text('vc_referrer');
   late String? _state = _p?.text('vc_state');
   late bool _noEmail = _p?.idNoEmail ?? false;
   late int _tab = widget.initialTab.clamp(0, 2);
@@ -387,11 +390,49 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
     super.dispose();
   }
 
+  /// Paciente da filial que indicou (Controle de Indicacao).
+  Widget _referrerPicker() => InkWell(
+    onTap: _canEdit
+        ? () async {
+            final p = await PatientPickerDialog.show(context);
+            if (p == null || p.nrPatient == _p?.nrPatient) return;
+            setState(() {
+              _referrer = p.nrPatient;
+              _referrerName = p.vcName;
+              _source ??= PatientSource.referral;
+            });
+          }
+        : null,
+    child: InputDecorator(
+      decoration: InputDecoration(
+        labelText: Strings.referrerPatient,
+        prefixIcon: const Icon(Icons.connect_without_contact_outlined),
+        suffixIcon: _referrer != null && _canEdit
+            ? IconButton(
+                tooltip: Strings.referrerClear,
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => setState(() {
+                  _referrer = null;
+                  _referrerName = null;
+                }),
+              )
+            : null,
+      ),
+      child: Text(
+        _referrerName ?? Strings.referrerChoose,
+        style: _referrerName == null
+            ? const TextStyle(color: AppColors.muted)
+            : null,
+      ),
+    ),
+  );
+
   Map<String, dynamic> _collect() {
     final m = <String, dynamic>{
       for (final f in _visibleFields) f.key: f.collect(_c[f.key]!.text),
       'it_gender': _gender,
       'it_source': _source,
+      'nr_referrer': _referrer,
       'id_no_email': _noEmail,
     };
     if (_isEdit || _req('it_marital_status')) {
@@ -629,6 +670,8 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
           _text(_referral),
         ),
         gap,
+        _referrerPicker(),
+        gap,
         _text(_notes),
       ],
     );
@@ -703,6 +746,8 @@ class _PatientFormDialogState extends ConsumerState<PatientFormDialog> {
           ),
           _text(_referral),
         ),
+        gap,
+        _referrerPicker(),
         gap,
         _text(_notes),
         if (_quickExtra.isNotEmpty ||
