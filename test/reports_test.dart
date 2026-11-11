@@ -58,6 +58,11 @@ void main() {
     expect(csv[1], contains('"Ana; Rep"'));
     expect(csv[1], endsWith('Faltou'));
     expect(csv[2], endsWith('Cancelado'));
+    // data e hora uma vez so (dd/MM/yyyy HH:mm)
+    expect(
+      csv[1].split(';').first,
+      matches(RegExp(r'^\d{2}/\d{2}/\d{4} \d{2}:\d{2}$')),
+    );
   });
 
   test('Periodo inicial e o mes corrente', () {

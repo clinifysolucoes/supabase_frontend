@@ -49,7 +49,7 @@ String _money(Object? v) => _num(v).toStringAsFixed(2).replaceAll('.', ',');
 
 String _dateTime(Object? v) {
   final d = _date(v)?.toLocal();
-  return d == null ? '' : '${Dates.format(d)} ${Dates.formatTime(d)}';
+  return d == null ? '' : Dates.formatTime(d);
 }
 
 String _apptStatus(Object? v) => switch (_int(v)) {
