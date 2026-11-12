@@ -240,19 +240,19 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
             ),
             _alert(
               title: Strings.waBooked,
-              hint: Strings.waBookedHint,
+              hint: Strings.ntBookedHint,
               value: _booked,
               onChanged: (v) => setState(() => _booked = v),
               template: _tplBooked,
             ),
             _alert(
               title: Strings.waReturn,
-              hint: Strings.waReturnHint,
+              hint: Strings.ntReturnHint,
               value: _return,
               onChanged: (v) => setState(() => _return = v),
               template: _tplReturn,
               extra: AppTextField(
-                label: Strings.waSendHour,
+                label: Strings.ntSendHour,
                 controller: _sendHour,
                 enabled: can,
                 keyboardType: TextInputType.number,
