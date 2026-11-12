@@ -1916,6 +1916,47 @@ abstract final class Strings {
   static const reportKpiValue = 'Valor';
   static const reportKpiTotal = 'Total';
 
+  // Alertas por e-mail e SMS
+  static const settingsNotify = 'SMS e e-mail';
+  static const ntHint =
+      'Lembretes e avisos por e-mail e SMS, enviados pelo sistema. Os textos usam os dados do paciente e da consulta.';
+  static const ntEmail = 'E-mail';
+  static const ntSms = 'SMS';
+  static const ntEmailEnabled = 'Enviar por e-mail';
+  static const ntEmailHint = 'Para pacientes com e-mail cadastrado.';
+  static const ntSmsEnabled = 'Enviar por SMS';
+  static const ntSmsHint =
+      'Para pacientes com celular cadastrado. Cada SMS tem custo.';
+  static const ntFromName = 'Nome do remetente';
+  static const ntReplyTo = 'Responder para';
+  static const ntReplyToHint = 'E-mail da clínica que recebe as respostas.';
+  static String ntFields(String fields) => 'Campos: $fields';
+  static const ntText = 'Texto';
+  static String ntPreview(String t) => 'Prévia: $t';
+  static const ntReminderHint =
+      'Antes da consulta ainda não confirmada, com link para o paciente confirmar.';
+  static const ntQueued = 'Na fila';
+  static const ntSending = 'Enviando';
+  static const ntSent = 'Enviada';
+  static const ntError = 'Erro';
+  static const ntCancelled = 'Cancelada';
+  static String ntConfirmedAt(String d) => 'confirmou em $d';
+  static const ntConfirmDone = 'Consulta confirmada!';
+  static const ntConfirmAlready = 'Sua consulta já estava confirmada.';
+  static const ntConfirmUnavailable =
+      'Esta consulta não pode mais ser confirmada.';
+  static const ntConfirmInvalid = 'Link inválido ou expirado.';
+  static const ntConfirmContact =
+      'Entre em contato com a clínica para remarcar.';
+  static String ntConfirmDetail(
+    String patient,
+    String date,
+    String time,
+    String? professional,
+  ) =>
+      '${patient.isEmpty ? '' : '$patient, '}sua consulta é em $date às $time'
+      '${(professional ?? '').isEmpty ? '' : ' com $professional'}.';
+
   // Controle de Indicacao
   static const referrals = 'Indicações';
   static const referralsSubtitle =
@@ -2843,6 +2884,12 @@ abstract final class Strings {
     'REFERRAL_ALREADY_REWARDED': 'Esta indicação já tem recompensa registrada.',
     'REFERRAL_REWARD_NOT_FOUND':
         'Não há recompensa registrada para esta indicação.',
+    'NOTIFY_BRANCH_REQUIRED': 'Filial não informada.',
+    'NOTIFY_FORBIDDEN': 'Você não tem permissão para alterar os alertas.',
+    'NOTIFY_VALUE_INVALID': 'Algum valor dos alertas é inválido.',
+    'NOTIFY_EMAIL_INVALID': 'E-mail de resposta inválido.',
+    'NOTIFY_TEMPLATE_INVALID':
+        'Preencha os textos dos alertas (até 500 caracteres).',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',
