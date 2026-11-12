@@ -1933,6 +1933,11 @@ abstract final class Strings {
   static String ntFields(String fields) => 'Campos: $fields';
   static const ntText = 'Texto';
   static String ntPreview(String t) => 'Prévia: $t';
+  static const ntBookedHint =
+      'Logo depois que a consulta é marcada (inclusive pela página online).';
+  static const ntReturnHint =
+      'Na data do alerta de retorno da ficha; {{retorno}} traz o texto do alerta.';
+  static const ntSendHour = 'Enviar o retorno a partir das (hora)';
   static const ntReminderHint =
       'Antes da consulta ainda não confirmada, com link para o paciente confirmar.';
   static const ntQueued = 'Na fila';
