@@ -1916,6 +1916,99 @@ abstract final class Strings {
   static const reportKpiValue = 'Valor';
   static const reportKpiTotal = 'Total';
 
+  // Fichas por especialidade e periograma
+  static const delete = 'Excluir';
+  static const tabCharts = 'Fichas';
+  static const tabPerio = 'Periograma';
+  static const chartModels = 'Fichas por especialidade';
+  static const chartModelsHint =
+      'Modelos das fichas clínicas (ortodontia, endodontia, implante...). Alterar um modelo não muda as fichas já preenchidas.';
+  static String fieldCount(int n) => n == 1 ? '1 campo' : '$n campos';
+  static const chartPerTooth = 'Por dente';
+  static const chartPerToothHint =
+      'A ficha pede o dente (ex.: canal, implante).';
+  static const chartModelName = 'Nome da ficha';
+  static const chartModelNameRequired = 'Informe o nome da ficha.';
+  static const chartFields = 'Campos';
+  static const chartFieldsKeepHint =
+      'As fichas já preenchidas guardam os campos que tinham.';
+  static const chartFieldsRequired = 'Inclua pelo menos um campo.';
+  static const chartAddField = 'Adicionar campo';
+  static const chartFieldLabel = 'Campo';
+  static const chartFieldType = 'Tipo';
+  static const chartFieldOptions = 'Opções';
+  static const chartFieldOptionsHint =
+      'Separe com | (ex.: Leve | Moderado | Severo).';
+  static const chartFieldUnit = 'Unidade';
+  static const chartFieldRequired = 'Obrigatório';
+  static const cfShortText = 'Texto curto';
+  static const cfLongText = 'Texto longo';
+  static const cfYesNo = 'Sim/não';
+  static const cfChoice = 'Escolha';
+  static const cfNumber = 'Número';
+  static const cfDate = 'Data';
+  static const cfSection = 'Título de seção';
+  static const chartNew = 'Nova ficha';
+  static const chartChoose = 'Qual ficha?';
+  static const chartEmpty = 'Nenhuma ficha preenchida';
+  static const chartEmptyHint =
+      'Preencha as fichas de ortodontia, endodontia, implante, periodontia ou as da sua clínica.';
+  static String chartFilledCount(int n) =>
+      n == 1 ? '1 campo preenchido' : '$n campos preenchidos';
+  static String chartBy(String user) => 'Preenchida por $user';
+  static const chartSaved = 'Ficha salva.';
+  static const chartDeleted = 'Ficha excluída.';
+  static const chartDeleteTitle = 'Excluir a ficha?';
+  static String chartDeleteMessage(String m) =>
+      'A ficha de $m sai do prontuário.';
+  static const chartRequired = 'Obrigatório.';
+  static const chartNumberInvalid = 'Número inválido.';
+  static const chartToothHint = 'Ex.: 36 ou 11, 21';
+  static const perioNew = 'Novo periograma';
+  static const perioEdit = 'Periograma';
+  static const perioEmpty = 'Nenhum periograma';
+  static const perioEmptyHint =
+      'Registre a sondagem, recessão, sangramento e placa dos dentes para acompanhar a saúde periodontal.';
+  static const perioSaved = 'Periograma salvo.';
+  static const perioDeleted = 'Periograma excluído.';
+  static const perioDeleteTitle = 'Excluir o periograma?';
+  static String perioDeleteMessage(String d) =>
+      'O periograma de $d sai do prontuário.';
+  static const perioTeeth = 'Dentes avaliados';
+  static const perioBleeding = 'Sangramento';
+  static const perioPlaque = 'Placa';
+  static const perioProbingMean = 'Sondagem média';
+  static const perioSites45 = 'Bolsas 4-5 mm';
+  static const perioSites6 = 'Bolsas 6 mm ou mais';
+  static const perioAttachmentMean = 'Inserção média';
+  static const perioUpper =
+      'Arcada superior (vestibular em cima, palatina embaixo)';
+  static const perioLower =
+      'Arcada inferior (vestibular em cima, lingual embaixo)';
+  static const perioLegend =
+      'Sondagem em mm: preto até 3, laranja 4-5, vermelho 6 ou mais; ponto vermelho = sangramento; M = mobilidade, F = furca.';
+  static const perioTapTooth = 'Toque num dente para registrar os pontos.';
+  static const perioMissing = 'Dente ausente';
+  static const perioMobility = 'Mobilidade';
+  static const perioFurcation = 'Furca';
+  static const perioBuccal = 'Vestibular';
+  static const perioLingual = 'Lingual / palatina';
+  static const perioSiteNames = [
+    'Distal',
+    'Meio',
+    'Mesial',
+    'Distal',
+    'Meio',
+    'Mesial',
+  ];
+  static const perioProbing = 'Sondagem';
+  static const perioRecession = 'Recessão';
+  static const perioBleedingShort = 'Sangra';
+  static const perioPlaqueShort = 'Placa';
+  static const perioToothOk = 'Ok';
+  static const perioValueInvalid =
+      'Sondagem de 0 a 15 mm e recessão de -5 a 15 mm.';
+
   // Alertas por e-mail e SMS
   static const settingsNotify = 'SMS e e-mail';
   static const ntHint =
@@ -2895,6 +2988,32 @@ abstract final class Strings {
     'NOTIFY_EMAIL_INVALID': 'E-mail de resposta inválido.',
     'NOTIFY_TEMPLATE_INVALID':
         'Preencha os textos dos alertas (até 500 caracteres).',
+    'CHART_MODEL_ACTION_INVALID': 'Ação inválida no modelo de ficha.',
+    'CHART_MODEL_FORBIDDEN':
+        'Você não tem permissão para alterar os modelos de ficha.',
+    'CHART_MODEL_NOT_FOUND': 'Modelo de ficha não encontrado ou inativo.',
+    'CHART_MODEL_NAME_REQUIRED': 'Informe o nome da ficha.',
+    'CHART_MODEL_NAME_IN_USE': 'Já existe uma ficha com esse nome.',
+    'CHART_MODEL_SPECIALTY_INVALID': 'Especialidade inválida.',
+    'CHART_MODEL_FIELDS_REQUIRED': 'Inclua pelo menos um campo.',
+    'CHART_FIELD_INVALID':
+        'O campo {Item} está incompleto (escolha precisa de 2 opções ou mais).',
+    'CHART_MODEL_VALUE_INVALID': 'Algum valor do modelo é inválido.',
+    'CHART_ACTION_INVALID': 'Ação inválida na ficha.',
+    'CHART_FORBIDDEN': 'Você não tem permissão para preencher fichas.',
+    'CHART_NOT_FOUND': 'Ficha não encontrada.',
+    'CHART_TOOTH_REQUIRED': 'Informe o dente.',
+    'CHART_TOOTH_INVALID':
+        'Dente inválido (use a numeração FDI, ex.: 36 ou 11, 21).',
+    'CHART_PROFESSIONAL_INVALID': 'Profissional inválido.',
+    'CHART_VALUE_INVALID': 'Valor inválido em "{Field}".',
+    'CHART_FIELD_REQUIRED': 'Preencha "{Field}".',
+    'PERIO_ACTION_INVALID': 'Ação inválida no periograma.',
+    'PERIO_FORBIDDEN': 'Você não tem permissão para registrar periogramas.',
+    'PERIO_NOT_FOUND': 'Periograma não encontrado.',
+    'PERIO_PROFESSIONAL_INVALID': 'Profissional inválido.',
+    'PERIO_VALUE_INVALID': 'Algum valor do periograma é inválido.',
+    'PERIO_TOOTH_INVALID': 'Valores inválidos no dente {Tooth}.',
     // App
     'NETWORK': 'Sem conexão. Verifique sua internet e tente de novo.',
     'UNKNOWN': 'Ocorreu um erro inesperado. Tente novamente.',

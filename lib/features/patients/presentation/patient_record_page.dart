@@ -32,6 +32,8 @@ import '../application/patients_controllers.dart';
 import '../domain/patient_models.dart';
 import 'patient_form_dialog.dart';
 import 'patient_summary_tabs.dart';
+import '../../specialty_charts/presentation/perio_tab.dart';
+import '../../specialty_charts/presentation/specialty_charts_tab.dart';
 import '../../agenda/domain/agenda_models.dart';
 import 'patient_widgets.dart';
 
@@ -59,6 +61,8 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
     Strings.tabAnamnesis,
     Strings.tabEvolution,
     Strings.tabOdontogram,
+    Strings.tabCharts,
+    Strings.tabPerio,
     Strings.tabPhotos,
     Strings.tabDocuments,
     Strings.tabExams,
@@ -237,6 +241,8 @@ class _PatientRecordPageState extends ConsumerState<PatientRecordPage> {
                         AnamnesisTab(nrPatient: p.nrPatient),
                         EvolutionTab(nrPatient: p.nrPatient),
                         OdontogramTab(nrPatient: p.nrPatient),
+                        SpecialtyChartsTab(nrPatient: p.nrPatient),
+                        PerioTab(nrPatient: p.nrPatient),
                         PatientFilesTab(
                           nrPatient: p.nrPatient,
                           type: PatientFileType.photo,
