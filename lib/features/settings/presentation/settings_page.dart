@@ -5,6 +5,7 @@ import '../../clinical_record/presentation/anamnesis_models_section.dart';
 import '../../documents/presentation/document_settings_sections.dart';
 import '../../online_booking/presentation/online_booking_section.dart';
 import '../../notify/presentation/notify_section.dart';
+import '../../specialty_charts/presentation/chart_models_section.dart';
 import '../../whatsapp/presentation/whatsapp_section.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/responsive/breakpoints.dart';
@@ -164,6 +165,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           AnamnesisModelsSection(),
+                          SizedBox(height: AppSpacing.md),
+                          ChartModelsSection(),
                           SizedBox(height: AppSpacing.md),
                           DocumentTemplatesSection(),
                           SizedBox(height: AppSpacing.md),
