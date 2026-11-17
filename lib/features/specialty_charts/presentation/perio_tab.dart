@@ -589,6 +589,8 @@ class _PerioToothDialogState extends State<PerioToothDialog> {
 
   Widget _grid(String title, int from) {
     Widget cell(Widget w) => SizedBox(width: 58, child: w);
+    // coluna dos rotulos larga o bastante para "Sondagem" e "Recessão"
+    Widget label(Widget w) => SizedBox(width: 92, child: w);
     Widget input(TextEditingController c) => Padding(
       padding: const EdgeInsets.all(2),
       child: TextField(
@@ -613,7 +615,7 @@ class _PerioToothDialogState extends State<PerioToothDialog> {
         Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
         Row(
           children: [
-            cell(const SizedBox()),
+            label(const SizedBox()),
             for (final s in Strings.perioSiteNames.sublist(from, from + 3))
               cell(
                 Text(
@@ -626,7 +628,7 @@ class _PerioToothDialogState extends State<PerioToothDialog> {
         ),
         Row(
           children: [
-            cell(
+            label(
               const Text(Strings.perioProbing, style: TextStyle(fontSize: 12)),
             ),
             for (var i = from; i < from + 3; i++) cell(input(_probing[i])),
@@ -634,7 +636,7 @@ class _PerioToothDialogState extends State<PerioToothDialog> {
         ),
         Row(
           children: [
-            cell(
+            label(
               const Text(
                 Strings.perioRecession,
                 style: TextStyle(fontSize: 12),
@@ -645,7 +647,7 @@ class _PerioToothDialogState extends State<PerioToothDialog> {
         ),
         Row(
           children: [
-            cell(
+            label(
               const Text(
                 Strings.perioBleedingShort,
                 style: TextStyle(fontSize: 12),
@@ -657,7 +659,7 @@ class _PerioToothDialogState extends State<PerioToothDialog> {
         ),
         Row(
           children: [
-            cell(
+            label(
               const Text(
                 Strings.perioPlaqueShort,
                 style: TextStyle(fontSize: 12),

@@ -572,6 +572,8 @@ class _PatientChartDialogState extends ConsumerState<PatientChartDialog> {
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
+            // espaco para o rotulo flutuante da primeira linha (Data)
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
