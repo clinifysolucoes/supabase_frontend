@@ -42,6 +42,8 @@ enum ReportKind {
     ReportGroup.agenda,
     byProfessional: false,
   ),
+  categories('categories', Strings.reportCategories, ReportGroup.agenda),
+  markers('markers', Strings.reportMarkers, ReportGroup.agenda),
   birthdays(
     'birthdays',
     Strings.reportBirthdays,
@@ -291,6 +293,23 @@ List<ReportColumn> reportColumns(ReportKind kind) => switch (kind) {
     _mobile(),
     ReportColumn(Strings.reportColReason, (r) => _s(r['vc_return_alert'])),
     ReportColumn(Strings.reportColNext, (r) => _dateTime(r['dh_next'])),
+  ],
+  ReportKind.categories || ReportKind.markers => [
+    ReportColumn(
+      kind == ReportKind.categories
+          ? Strings.agendaCategory
+          : Strings.agendaMarkers,
+      (r) => r['vc_name'] == null ? Strings.reportNoCategory : _s(r['vc_name']),
+    ),
+    _num0(Strings.reportKpiAppointments, 'qt_total'),
+    _num0(Strings.reportKpiDone, 'qt_done'),
+    _num0(Strings.reportKpiNoShow, 'qt_no_show'),
+    _num0(Strings.reportKpiCancelled, 'qt_cancelled'),
+    ReportColumn(
+      Strings.reportColShare,
+      (r) => _pc(r['pc_total']),
+      numeric: true,
+    ),
   ],
   ReportKind.birthdays => [
     ReportColumn(Strings.reportColBirthday, (r) => _day(r['dt_birthday'])),

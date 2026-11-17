@@ -194,6 +194,14 @@ class _AppointmentDetailsDialogState
                 line(Icons.short_text_rounded, _a.vcTitle!),
               if (_a.vcProcedureName != null)
                 line(Icons.medical_services_outlined, _a.vcProcedureName!),
+              if (_a.vcCategory != null)
+                line(Icons.label_outline_rounded, _a.vcCategory!),
+              if (_a.vcChair != null) line(Icons.chair_outlined, _a.vcChair!),
+              if (_a.markers.isNotEmpty)
+                line(
+                  Icons.sell_outlined,
+                  _a.markers.map((m) => m.vcName).join(', '),
+                ),
               if ((_a.vcNotes ?? '').isNotEmpty)
                 line(Icons.notes_rounded, _a.vcNotes!),
               if (_a.idFitIn) line(Icons.call_split_rounded, Strings.fitIn),

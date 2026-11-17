@@ -296,7 +296,7 @@ class _ProfessionalFormDialogState
         ),
       ),
       const SizedBox(height: AppSpacing.sm),
-      _ColorPicker(
+      AgendaColorPicker(
         value: _color ?? AgendaColors.palette.first,
         enabled: _canEdit,
         onChanged: (c) => setState(() => _color = c),
@@ -421,8 +421,9 @@ class _ProfessionalFormDialogState
 }
 
 /// Bolinhas com as cores da paleta da agenda.
-class _ColorPicker extends StatelessWidget {
-  const _ColorPicker({
+class AgendaColorPicker extends StatelessWidget {
+  const AgendaColorPicker({
+    super.key,
     required this.value,
     required this.enabled,
     required this.onChanged,

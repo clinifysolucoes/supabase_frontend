@@ -33,6 +33,7 @@ class AppointmentFormDialog extends ConsumerStatefulWidget {
     this.day,
     this.startMinute,
     this.nrProfessional,
+    this.nrChair,
   });
 
   final Appointment? appointment;
@@ -43,6 +44,7 @@ class AppointmentFormDialog extends ConsumerStatefulWidget {
   final DateTime? day;
   final int? startMinute;
   final int? nrProfessional;
+  final int? nrChair;
 
   static Future<bool> show(
     BuildContext context, {
@@ -52,6 +54,7 @@ class AppointmentFormDialog extends ConsumerStatefulWidget {
     DateTime? day,
     int? startMinute,
     int? nrProfessional,
+    int? nrChair,
   }) async {
     final saved = await showDialog<bool>(
       context: context,
@@ -62,6 +65,7 @@ class AppointmentFormDialog extends ConsumerStatefulWidget {
         day: day,
         startMinute: startMinute,
         nrProfessional: nrProfessional,
+        nrChair: nrChair,
       ),
     );
     return saved ?? false;
@@ -96,6 +100,9 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
   late bool _fitIn = _a?.idFitIn ?? false;
   late final _title = TextEditingController(text: _a?.vcTitle ?? '');
   late final _notes = TextEditingController(text: _a?.vcNotes ?? '');
+  late int? _nrCategory = _a?.nrCategory;
+  late int? _nrChair = _a?.nrChair ?? widget.nrChair;
+  late final Set<int> _markers = {...?_a?.markers.map((m) => m.nrItem)};
   bool _saving = false;
 
   Appointment? get _a => widget.appointment;
@@ -192,6 +199,9 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
       vcNotes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
       idAllDay: allDay,
       idFitIn: _isConsultation && _fitIn,
+      nrCategory: _nrCategory,
+      nrChair: _nrChair,
+      nrMarkers: _markers.toList()..sort(),
     );
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
@@ -244,6 +254,109 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
         AppSnack.error(context, describeError(e));
       }
     }
+  }
+
+  /// Ativos e o que ja esta no agendamento (mesmo inativo).
+  List<AgendaTag> _usable(List<AgendaTag> all, Iterable<int> current) => [
+    for (final t in all)
+      if (t.isActive || current.contains(t.nrItem)) t,
+  ];
+
+  /// Categoria, cadeira e marcadores (so aparecem se a filial cadastrou).
+  List<Widget> _tagFields() {
+    final catalog =
+        ref.watch(appointmentsProvider).valueOrNull?.catalog ??
+        const AgendaCatalog();
+    final categories = _usable(catalog.categories, [
+      if (_nrCategory != null) _nrCategory!,
+    ]);
+    final chairs = _usable(catalog.chairs, [if (_nrChair != null) _nrChair!]);
+    final markers = _usable(catalog.markers, _markers);
+    Widget dot(String hex) => Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: Color(AgendaColors.argb(hex)),
+        shape: BoxShape.circle,
+      ),
+    );
+    Widget dropdown(
+      String label,
+      IconData icon,
+      List<AgendaTag> items,
+      int? value,
+      ValueChanged<int?> onChanged,
+    ) => DropdownButtonFormField<int?>(
+      isExpanded: true,
+      initialValue: items.any((t) => t.nrItem == value) ? value : null,
+      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
+      items: [
+        const DropdownMenuItem(value: null, child: Text(Strings.agendaNone)),
+        for (final t in items)
+          DropdownMenuItem(
+            value: t.nrItem,
+            child: Row(
+              children: [
+                dot(t.vcColor),
+                const SizedBox(width: AppSpacing.sm),
+                Flexible(
+                  child: Text(t.vcName, overflow: TextOverflow.ellipsis),
+                ),
+              ],
+            ),
+          ),
+      ],
+      onChanged: _saving ? null : onChanged,
+    );
+    return [
+      if (categories.isNotEmpty && _isConsultation) ...[
+        const SizedBox(height: AppSpacing.md),
+        dropdown(
+          Strings.agendaCategory,
+          Icons.label_outline_rounded,
+          categories,
+          _nrCategory,
+          (v) => setState(() => _nrCategory = v),
+        ),
+      ],
+      if (chairs.isNotEmpty) ...[
+        const SizedBox(height: AppSpacing.md),
+        dropdown(
+          Strings.agendaChair,
+          Icons.chair_outlined,
+          chairs,
+          _nrChair,
+          (v) => setState(() => _nrChair = v),
+        ),
+      ],
+      if (markers.isNotEmpty && _isConsultation) ...[
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          Strings.agendaMarkers,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final m in markers)
+              FilterChip(
+                avatar: dot(m.vcColor),
+                label: Text(m.vcName),
+                selected: _markers.contains(m.nrItem),
+                onSelected: _saving
+                    ? null
+                    : (v) => setState(
+                        () => v
+                            ? _markers.add(m.nrItem)
+                            : _markers.remove(m.nrItem),
+                      ),
+              ),
+          ],
+        ),
+      ],
+    ];
   }
 
   @override
@@ -442,6 +555,7 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
           value: _allDay,
           onChanged: _saving ? null : (v) => setState(() => _allDay = v),
         ),
+      ..._tagFields(),
       if (_isConsultation) ...[
         const SizedBox(height: AppSpacing.md),
         AppTextField(

@@ -2021,6 +2021,34 @@ abstract final class Strings {
   static const reportKpiEvents = 'Ações';
   static const reportKpiMessages = 'Mensagens';
 
+  static const agendaNone = 'Nenhuma';
+  static const agendaCategory = 'Categoria';
+  static const agendaCategories = 'Categorias de agendamento';
+  static const agendaCategoriesHint =
+      'Ex.: Avaliação, Retorno, Urgência. Cada consulta pode ter uma categoria; a cor pode colorir o cartão na agenda.';
+  static const agendaMarker = 'Marcador';
+  static const agendaMarkers = 'Marcadores';
+  static const agendaMarkersHint =
+      'Etiquetas livres (ex.: VIP, Primeira vez, Prefere manhã). Uma consulta pode ter vários.';
+  static const agendaChair = 'Cadeira';
+  static const agendaChairs = 'Cadeiras';
+  static const agendaChairsHint =
+      'Cadeiras ou consultórios. Cada cadeira atende um agendamento por vez (encaixe libera).';
+  static const agendaNoChair = 'Sem cadeira';
+  static const agendaCatalogEmpty = 'Nenhum cadastrado ainda.';
+  static const agendaCatalogNameRequired = 'Informe o nome.';
+  static const agendaMode = 'Colunas da agenda (visão do dia)';
+  static const agendaModeHint =
+      'Por cadeira mostra uma coluna para cada cadeira ativa (cadastre as cadeiras abaixo).';
+  static const agendaByProfessional = 'Por profissional';
+  static const agendaByChair = 'Por cadeira';
+  static const agendaColorByCategory = 'Colorir os agendamentos pela categoria';
+  static const agendaColorByCategoryHint =
+      'O cartão usa a cor da categoria em vez da cor do profissional.';
+  static const reportCategories = 'Por categoria';
+  static const reportMarkers = 'Por marcador';
+  static const reportNoCategory = 'Sem categoria';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';

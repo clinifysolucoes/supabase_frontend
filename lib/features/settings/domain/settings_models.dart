@@ -91,6 +91,9 @@ class BranchSettings {
     this.idBudgetReductionAsDiscount = false,
     this.itOpenRule = DebtRule.none,
     this.itLateEdit = 0,
+    this.idColorByCategory = false,
+    this.itAgendaMode = 1,
+    this.agendaCatalog = const AgendaCatalog(),
     this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
@@ -140,6 +143,11 @@ class BranchSettings {
       idBudgetReductionAsDiscount: s['id_budget_reduction_as_discount'] == true,
       itOpenRule: i('it_open_rule', DebtRule.none),
       itLateEdit: i('it_late_edit', 0),
+      idColorByCategory: s['id_color_by_category'] == true,
+      itAgendaMode: i('it_agenda_mode', 1),
+      agendaCatalog: AgendaCatalog.fromJson(
+        (j['agenda_catalog'] as Map?)?.cast<String, dynamic>() ?? const {},
+      ),
       nrNextReceipt: i('nr_next_receipt', 1),
       itMfaPolicy:
           ((j['security'] as Map?)?['it_mfa_policy'] as num?)?.toInt() ?? 0,
@@ -185,6 +193,13 @@ class BranchSettings {
 
   /// Multa e juros na baixa: 0 editaveis | 1 so administrador | 2 nao.
   final int itLateEdit;
+
+  /// Agenda: cartao com a cor da categoria; 1 por profissional | 2 por cadeira.
+  final bool idColorByCategory;
+  final int itAgendaMode;
+
+  /// Categorias, marcadores e cadeiras da agenda.
+  final AgendaCatalog agendaCatalog;
 
   /// Fusos do Brasil (ad.branch.vc_timezone).
   static const timezones = [

@@ -54,6 +54,9 @@ class AppointmentDraft {
     this.idAllDay = false,
     this.idFitIn = false,
     this.itStatus,
+    this.nrCategory,
+    this.nrChair,
+    this.nrMarkers = const [],
   });
 
   final int itType;
@@ -72,6 +75,11 @@ class AppointmentDraft {
   /// Somente na alteracao.
   final int? itStatus;
 
+  /// Categoria, cadeira e marcadores (cadastros da agenda).
+  final int? nrCategory;
+  final int? nrChair;
+  final List<int> nrMarkers;
+
   Map<String, dynamic> toJson() => {
     'it_type': itType,
     'nr_patient': nrPatient,
@@ -84,6 +92,9 @@ class AppointmentDraft {
     'id_all_day': idAllDay,
     'id_fit_in': idFitIn,
     if (itStatus != null) 'it_status': itStatus,
+    'nr_category': nrCategory,
+    'nr_chair': nrChair,
+    'nr_markers': nrMarkers,
   };
 }
 

@@ -23,6 +23,7 @@ import '../../../shared/widgets/app_shell.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../agenda/domain/agenda_models.dart';
+import '../../agenda/presentation/agenda_catalog_section.dart';
 import '../../agenda/presentation/week_schedule_editor.dart';
 import '../../finance/domain/finance_models.dart';
 import '../../session/application/permissions.dart';
@@ -153,9 +154,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         key: ValueKey(s.clinic),
                         settings: s,
                       ),
-                      _Section.agenda => _AgendaForm(
-                        key: ValueKey(s.hashCode),
-                        settings: s,
+                      _Section.agenda => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _AgendaForm(key: ValueKey(s.hashCode), settings: s),
+                          AgendaCatalogSection(catalog: s.agendaCatalog),
+                        ],
                       ),
                       _Section.patients => _PatientsForm(
                         key: ValueKey(s.hashCode),
@@ -544,6 +548,8 @@ class _AgendaFormState extends ConsumerState<_AgendaForm> {
   late int _slot = widget.settings.qtSlotMinutes;
   late int _parallel = widget.settings.qtMaxParallel;
   late bool _outside = widget.settings.idAllowOutsideHours;
+  late bool _byCategory = widget.settings.idColorByCategory;
+  late int _mode = widget.settings.itAgendaMode;
   late String _tz = widget.settings.clinic.vcTimezone ?? 'America/Sao_Paulo';
   late List<ScheduleRange> _hours = [...widget.settings.hours];
   bool _saving = false;
@@ -560,6 +566,8 @@ class _AgendaFormState extends ConsumerState<_AgendaForm> {
         'qt_slot_minutes': _slot,
         'qt_max_parallel': _parallel,
         'id_allow_outside_hours': _outside,
+        'id_color_by_category': _byCategory,
+        'it_agenda_mode': _mode,
         'hours': [for (final h in _hours) h.toJson()],
       });
       if (widget.settings.canEditClinic &&
@@ -631,6 +639,30 @@ class _AgendaFormState extends ConsumerState<_AgendaForm> {
           subtitle: const Text(Strings.settingsOutsideHint),
           value: _outside,
           onChanged: can ? (v) => setState(() => _outside = v) : null,
+        ),
+        _subtitle(context, Strings.agendaMode),
+        SegmentedButton<int>(
+          showSelectedIcon: false,
+          segments: const [
+            ButtonSegment(value: 1, label: Text(Strings.agendaByProfessional)),
+            ButtonSegment(value: 2, label: Text(Strings.agendaByChair)),
+          ],
+          selected: {_mode},
+          onSelectionChanged: can
+              ? (v) => setState(() => _mode = v.first)
+              : null,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        const Text(
+          Strings.agendaModeHint,
+          style: TextStyle(color: AppColors.muted, fontSize: 12),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.agendaColorByCategory),
+          subtitle: const Text(Strings.agendaColorByCategoryHint),
+          value: _byCategory,
+          onChanged: can ? (v) => setState(() => _byCategory = v) : null,
         ),
         _subtitle(context, Strings.settingsTimezone),
         SizedBox(

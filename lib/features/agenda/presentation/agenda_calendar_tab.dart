@@ -52,6 +52,7 @@ class AgendaCalendarTab extends ConsumerWidget {
     DateTime? day,
     int? minute,
     int? nrProfessional,
+    int? nrChair,
   }) async {
     final saved = await AppointmentFormDialog.show(
       context,
@@ -60,6 +61,7 @@ class AgendaCalendarTab extends ConsumerWidget {
       day: day,
       startMinute: minute,
       nrProfessional: nrProfessional,
+      nrChair: nrChair,
     );
     if (saved && context.mounted) {
       AppSnack.success(context, Strings.savedSuccess);
@@ -221,6 +223,65 @@ class AgendaCalendarTab extends ConsumerWidget {
           final win = TimeGrid.window([
             for (final p in visible) ...p.rangesOf(weekday),
           ], dayItems);
+          final chairs = [
+            for (final c in data?.catalog.chairs ?? const <AgendaTag>[])
+              if (c.isActive || dayItems.any((a) => a.nrChair == c.nrItem)) c,
+          ];
+          if ((data?.byChair ?? false) && chairs.isNotEmpty) {
+            final shown = [
+              for (final a in dayItems)
+                if (a.isClinicWide ||
+                    visible.any((p) => p.nrProfessional == a.nrProfessional))
+                  a,
+            ];
+            final loose = [
+              for (final a in shown)
+                if (a.nrChair == null || a.isClinicWide) a,
+            ];
+            return TimeGrid(
+              minuteFrom: win.from,
+              minuteTo: win.to,
+              columns: [
+                for (final c in chairs)
+                  GridColumn(
+                    title: c.vcName,
+                    subtitle: Strings.patientsCount(
+                      shown
+                          .where(
+                            (a) => a.isConsultation && a.nrChair == c.nrItem,
+                          )
+                          .length,
+                    ),
+                    color: Color(AgendaColors.argb(c.vcColor)),
+                    day: day,
+                    nrChair: c.nrItem,
+                    appointments: [
+                      for (final a in shown)
+                        if (a.nrChair == c.nrItem || a.isClinicWide) a,
+                    ],
+                  ),
+                if (loose.any((a) => !a.isClinicWide))
+                  GridColumn(
+                    title: Strings.agendaNoChair,
+                    day: day,
+                    appointments: loose,
+                  ),
+              ],
+              onTapSlot: (c, m) => canCreate
+                  ? _new(
+                      context,
+                      professionals,
+                      day: c.day,
+                      minute: m,
+                      nrProfessional: visible.length == 1
+                          ? visible.first.nrProfessional
+                          : null,
+                      nrChair: c.nrChair,
+                    )
+                  : null,
+              onTapAppointment: open,
+            );
+          }
           return TimeGrid(
             minuteFrom: win.from,
             minuteTo: win.to,

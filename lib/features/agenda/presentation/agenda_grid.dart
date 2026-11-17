@@ -17,6 +17,7 @@ class GridColumn {
     this.subtitle,
     this.color,
     this.nrProfessional,
+    this.nrChair,
     this.available,
     this.highlight = false,
   });
@@ -26,6 +27,9 @@ class GridColumn {
   final Color? color;
   final DateTime day;
   final int? nrProfessional;
+
+  /// Coluna de cadeira (agenda por cadeira).
+  final int? nrChair;
   final List<Appointment> appointments;
   final List<ScheduleRange>? available;
 
@@ -437,9 +441,9 @@ class AppointmentBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = appointment;
-    final base = a.vcProfessionalColor == null
+    final base = a.cardColor == null
         ? AppColors.muted
-        : Color(AgendaColors.argb(a.vcProfessionalColor!));
+        : Color(AgendaColors.argb(a.cardColor!));
     final status = Color(AppointmentStatus.color(a.itStatus));
     final consult = a.isConsultation;
     return Tooltip(
@@ -447,6 +451,9 @@ class AppointmentBlock extends StatelessWidget {
         a.headline,
         if (consult) AppointmentStatus.label(a.itStatus),
         if (a.isClinicWide) Strings.forWholeClinic,
+        if (a.vcCategory != null) a.vcCategory!,
+        if (a.vcChair != null) a.vcChair!,
+        for (final m in a.markers) m.vcName,
         if (a.itFinStatus != null) FinSeal.label(a.itFinStatus!),
       ].join(' · '),
       child: Material(
@@ -488,6 +495,18 @@ class AppointmentBlock extends StatelessWidget {
                                 Icons.public_rounded,
                                 size: 12,
                                 color: AppColors.primary,
+                              ),
+                            ),
+                          for (final m in a.markers)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 3),
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: Color(AgendaColors.argb(m.vcColor)),
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
                           Expanded(
@@ -672,9 +691,9 @@ class _MonthCell extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 3),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: a.vcProfessionalColor == null
+                      color: a.cardColor == null
                           ? AppColors.muted
-                          : Color(AgendaColors.argb(a.vcProfessionalColor!)),
+                          : Color(AgendaColors.argb(a.cardColor!)),
                     ),
                   ),
                   Expanded(
