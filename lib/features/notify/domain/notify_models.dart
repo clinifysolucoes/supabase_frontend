@@ -65,6 +65,8 @@ class NotifySettings {
     this.vcEmailReplyTo,
     this.idReminder = true,
     this.qtReminderHours = 24,
+    this.qtResend = 0,
+    this.qtResendHours = 4,
     this.idBooked = true,
     this.idReturn = false,
     this.qtSendHour = 9,
@@ -90,6 +92,8 @@ class NotifySettings {
       vcEmailReplyTo: s['vc_email_reply_to'] as String?,
       idReminder: s['id_reminder'] as bool? ?? true,
       qtReminderHours: _int(s['qt_reminder_hours'], 24),
+      qtResend: _int(s['qt_resend'], 0),
+      qtResendHours: _int(s['qt_resend_hours'], 4),
       idBooked: s['id_booked'] as bool? ?? true,
       idReturn: s['id_return'] as bool? ?? false,
       qtSendHour: _int(s['qt_send_hour'], 9),
@@ -110,6 +114,10 @@ class NotifySettings {
   final String? vcEmailReplyTo;
   final bool idReminder;
   final int qtReminderHours;
+
+  /// Reenvios do lembrete sem confirmacao (0 a 3) e horas entre eles.
+  final int qtResend;
+  final int qtResendHours;
   final bool idBooked;
   final bool idReturn;
   final int qtSendHour;

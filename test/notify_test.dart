@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:odonto_app/features/notify/domain/notify_models.dart';
 import 'package:odonto_app/features/notify/presentation/notify_confirm_page.dart';
 import 'package:odonto_app/features/notify/presentation/notify_section.dart';
+import 'package:odonto_app/features/notify/presentation/resend_fields.dart';
+import 'package:odonto_app/l10n/strings.dart';
 
 final _settings = {
   'settings': {
@@ -31,6 +33,37 @@ final _settings = {
 };
 
 void main() {
+  testWidgets('Reenvio do lembrete: quantidade e intervalo', (tester) async {
+    var resend = 0;
+    var hours = 4;
+    expect(
+      NotifySettings.fromJson({
+        'settings': {'qt_resend': 2, 'qt_resend_hours': 6},
+      }).qtResend,
+      2,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, set) => ResendFields(
+              resend: resend,
+              hours: hours,
+              enabled: true,
+              onResend: (v) => set(() => resend = v),
+              onHours: (v) => set(() => hours = v),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text(Strings.resendEvery), findsNothing);
+    await tester.tap(find.text(Strings.resendTimes(3)));
+    await tester.pumpAndSettle();
+    expect(resend, 3);
+    expect(find.text(Strings.resendHours(4)), findsOneWidget);
+  });
+
   test('Le a configuracao e monta a previa', () {
     final s = NotifySettings.fromJson(_settings);
     expect(s.idEmail, isTrue);
