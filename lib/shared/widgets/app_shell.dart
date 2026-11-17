@@ -9,6 +9,7 @@ import '../../features/session/domain/screen_codes.dart';
 import '../../features/session/presentation/branch_selection_dialog.dart';
 import '../../l10n/strings.dart';
 import 'app_logo.dart';
+import 'menu_icons.dart';
 
 enum AppSection {
   dashboard,
@@ -35,6 +36,7 @@ class _Destination {
     required this.selectedIcon,
     required this.label,
     required this.route,
+    this.glyph,
   });
 
   final AppSection section;
@@ -43,6 +45,17 @@ class _Destination {
   final IconData selectedIcon;
   final String label;
   final String route;
+
+  /// Icone desenhado (tem prioridade sobre [icon]/[selectedIcon]).
+  final MenuGlyph? glyph;
+
+  Widget iconWidget({required bool selected, double size = 24, Color? color}) {
+    final g = glyph;
+    if (g != null) {
+      return MenuGlyphIcon(g, filled: selected, size: size, color: color);
+    }
+    return Icon(selected ? selectedIcon : icon, size: size, color: color);
+  }
 }
 
 const _dashboard = _Destination(
@@ -87,6 +100,7 @@ const _prosthetic = _Destination(
   code: ScreenCodes.prosthetic,
   icon: Icons.precision_manufacturing_outlined,
   selectedIcon: Icons.precision_manufacturing_rounded,
+  glyph: MenuGlyph.toothDocument,
   label: Strings.prosthetic,
   route: '/protese',
 );
@@ -96,6 +110,7 @@ const _finance = _Destination(
   code: ScreenCodes.finance,
   icon: Icons.account_balance_wallet_outlined,
   selectedIcon: Icons.account_balance_wallet_rounded,
+  glyph: MenuGlyph.coins,
   label: Strings.finance,
   route: '/financeiro',
 );
@@ -485,8 +500,8 @@ class _NavTile extends StatelessWidget {
                 : MainAxisAlignment.center,
             children: [
               SizedBox(width: wide ? AppSpacing.md : 0),
-              Icon(
-                selected ? destination.selectedIcon : destination.icon,
+              destination.iconWidget(
+                selected: selected,
                 size: 22,
                 color: color,
               ),
@@ -603,8 +618,8 @@ class _MobileShell extends StatelessWidget {
               ),
               for (final d in adminItems)
                 ListTile(
-                  leading: Icon(
-                    d.section == section ? d.selectedIcon : d.icon,
+                  leading: d.iconWidget(
+                    selected: d.section == section,
                     color: d.section == section
                         ? AppColors.primaryDark
                         : AppColors.muted,
@@ -659,8 +674,8 @@ class _MobileShell extends StatelessWidget {
         destinations: [
           for (final d in mainItems)
             NavigationDestination(
-              icon: Icon(d.icon),
-              selectedIcon: Icon(d.selectedIcon),
+              icon: d.iconWidget(selected: false),
+              selectedIcon: d.iconWidget(selected: true),
               label: d.label,
             ),
           if (adminItems.isNotEmpty)
