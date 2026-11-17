@@ -129,6 +129,62 @@ void main() {
     expect(find.textContaining('2001'), findsOneWidget);
   });
 
+  testWidgets('Relatorios novos desenham com linhas de exemplo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final row = <String, dynamic>{
+      'dh_start': '2030-03-05T13:00:00Z',
+      'dt_budget': '2030-03-02',
+      'dh_accepted': '2030-03-03T15:00:00Z',
+      'dt_return_alert': '2030-03-20',
+      'dt_due': '2030-03-01',
+      'dt_competence': '2030-03-10',
+      'vc_patient': 'Ana',
+      'vc_professional': 'Dr. Ivo',
+      'vc_user': 'Eli',
+      'vc_city': 'Curitiba',
+      'vc_state': 'PR',
+      'vc_plan': 'Uni',
+      'it_status': 2,
+      'it_band': 4,
+      'it_channel': 3,
+      'it_kind': 1,
+      'it_source': 1,
+      'qt_items': 2,
+      'qt_done': 1,
+      'vl_total': 300,
+      'vl_pending': 100,
+      'vl_amount': 80,
+    };
+    for (final k in ReportKind.values) {
+      final r = ReportResult.fromJson(k, {
+        'rows': [row],
+        'summary': {'qt_total': 1, 'vl_total': 300, 'vl_mean_age': 36.5},
+        'by_professional': [
+          {'vc_professional': 'Dr. Ivo', 'qt_total': 1, 'vl_total': 300},
+          {'vc_professional': 'Dra. Rosa', 'qt_total': 2, 'vl_total': 50},
+        ],
+      });
+      expect(reportColumns(k), isNotEmpty, reason: k.code);
+      expect(utf8.decode(r.toCsv().sublist(3)).split('\n'), hasLength(3));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(child: ReportView(result: r)),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull, reason: k.code);
+    }
+    expect(ReportGroup.values.every((g) => g.kinds.isNotEmpty), isTrue);
+    expect(ReportKind.ageGroups.usesPeriod, isFalse);
+    expect(ReportKind.revenue.needs, ReportNeeds.finance);
+    expect(reportAgeBand(4), '30 a 39 anos');
+  });
+
   testWidgets('Resumo por profissional aparece com mais de um', (tester) async {
     tester.view.physicalSize = const Size(1200, 1600);
     tester.view.devicePixelRatio = 1;
