@@ -12,6 +12,7 @@ import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_page_header.dart';
 import '../../../shared/widgets/app_shell.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/menu_icons.dart';
 import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/prosthetic_controllers.dart';
@@ -109,7 +110,11 @@ class ProstheticPage extends ConsumerWidget {
             ),
             data: (d) => d.works.isEmpty
                 ? const AppEmptyState(
-                    icon: Icons.precision_manufacturing_outlined,
+                    iconWidget: MenuGlyphIcon(
+                      MenuGlyph.toothDocument,
+                      size: 30,
+                      color: AppColors.primaryDark,
+                    ),
                     title: Strings.prosEmpty,
                     subtitle: Strings.prosEmptySubtitle,
                   )

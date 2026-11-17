@@ -120,6 +120,7 @@ const _stock = _Destination(
   code: ScreenCodes.stock,
   icon: Icons.inventory_2_outlined,
   selectedIcon: Icons.inventory_2_rounded,
+  glyph: MenuGlyph.shelves,
   label: Strings.stock,
   route: '/estoque',
 );
