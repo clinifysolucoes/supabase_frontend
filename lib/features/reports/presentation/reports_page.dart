@@ -36,6 +36,14 @@ class ReportsPage extends ConsumerWidget {
       );
     }
     final canFinance = ref.watch(canReadProvider(ScreenCodes.finance));
+    final canBudgets = ref.watch(canReadProvider(ScreenCodes.budgets));
+    final canLogs = ref.watch(canReadProvider(ScreenCodes.logs));
+    bool allowed(ReportKind k) => switch (k.needs) {
+      ReportNeeds.none => true,
+      ReportNeeds.finance => canFinance,
+      ReportNeeds.budgets => canBudgets,
+      ReportNeeds.logs => canLogs,
+    };
     final q = ref.watch(reportQueryProvider);
     final result = ref.watch(reportProvider);
     return AppShell(
@@ -59,12 +67,26 @@ class ReportsPage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+          SegmentedButton<ReportGroup>(
+            showSelectedIcon: false,
+            segments: [
+              for (final g in ReportGroup.values)
+                if (g.kinds.any(allowed))
+                  ButtonSegment(value: g, label: Text(g.label)),
+            ],
+            selected: {q.kind.group},
+            onSelectionChanged: (v) =>
+                ref.read(reportQueryProvider.notifier).state = q.copyWith(
+                  kind: v.first.kinds.firstWhere(allowed),
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.xs,
             children: [
-              for (final k in ReportKind.values)
-                if (!k.needsFinance || canFinance)
+              for (final k in q.kind.group.kinds)
+                if (allowed(k))
                   ChoiceChip(
                     label: Text(k.label),
                     selected: q.kind == k,
@@ -143,12 +165,18 @@ class _Filters extends ConsumerWidget {
       ),
     );
 
+    if (!q.kind.usesPeriod) {
+      return const Text(
+        Strings.reportNoPeriod,
+        style: TextStyle(color: AppColors.muted),
+      );
+    }
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        if (q.kind == ReportKind.birthdays) ...[
+        if (q.kind.forward) ...[
           month(Strings.reportThisMonth, 0),
           month(Strings.reportNextMonth, 1),
         ] else ...[
@@ -264,8 +292,96 @@ class ReportView extends StatelessWidget {
       (Strings.reportKpiCancelled, '${r.qt('qt_cancelled')}'),
       (Strings.reportKpiNoShowRate, Numbers.percent(r.vl('pc_no_show'))),
     ],
+    ReportKind.appointments => [
+      (Strings.reportKpiAppointments, '${r.qt('qt_total')}'),
+      (Strings.reportKpiConfirmed, '${r.qt('qt_confirmed')}'),
+      (Strings.reportKpiDone, '${r.qt('qt_done')}'),
+      (Strings.reportKpiNoShow, '${r.qt('qt_no_show')}'),
+      (Strings.reportKpiCancelled, '${r.qt('qt_cancelled')}'),
+      (Strings.reportKpiOnline, '${r.qt('qt_online')}'),
+    ],
+    ReportKind.firstVisit => [
+      (Strings.reportKpiFirst, '${r.qt('qt_first')}'),
+      (Strings.reportKpiDone, '${r.qt('qt_done')}'),
+      (Strings.reportKpiNoShow, '${r.qt('qt_no_show')}'),
+    ],
+    ReportKind.returnAlerts => [
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+      (Strings.reportKpiScheduled, '${r.qt('qt_scheduled')}'),
+    ],
     ReportKind.birthdays => [
       (Strings.reportKpiPatients, '${r.qt('qt_patients')}'),
+    ],
+    ReportKind.ageGroups => [
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+      (
+        Strings.reportKpiMeanAge,
+        r.summary['vl_mean_age'] == null
+            ? '-'
+            : r.vl('vl_mean_age').toStringAsFixed(1).replaceAll('.', ','),
+      ),
+    ],
+    ReportKind.location => [
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+      (Strings.reportKpiCities, '${r.qt('qt_cities')}'),
+      (Strings.reportNoAddress, '${r.qt('qt_no_address')}'),
+    ],
+    ReportKind.lastVisit => [
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+    ],
+    ReportKind.budgets => [
+      (Strings.reportKpiBudgets, '${r.qt('qt_total')}'),
+      (Strings.reportKpiApproved, '${r.qt('qt_approved')}'),
+      (Strings.reportKpiRefused, '${r.qt('qt_refused')}'),
+      (Strings.reportKpiOpenBudgets, '${r.qt('qt_open')}'),
+      (Strings.reportKpiTotal, Numbers.money(r.vl('vl_total'))),
+      (Strings.reportKpiApprovedValue, Numbers.money(r.vl('vl_approved'))),
+      (Strings.reportKpiConversion, Numbers.percent(r.vl('pc_conversion'))),
+    ],
+    ReportKind.openTreatments => [
+      (Strings.reportKpiBudgets, '${r.qt('qt_budgets')}'),
+      (Strings.reportKpiPendingItems, '${r.qt('qt_items_pending')}'),
+      (Strings.reportKpiPendingValue, Numbers.money(r.vl('vl_pending'))),
+    ],
+    ReportKind.pendingProcedures => [
+      (Strings.reportKpiPendingItems, '${r.qt('qt_items')}'),
+      (Strings.reportKpiPendingValue, Numbers.money(r.vl('vl_total'))),
+    ],
+    ReportKind.implants => [
+      (Strings.reportKpiProcedures, '${r.qt('qt_procedures')}'),
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+    ],
+    ReportKind.revenue => [
+      (Strings.reportKpiTotal, Numbers.money(r.vl('vl_total'))),
+      (Strings.reportReceived, Numbers.money(r.vl('vl_received'))),
+      (Strings.reportToReceive, Numbers.money(r.vl('vl_open'))),
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+      (Strings.reportKpiTicket, Numbers.money(r.vl('vl_ticket'))),
+    ],
+    ReportKind.overdue => [
+      (Strings.reportKpiEntries, '${r.qt('qt_entries')}'),
+      (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
+      (Strings.reportKpiTotal, Numbers.money(r.vl('vl_total'))),
+    ],
+    ReportKind.healthPlans => [
+      (Strings.reportKpiGuides, '${r.qt('qt_guides')}'),
+      (Strings.reportKpiTotal, Numbers.money(r.vl('vl_total'))),
+      (Strings.reportColReceived, Numbers.money(r.vl('vl_paid'))),
+      (Strings.reportColDenied, Numbers.money(r.vl('vl_denied'))),
+    ],
+    ReportKind.userAccess => [
+      (Strings.reportKpiUsers, '${r.qt('qt_users')}'),
+      (Strings.reportKpiAccesses, '${r.qt('qt_access')}'),
+    ],
+    ReportKind.userActions => [
+      (Strings.reportKpiUsers, '${r.qt('qt_users')}'),
+      (Strings.reportKpiEvents, '${r.qt('qt_events')}'),
+    ],
+    ReportKind.messages => [
+      (Strings.reportKpiMessages, '${r.qt('qt_total')}'),
+      (Strings.reportColSent, '${r.qt('qt_sent')}'),
+      (Strings.reportColErrors, '${r.qt('qt_error')}'),
+      (Strings.reportColConfirmed, '${r.qt('qt_confirmed')}'),
     ],
     ReportKind.procedures => [
       (Strings.reportKpiProcedures, '${r.qt('qt_procedures')}'),
@@ -327,7 +443,126 @@ class ReportView extends StatelessWidget {
         ReportColumn(Strings.reportPaid, (r) => m(r['vl_paid']), numeric: true),
         ReportColumn(Strings.reportOpen, (r) => m(r['vl_open']), numeric: true),
       ],
-      ReportKind.birthdays => [name],
+      ReportKind.appointments => [
+        name,
+        ReportColumn(
+          Strings.reportKpiAppointments,
+          (r) => q(r['qt_total']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiDone,
+          (r) => q(r['qt_done']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiNoShow,
+          (r) => q(r['qt_no_show']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiCancelled,
+          (r) => q(r['qt_cancelled']),
+          numeric: true,
+        ),
+      ],
+      ReportKind.firstVisit => [
+        name,
+        ReportColumn(
+          Strings.reportKpiFirst,
+          (r) => q(r['qt_first']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiDone,
+          (r) => q(r['qt_done']),
+          numeric: true,
+        ),
+      ],
+      ReportKind.lastVisit => [
+        name,
+        ReportColumn(
+          Strings.reportKpiPatientsAll,
+          (r) => q(r['qt_patients']),
+          numeric: true,
+        ),
+      ],
+      ReportKind.budgets => [
+        name,
+        ReportColumn(
+          Strings.reportKpiBudgets,
+          (r) => q(r['qt_total']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiApproved,
+          (r) => q(r['qt_approved']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiApprovedValue,
+          (r) => m(r['vl_approved']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiConversion,
+          (r) => Numbers.percent((r['pc_conversion'] as num?) ?? 0),
+          numeric: true,
+        ),
+      ],
+      ReportKind.openTreatments => [
+        name,
+        ReportColumn(
+          Strings.reportKpiBudgets,
+          (r) => q(r['qt_budgets']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiPendingValue,
+          (r) => m(r['vl_pending']),
+          numeric: true,
+        ),
+      ],
+      ReportKind.pendingProcedures => [
+        name,
+        ReportColumn(
+          Strings.reportKpiPendingItems,
+          (r) => q(r['qt_items']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportKpiPendingValue,
+          (r) => m(r['vl_total']),
+          numeric: true,
+        ),
+      ],
+      ReportKind.implants => [
+        name,
+        ReportColumn(
+          Strings.reportKpiProcedures,
+          (r) => q(r['qt_procedures']),
+          numeric: true,
+        ),
+      ],
+      ReportKind.revenue => [
+        name,
+        ReportColumn(
+          Strings.reportKpiTotal,
+          (r) => m(r['vl_total']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportReceived,
+          (r) => m(r['vl_received']),
+          numeric: true,
+        ),
+        ReportColumn(
+          Strings.reportToReceive,
+          (r) => m(r['vl_open']),
+          numeric: true,
+        ),
+      ],
+      _ => [name],
     };
   }
 }
