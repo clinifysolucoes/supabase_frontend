@@ -72,6 +72,7 @@ final _profs = ProfessionalListData.fromJson({
 class _FakeRepo implements AgendaRepository {
   final changes = <Map<String, dynamic>>[];
   AppointmentDraft? created;
+  bool byChair = false;
 
   @override
   Future<ProfessionalListData> professionals({
@@ -90,10 +91,53 @@ class _FakeRepo implements AgendaRepository {
     bool includeCancelled = false,
   }) async => AppointmentListData.fromJson({
     'appointments': [
-      _appt(1, 1, 9, 0, 10, 0),
+      {
+        ..._appt(1, 1, 9, 0, 10, 0),
+        'nr_category': 1,
+        'vc_category': 'Avaliação',
+        'vc_category_color': '#D64545',
+        'vc_display_color': '#D64545',
+        'nr_chair': 1,
+        'vc_chair': 'Cadeira 1',
+        'markers': [
+          {'nr_marker': 1, 'vc_name': 'VIP', 'vc_color': '#6C5CE7'},
+        ],
+      },
       _appt(2, 2, 14, 0, 14, 30, patient: 'Paciente Dois', status: 2),
     ],
     'return_alerts': [],
+    'it_agenda_mode': byChair ? 2 : 1,
+    'categories': [
+      {
+        'nr_item': 1,
+        'vc_name': 'Avaliação',
+        'vc_color': '#D64545',
+        'it_status': 1,
+      },
+    ],
+    'markers': [
+      {'nr_item': 1, 'vc_name': 'VIP', 'vc_color': '#6C5CE7', 'it_status': 1},
+      {
+        'nr_item': 2,
+        'vc_name': 'Antigo',
+        'vc_color': '#64748B',
+        'it_status': 90,
+      },
+    ],
+    'chairs': [
+      {
+        'nr_item': 1,
+        'vc_name': 'Cadeira 1',
+        'vc_color': '#0E8C86',
+        'it_status': 1,
+      },
+      {
+        'nr_item': 2,
+        'vc_name': 'Cadeira 2',
+        'vc_color': '#3B82F6',
+        'it_status': 1,
+      },
+    ],
   });
 
   @override
@@ -283,6 +327,45 @@ void main() {
       await tester.tap(find.text(Strings.viewMonth));
       await tester.pumpAndSettle();
       expect(find.text('09:00 Paciente Um'), findsWidgets);
+    });
+
+    testWidgets('categoria, marcadores e agenda por cadeira', (tester) async {
+      repo.byChair = true;
+      await pump(tester, const Size(1400, 900));
+      expect(find.text('Cadeira 1'), findsOneWidget);
+      expect(find.text('Cadeira 2'), findsOneWidget);
+      expect(find.text(Strings.agendaNoChair), findsOneWidget);
+      expect(find.text('Paciente Um'), findsOneWidget);
+      // detalhe mostra categoria, cadeira e marcadores
+      await tester.tap(find.text('Paciente Um'));
+      await tester.pumpAndSettle();
+      expect(find.text('Avaliação'), findsOneWidget);
+      expect(find.text('VIP'), findsOneWidget);
+    });
+
+    test('modelo: cor do cartao e catalogo', () async {
+      final data = await _FakeRepo().appointments(
+        nrCompany: 1,
+        nrBranch: 1,
+        from: _day,
+        to: _day,
+      );
+      final a = data.appointments.first;
+      expect(a.cardColor, '#D64545');
+      expect(a.markers.single.vcName, 'VIP');
+      expect(data.appointments.last.cardColor, '#E9A23B');
+      expect(data.catalog.markers.where((m) => m.isActive), hasLength(1));
+      expect(data.byChair, isFalse);
+      final draft = AppointmentDraft(
+        itType: 1,
+        dhStart: _day,
+        dhEnd: _day,
+        nrChair: 2,
+        nrMarkers: const [1],
+      ).toJson();
+      expect(draft['nr_chair'], 2);
+      expect(draft['nr_markers'], [1]);
+      expect(draft.containsKey('nr_category'), isTrue);
     });
 
     testWidgets('celular: lista do dia', (tester) async {

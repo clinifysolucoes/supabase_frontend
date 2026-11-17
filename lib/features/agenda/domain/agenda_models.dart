@@ -300,6 +300,13 @@ class Appointment {
     this.itOrigin = 1,
     this.itWaStatus,
     this.vcWaReply,
+    this.nrCategory,
+    this.vcCategory,
+    this.vcCategoryColor,
+    this.nrChair,
+    this.vcChair,
+    this.markers = const [],
+    this.vcDisplayColor,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
@@ -334,6 +341,20 @@ class Appointment {
         ? null
         : _int(json['it_wa_status']),
     vcWaReply: json['vc_wa_reply']?.toString(),
+    nrCategory: json['nr_category'] == null ? null : _int(json['nr_category']),
+    vcCategory: json['vc_category']?.toString(),
+    vcCategoryColor: json['vc_category_color']?.toString(),
+    nrChair: json['nr_chair'] == null ? null : _int(json['nr_chair']),
+    vcChair: json['vc_chair']?.toString(),
+    markers: [
+      for (final m in _list(json['markers']))
+        AgendaTag(
+          nrItem: _int((m as Map)['nr_marker']),
+          vcName: m['vc_name']?.toString() ?? '',
+          vcColor: m['vc_color']?.toString() ?? '#0E8C86',
+        ),
+    ],
+    vcDisplayColor: json['vc_display_color']?.toString(),
   );
 
   final int nrAppointment;
@@ -370,6 +391,20 @@ class Appointment {
   /// do paciente (CONFIRM | RESCHEDULE); null = sem lembrete.
   final int? itWaStatus;
   final String? vcWaReply;
+
+  /// Categoria, cadeira e marcadores (cadastros da agenda).
+  final int? nrCategory;
+  final String? vcCategory;
+  final String? vcCategoryColor;
+  final int? nrChair;
+  final String? vcChair;
+  final List<AgendaTag> markers;
+
+  /// Cor do cartao: a da categoria (se a filial colore por categoria) ou a do
+  /// profissional.
+  final String? vcDisplayColor;
+
+  String? get cardColor => vcDisplayColor ?? vcProfessionalColor;
 
   bool get waConfirmed => vcWaReply == 'CONFIRM';
   bool get waReschedule => vcWaReply == 'RESCHEDULE';
@@ -431,11 +466,82 @@ class ReturnAlert {
   final String? vcReturnAlert;
 }
 
+/// Item dos cadastros da agenda (categoria, marcador ou cadeira).
+class AgendaTag {
+  const AgendaTag({
+    required this.nrItem,
+    required this.vcName,
+    this.vcColor = '#0E8C86',
+    this.itStatus = 1,
+  });
+
+  factory AgendaTag.fromJson(Map<String, dynamic> json) => AgendaTag(
+    nrItem: _int(json['nr_item']),
+    vcName: json['vc_name']?.toString() ?? '',
+    vcColor: json['vc_color']?.toString() ?? '#0E8C86',
+    itStatus: _int(json['it_status'] ?? 1),
+  );
+
+  final int nrItem;
+  final String vcName;
+  final String vcColor;
+  final int itStatus;
+
+  bool get isActive => itStatus == 1;
+}
+
+/// Tipo de cadastro da agenda (vc_entity de ad.agenda_catalog_save).
+enum AgendaCatalogKind {
+  category('category'),
+  marker('marker'),
+  chair('chair');
+
+  const AgendaCatalogKind(this.code);
+
+  final String code;
+}
+
+/// Categorias, marcadores e cadeiras da filial.
+class AgendaCatalog {
+  const AgendaCatalog({
+    this.categories = const [],
+    this.markers = const [],
+    this.chairs = const [],
+  });
+
+  factory AgendaCatalog.fromJson(Map<String, dynamic> json) => AgendaCatalog(
+    categories: [
+      for (final c in _list(json['categories']))
+        AgendaTag.fromJson((c as Map).cast<String, dynamic>()),
+    ],
+    markers: [
+      for (final c in _list(json['markers']))
+        AgendaTag.fromJson((c as Map).cast<String, dynamic>()),
+    ],
+    chairs: [
+      for (final c in _list(json['chairs']))
+        AgendaTag.fromJson((c as Map).cast<String, dynamic>()),
+    ],
+  );
+
+  final List<AgendaTag> categories;
+  final List<AgendaTag> markers;
+  final List<AgendaTag> chairs;
+
+  List<AgendaTag> of(AgendaCatalogKind kind) => switch (kind) {
+    AgendaCatalogKind.category => categories,
+    AgendaCatalogKind.marker => markers,
+    AgendaCatalogKind.chair => chairs,
+  };
+}
+
 /// Resposta de ad.appointment_list.
 class AppointmentListData {
   const AppointmentListData({
     this.appointments = const [],
     this.returnAlerts = const [],
+    this.catalog = const AgendaCatalog(),
+    this.byChair = false,
   });
 
   factory AppointmentListData.fromJson(Map<String, dynamic> json) =>
@@ -448,10 +554,18 @@ class AppointmentListData {
           for (final r in _list(json['return_alerts']))
             ReturnAlert.fromJson((r as Map).cast<String, dynamic>()),
         ],
+        catalog: AgendaCatalog.fromJson(json),
+        byChair: _int(json['it_agenda_mode'] ?? 1) == 2,
       );
 
   final List<Appointment> appointments;
   final List<ReturnAlert> returnAlerts;
+
+  /// Categorias, marcadores e cadeiras (todos, inclusive inativos).
+  final AgendaCatalog catalog;
+
+  /// A visao do dia e por cadeira (od.branch_setting.it_agenda_mode = 2).
+  final bool byChair;
 }
 
 /// Visualizacao da grade.

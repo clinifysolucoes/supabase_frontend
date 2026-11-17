@@ -305,6 +305,15 @@ class ReportView extends StatelessWidget {
       (Strings.reportKpiDone, '${r.qt('qt_done')}'),
       (Strings.reportKpiNoShow, '${r.qt('qt_no_show')}'),
     ],
+    ReportKind.categories || ReportKind.markers => [
+      (Strings.reportKpiAppointments, '${r.qt('qt_appointments')}'),
+      (
+        r.kind == ReportKind.categories
+            ? Strings.agendaCategories
+            : Strings.agendaMarkers,
+        '${r.qt('qt_groups')}',
+      ),
+    ],
     ReportKind.returnAlerts => [
       (Strings.reportKpiPatientsAll, '${r.qt('qt_patients')}'),
       (Strings.reportKpiScheduled, '${r.qt('qt_scheduled')}'),
