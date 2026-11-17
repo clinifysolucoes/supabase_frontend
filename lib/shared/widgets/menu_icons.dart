@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Icones desenhados para o menu (o Material nao tem pilha de moedas com
 /// cifrao nem dente). Mesma grade 24x24 dos icones do Material: contorno
 /// quando o item nao esta selecionado, cheio quando esta.
-enum MenuGlyph { coins, toothDocument }
+enum MenuGlyph { coins, toothDocument, shelves }
 
 class MenuGlyphIcon extends StatelessWidget {
   const MenuGlyphIcon(
@@ -28,6 +28,7 @@ class MenuGlyphIcon extends StatelessWidget {
         painter: switch (glyph) {
           MenuGlyph.coins => _CoinsPainter(c, filled),
           MenuGlyph.toothDocument => _ToothDocPainter(c, filled),
+          MenuGlyph.shelves => _ShelvesPainter(c, filled),
         },
       ),
     );
@@ -184,6 +185,56 @@ class _ToothDocPainter extends _GlyphPainter {
       canvas.drawPath(_paper(), stroke);
       canvas.drawPath(_fold(), stroke);
       canvas.drawPath(_tooth(), stroke..strokeWidth = 1.5);
+    }
+  }
+}
+
+/// Estante: dois montantes, duas prateleiras e caixinhas de tamanhos
+/// diferentes (as maiores com a fita no meio).
+class _ShelvesPainter extends _GlyphPainter {
+  _ShelvesPainter(super.color, super.filled);
+
+  static const _boxes = [
+    // prateleira de cima (apoiadas em y = 11.2)
+    Rect.fromLTRB(5.2, 5.2, 10.8, 11.2),
+    Rect.fromLTRB(12, 7.4, 16.2, 11.2),
+    Rect.fromLTRB(17.2, 8.6, 19.2, 11.2),
+    // prateleira de baixo (apoiadas em y = 20.2)
+    Rect.fromLTRB(5.2, 15.4, 9, 20.2),
+    Rect.fromLTRB(10.2, 13.4, 17, 20.2),
+  ];
+
+  @override
+  void paint24(Canvas canvas) {
+    final frame = stroke..strokeWidth = filled ? 2 : 1.7;
+    // montantes e prateleiras
+    canvas.drawLine(const Offset(3, 2.5), const Offset(3, 22), frame);
+    canvas.drawLine(const Offset(21, 2.5), const Offset(21, 22), frame);
+    canvas.drawLine(const Offset(3, 11.8), const Offset(21, 11.8), frame);
+    canvas.drawLine(const Offset(3, 20.8), const Offset(21, 20.8), frame);
+
+    for (var i = 0; i < _boxes.length; i++) {
+      final b = _boxes[i];
+      final r = RRect.fromRectAndRadius(b, const Radius.circular(0.8));
+      if (filled) {
+        canvas.drawRRect(r, fill);
+      } else {
+        canvas.drawRRect(r, stroke..strokeWidth = 1.4);
+      }
+      // fita nas caixas maiores
+      if (b.width >= 5) {
+        final tape = Offset(b.center.dx, b.top);
+        final end = Offset(b.center.dx, b.top + b.height * 0.45);
+        canvas.drawLine(
+          tape,
+          end,
+          filled
+              ? (_GlyphPainter.cut
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = 1.1)
+              : (stroke..strokeWidth = 1.2),
+        );
+      }
     }
   }
 }

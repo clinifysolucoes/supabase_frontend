@@ -23,7 +23,7 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    expect(find.byType(MenuGlyphIcon), findsNWidgets(4));
+    expect(find.byType(MenuGlyphIcon), findsNWidgets(6));
     expect(
       tester.getSize(find.byType(MenuGlyphIcon).first),
       const Size(22, 22),

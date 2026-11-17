@@ -8,7 +8,8 @@ import 'app_button.dart';
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.title,
     this.subtitle,
     this.actionLabel,
@@ -27,7 +28,10 @@ class AppEmptyState extends StatelessWidget {
     onAction: onRetry,
   );
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// Desenho no lugar de [icon] (ex.: MenuGlyphIcon), no mesmo circulo.
+  final Widget? iconWidget;
   final String title;
   final String? subtitle;
   final String? actionLabel;
@@ -51,7 +55,10 @@ class AppEmptyState extends StatelessWidget {
                   color: AppColors.mint,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 30, color: AppColors.primaryDark),
+                alignment: Alignment.center,
+                child:
+                    iconWidget ??
+                    Icon(icon, size: 30, color: AppColors.primaryDark),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
