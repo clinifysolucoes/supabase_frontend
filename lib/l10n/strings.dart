@@ -2108,6 +2108,23 @@ abstract final class Strings {
   static const settingsRecordTimeHint =
       'Pede o tempo de execução de cada procedimento na evolução.';
 
+  static const tabPriceTables = 'Tabelas de preço';
+  static const priceTablesHint =
+      'Tabelas particulares (ex.: parcerias, campanhas, unidades). O orçamento escolhe a tabela; procedimento sem preço na tabela usa o valor cobrado hoje.';
+  static const priceTableNew = 'Nova tabela';
+  static const priceTableEdit = 'Tabela de preço';
+  static const priceTablesEmpty = 'Nenhuma tabela de preço cadastrada.';
+  static const priceTableDefault = 'Padrão do orçamento';
+  static String priceTableCount(int n) =>
+      n == 1 ? '1 procedimento com preço' : '$n procedimentos com preço';
+  static const priceTableNameRequired = 'Informe o nome da tabela.';
+  static const priceTableItemsHint =
+      'Deixe em branco para usar o valor cobrado hoje do procedimento.';
+  static const priceTablePrice = 'Preço';
+  static String priceTableToday(String v) => 'Cobrado hoje: $v';
+  static const budgetPriceTable = 'Tabela de preço';
+  static const budgetPriceTableNone = 'Valor cobrado hoje';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -2994,6 +3011,13 @@ abstract final class Strings {
         'Informe o tempo de execução entre 1 e 600 minutos.',
     'PROCEDURE_SESSIONS_INVALID':
         'Sessões entre 1 e 60 e retorno entre 1 e 730 dias.',
+    'PRICE_TABLE_FORBIDDEN': 'Sem permissão nas tabelas de preço.',
+    'PRICE_TABLE_NOT_FOUND': 'Tabela de preço não encontrada.',
+    'PRICE_TABLE_NAME_REQUIRED': 'Informe o nome da tabela.',
+    'PRICE_TABLE_NAME_IN_USE': 'Já existe uma tabela chamada {Name}.',
+    'PRICE_TABLE_ITEM_INVALID': 'Preço inválido na linha {Item}.',
+    'PRICE_TABLE_VALUE_INVALID': 'Dados da tabela de preço inválidos.',
+    'BUDGET_PRICE_TABLE_INVALID': 'Escolha uma tabela de preço ativa.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
