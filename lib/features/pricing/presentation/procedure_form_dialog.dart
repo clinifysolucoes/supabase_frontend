@@ -85,6 +85,10 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
     text: Numbers.toField(_p?.qtMinutes ?? 0, decimals: 0),
   );
   late final _lab = TextEditingController(text: Numbers.toField(_p?.vlLabCost));
+  late final _sessions = TextEditingController(text: '${_p?.qtSessions ?? 1}');
+  late final _returnDays = TextEditingController(
+    text: _p?.qtReturnDays == null ? '' : '${_p!.qtReturnDays}',
+  );
   late final _other = TextEditingController(
     text: Numbers.toField(_p?.vlMaterialOther),
   );
@@ -283,6 +287,8 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
         pcProfit: _numOrNull(_profit),
         itStatus: _isEdit ? (_active ? 1 : 90) : null,
         materials: _materials,
+        qtSessions: int.tryParse(_sessions.text.trim()) ?? 1,
+        qtReturnDays: int.tryParse(_returnDays.text.trim()),
       );
       final controller = ref.read(proceduresProvider.notifier);
       if (_isEdit) {
@@ -438,6 +444,33 @@ class _ProcedureFormDialogState extends ConsumerState<ProcedureFormDialog> {
               prefixText: 'R\$ ',
               enabled: _canEdit,
               onChanged: (_) => setState(() {}),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          pair(
+            AppNumberField(
+              label: Strings.procedureSessions,
+              controller: _sessions,
+              decimals: 0,
+              helper: Strings.procedureSessionsHelp,
+              enabled: _canEdit,
+              validator: (v) {
+                final n = int.tryParse((v ?? '').trim());
+                return n == null || n < 1 || n > 60 ? '1 – 60' : null;
+              },
+            ),
+            AppNumberField(
+              label: Strings.procedureReturnDays,
+              controller: _returnDays,
+              decimals: 0,
+              suffixText: Strings.daysSuffix,
+              helper: Strings.procedureReturnDaysHelp,
+              enabled: _canEdit,
+              validator: (v) {
+                if ((v ?? '').trim().isEmpty) return null;
+                final n = int.tryParse(v!.trim());
+                return n == null || n < 1 || n > 730 ? '1 – 730' : null;
+              },
             ),
           ),
           const SizedBox(height: AppSpacing.md),

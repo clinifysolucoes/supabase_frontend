@@ -784,6 +784,8 @@ class Procedure {
     this.materials = const [],
     this.pricing,
     this.alerts = const [],
+    this.qtSessions = 1,
+    this.qtReturnDays,
   });
 
   factory Procedure.fromJson(Map<String, dynamic> json) => Procedure(
@@ -809,6 +811,10 @@ class Procedure {
         ? PricingResult.fromJson(_map(json['pricing']))
         : null,
     alerts: [for (final a in _list(json['alerts'])) a.toString()],
+    qtSessions: _int(json['qt_sessions'] ?? 1),
+    qtReturnDays: json['qt_return_days'] == null
+        ? null
+        : _int(json['qt_return_days']),
   );
 
   final int nrProcedure;
@@ -826,6 +832,10 @@ class Procedure {
   final List<ProcedureMaterial> materials;
   final PricingResult? pricing;
   final List<String> alerts;
+
+  /// Sessoes previstas e retorno depois de concluir (dias).
+  final int qtSessions;
+  final int? qtReturnDays;
 
   bool get isActive => itStatus == 1;
 
