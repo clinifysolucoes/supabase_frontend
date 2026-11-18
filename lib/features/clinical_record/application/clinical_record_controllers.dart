@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../data/clinical_record_repository.dart';
 import '../domain/clinical_record_models.dart';
+import '../../agenda/domain/agenda_models.dart';
 
 ({int c, int b})? _branchOf(Ref ref) {
   final c = ref.watch(currentCompanyProvider);
@@ -68,10 +69,19 @@ class ClinicalRecordActions {
     }),
   );
 
-  Future<void> addEvolution(int nrPatient, Map<String, dynamic> f) => _patient(
-    nrPatient,
-    (c, b) => _repo.saveEvolution(c, b, nrPatient, {'vc_action': 'I', ...f}),
-  );
+  /// Registra; devolve a pendencia do paciente quando a filial so avisa.
+  Future<PatientBlock?> addEvolution(
+    int nrPatient,
+    Map<String, dynamic> f,
+  ) async {
+    final x = _branch;
+    final block = await _repo.saveEvolution(x.c, x.b, nrPatient, {
+      'vc_action': 'I',
+      ...f,
+    });
+    _ref.invalidate(clinicalRecordProvider(nrPatient));
+    return block;
+  }
 
   Future<void> deleteEvolution(int nrPatient, int nrEvolution) => _patient(
     nrPatient,

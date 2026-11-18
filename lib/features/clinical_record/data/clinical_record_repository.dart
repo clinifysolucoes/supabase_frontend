@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_gateway.dart';
 import '../domain/clinical_record_models.dart';
+import '../../agenda/domain/agenda_models.dart';
 
 /// RPCs do prontuario (anamnese, evolucao, odontograma).
 class ClinicalRecordRepository {
@@ -59,8 +60,21 @@ class ClinicalRecordRepository {
   Future<void> saveAnamnesis(int c, int b, int p, Map<String, dynamic> f) =>
       _patient('patient_anamnesis_save', c, b, p, f);
 
-  Future<void> saveEvolution(int c, int b, int p, Map<String, dynamic> f) =>
-      _patient('clinical_evolution_save', c, b, p, f);
+  /// Devolve a pendencia do paciente quando a filial so avisa.
+  Future<PatientBlock?> saveEvolution(
+    int c,
+    int b,
+    int p,
+    Map<String, dynamic> f,
+  ) async {
+    final json = await _gateway.rpc('clinical_evolution_save', {
+      'nr_company': c,
+      'nr_branch': b,
+      'nr_patient': p,
+      ...f,
+    });
+    return PatientBlock.fromJson(json['block']);
+  }
 
   Future<void> saveMark(int c, int b, int p, Map<String, dynamic> f) =>
       _patient('tooth_mark_save', c, b, p, f);

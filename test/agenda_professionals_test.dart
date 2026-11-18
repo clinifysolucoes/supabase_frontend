@@ -65,7 +65,7 @@ class _FakeRepo implements AgendaRepository {
   }) async => const AppointmentListData();
 
   @override
-  Future<double?> createAppointment({
+  Future<PatientBlock?> createAppointment({
     required int nrCompany,
     required int nrBranch,
     required AppointmentDraft draft,
@@ -73,7 +73,7 @@ class _FakeRepo implements AgendaRepository {
   }) async => null;
 
   @override
-  Future<double?> updateAppointment({
+  Future<PatientBlock?> updateAppointment({
     required int nrCompany,
     required int nrBranch,
     required int nrAppointment,

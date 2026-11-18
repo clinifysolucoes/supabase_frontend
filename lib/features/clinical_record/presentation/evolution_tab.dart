@@ -14,6 +14,7 @@ import '../../agenda/application/agenda_controllers.dart';
 import '../application/clinical_record_controllers.dart';
 import '../domain/clinical_record_models.dart';
 import 'record_common.dart';
+import '../../agenda/presentation/patient_block_flow.dart';
 
 /// Aba Evolucao: tratamentos a fazer (orcamentos aprovados) e o historico
 /// de atendimentos.
@@ -245,16 +246,26 @@ class _EvolutionDialogState extends ConsumerState<EvolutionDialog> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
+    final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref
-          .read(clinicalRecordActionsProvider)
-          .addEvolution(widget.nrPatient, {
-            'vc_text': _text.text.trim(),
-            'vc_tooth': _tooth.text.trim(),
-            'nr_professional': ?_nrProfessional,
-            'nr_budget': ?_item?.nrBudget,
-            'nr_item': ?_item?.nrItem,
-          });
+      final r = await runWithBlockConfirm(
+        context,
+        ({bool override = false}) => ref
+            .read(clinicalRecordActionsProvider)
+            .addEvolution(widget.nrPatient, {
+              'vc_text': _text.text.trim(),
+              'vc_tooth': _tooth.text.trim(),
+              'nr_professional': ?_nrProfessional,
+              'nr_budget': ?_item?.nrBudget,
+              'nr_item': ?_item?.nrItem,
+              if (override) 'id_block_override': true,
+            }),
+      );
+      if (!r.done) {
+        if (mounted) setState(() => _saving = false);
+        return;
+      }
+      if (r.block != null) showBlockWarning(messenger, r.block!);
       if (!mounted) return;
       AppSnack.success(context, Strings.evolutionSaved);
       Navigator.of(context).pop();
