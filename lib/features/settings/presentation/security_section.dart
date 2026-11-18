@@ -27,6 +27,8 @@ class SecuritySection extends ConsumerStatefulWidget {
 
 class _SecuritySectionState extends ConsumerState<SecuritySection> {
   late int _policy = widget.settings.itMfaPolicy;
+  late bool _authPrint = widget.settings.idAuthPrint;
+  late bool _authExport = widget.settings.idAuthExport;
   MfaStatus? _mine;
   bool _saving = false;
 
@@ -55,6 +57,23 @@ class _SecuritySectionState extends ConsumerState<SecuritySection> {
       await ref
           .read(settingsRepositoryProvider)
           .saveMfaPolicy(nrCompany: c, policy: _policy);
+      ref.invalidate(settingsProvider);
+      if (mounted) AppSnack.success(context, Strings.savedSuccess);
+    } catch (e) {
+      if (mounted) AppSnack.error(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _saveAccessAuth() async {
+    final c = ref.read(currentCompanyProvider);
+    if (c == null) return;
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(settingsRepositoryProvider)
+          .saveAccessAuth(nrCompany: c, print: _authPrint, export: _authExport);
       ref.invalidate(settingsProvider);
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
     } catch (e) {
@@ -232,6 +251,41 @@ class _SecuritySectionState extends ConsumerState<SecuritySection> {
                   onPressed: _policy == widget.settings.itMfaPolicy
                       ? null
                       : _savePolicy,
+                ),
+              ),
+            title(Strings.accessAuthTitle),
+            const Text(
+              Strings.accessAuthSettingsHint,
+              style: TextStyle(color: AppColors.muted, fontSize: 12),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(Strings.accessAuthPrintSetting),
+              value: _authPrint,
+              onChanged: admin && !_saving
+                  ? (v) => setState(() => _authPrint = v)
+                  : null,
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(Strings.accessAuthExportSetting),
+              value: _authExport,
+              onChanged: admin && !_saving
+                  ? (v) => setState(() => _authExport = v)
+                  : null,
+            ),
+            if (admin)
+              Align(
+                alignment: Alignment.centerRight,
+                child: AppButton(
+                  label: Strings.save,
+                  expanded: false,
+                  loading: _saving,
+                  onPressed:
+                      _authPrint == widget.settings.idAuthPrint &&
+                          _authExport == widget.settings.idAuthExport
+                      ? null
+                      : _saveAccessAuth,
                 ),
               ),
           ],

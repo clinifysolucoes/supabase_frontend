@@ -23,6 +23,7 @@ import 'attachments_section.dart';
 import 'entry_form_dialog.dart';
 import 'payment_details_fields.dart';
 import 'finance_widgets.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// Detalhes de um lancamento e as acoes possiveis na situacao dele:
 /// editar, pagar/receber, desfazer, cancelar e reabrir.
@@ -133,6 +134,15 @@ abstract final class EntryActions {
     );
     if (input == null || !context.mounted) return;
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.print,
+            target: 'Recibo',
+          ) ==
+          null) {
+        return;
+      }
       final doc = await ref
           .read(financeActionsProvider)
           .issueReceipt(
@@ -169,6 +179,15 @@ abstract final class EntryActions {
     FinEntry entry,
   ) async {
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.print,
+            target: 'Recibo',
+          ) ==
+          null) {
+        return;
+      }
       final doc = await ref
           .read(financeActionsProvider)
           .receiptOf(entry.nrEntry);

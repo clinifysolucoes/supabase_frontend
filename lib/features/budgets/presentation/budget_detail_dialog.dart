@@ -20,6 +20,7 @@ import '../../signatures/data/signature_repository.dart';
 import '../../signatures/domain/signature_models.dart';
 import '../../signatures/presentation/signature_dialog.dart';
 import 'budget_form_dialog.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// Cor da situacao do orcamento.
 Color budgetStatusColor(int status, {bool expired = false}) {
@@ -165,6 +166,15 @@ class _BudgetDetailDialogState extends ConsumerState<BudgetDetailDialog> {
 
   Future<void> _pdf(Budget b) async {
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.print,
+            target: 'Orçamento ${b.nrBudget}',
+          ) ==
+          null) {
+        return;
+      }
       final sigs =
           (await ref.read(signatureRepositoryProvider).list(_sigKey(b)))
               .signatures;

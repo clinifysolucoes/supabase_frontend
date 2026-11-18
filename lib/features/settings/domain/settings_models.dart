@@ -101,6 +101,8 @@ class BranchSettings {
     this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
+    this.idAuthPrint = false,
+    this.idAuthExport = false,
     this.canUpdate = false,
     this.canEditClinic = false,
   });
@@ -159,6 +161,8 @@ class BranchSettings {
       nrNextReceipt: i('nr_next_receipt', 1),
       itMfaPolicy:
           ((j['security'] as Map?)?['it_mfa_policy'] as num?)?.toInt() ?? 0,
+      idAuthPrint: (j['security'] as Map?)?['id_auth_print'] == true,
+      idAuthExport: (j['security'] as Map?)?['id_auth_export'] == true,
       canUpdate: p['id_update'] == true,
       canEditClinic: p['id_clinic'] == true,
     );
@@ -234,6 +238,10 @@ class BranchSettings {
 
   /// 2FA da empresa: 0 nao exige | 1 administradores | 2 todos.
   final int itMfaPolicy;
+
+  /// Imprimir / exportar exige usuario e senha de um administrador.
+  final bool idAuthPrint;
+  final bool idAuthExport;
   final bool canUpdate;
   final bool canEditClinic;
 

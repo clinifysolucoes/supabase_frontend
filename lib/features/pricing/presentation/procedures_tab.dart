@@ -27,6 +27,7 @@ import 'factor_edit_dialog.dart';
 import 'pricing_breakdown.dart';
 import 'procedure_form_dialog.dart';
 import 'procedure_materials_dialog.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// Aba Procedimentos: fatores do preco (clicaveis), lista com o preco
 /// calculado no banco e a situacao do valor cobrado hoje, filtros (inclusive
@@ -111,6 +112,15 @@ class _ProceduresTabState extends ConsumerState<ProceduresTab>
 
   Future<void> _export(ProcedureListData data) async {
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.export,
+            target: 'Procedimentos',
+          ) ==
+          null) {
+        return;
+      }
       final now = DateTime.now();
       final bytes = PricingExport.buildXlsx(data, now: now);
       await FileDownload.saveXlsx(

@@ -18,6 +18,7 @@ import '../domain/document_models.dart';
 import '../../signatures/data/signature_repository.dart';
 import '../../signatures/domain/signature_models.dart';
 import '../../signatures/presentation/signature_dialog.dart';
+import '../../session/presentation/access_guard.dart';
 
 IconData documentIcon(DocumentKind k) => switch (k) {
   DocumentKind.certificate => Icons.medical_information_outlined,
@@ -63,6 +64,15 @@ class DocumentsTab extends ConsumerWidget {
     PatientDocument d,
   ) async {
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.print,
+            target: d.vcTitle,
+          ) ==
+          null) {
+        return;
+      }
       final sigs = d.qtSignatures == 0
           ? const <Signature>[]
           : (await ref.read(signatureRepositoryProvider).list(_sigKey(d)))

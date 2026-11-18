@@ -11,6 +11,7 @@ import '../../../shared/widgets/app_snack.dart';
 import '../../settings/data/data_export.dart';
 import '../application/finance_controllers.dart';
 import '../domain/dre_models.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// DRE gerencial: um ano (meses nas colunas), por competencia ou por caixa.
 class DreTab extends ConsumerWidget {
@@ -27,7 +28,21 @@ class DreTab extends ConsumerWidget {
     return '${_monthNames[(m - 1).clamp(0, 11)]}/${p[0].substring(2)}';
   }
 
-  Future<void> _export(BuildContext context, int year, DreReport r) async {
+  Future<void> _export(
+    BuildContext context,
+    WidgetRef ref,
+    int year,
+    DreReport r,
+  ) async {
+    if (await ensureAccess(
+          context,
+          ref,
+          kind: AccessKind.export,
+          target: 'DRE $year',
+        ) ==
+        null) {
+      return;
+    }
     final table = ExportTable(
       columns: [
         Strings.dreLine,
@@ -107,7 +122,7 @@ class DreTab extends ConsumerWidget {
             ),
             if (async.valueOrNull != null)
               TextButton.icon(
-                onPressed: () => _export(context, year, async.value!),
+                onPressed: () => _export(context, ref, year, async.value!),
                 icon: const Icon(Icons.file_download_outlined),
                 label: const Text(Strings.exportExcel),
               ),
