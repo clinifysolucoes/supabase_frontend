@@ -85,6 +85,17 @@ class SettingsRepository {
         'it_mfa_policy': policy,
       });
 
+  /// Administrador para imprimir / exportar (administrador; ad.company_update).
+  Future<void> saveAccessAuth({
+    required int nrCompany,
+    required bool print,
+    required bool export,
+  }) => _gateway.rpc('company_update', {
+    'nr_company': nrCompany,
+    'id_auth_print': print,
+    'id_auth_export': export,
+  });
+
   /// Dados da clinica (administrador da empresa).
   Future<void> saveClinic({
     required int nrCompany,

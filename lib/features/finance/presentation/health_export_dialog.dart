@@ -11,6 +11,7 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../application/finance_controllers.dart';
 import '../domain/receivable_models.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// Planilha (CSV) dos recebimentos de pacientes num mes ou ano, para a
 /// Receita Saude: lista o periodo, mostra o que ja foi exportado, deixa
@@ -74,6 +75,16 @@ class _HealthExportDialogState extends ConsumerState<HealthExportDialog> {
       AppSnack.error(context, Strings.healthNoneSelected);
       return;
     }
+    if (await ensureAccess(
+          context,
+          ref,
+          kind: AccessKind.export,
+          target: 'Receita Saúde',
+        ) ==
+        null) {
+      return;
+    }
+    if (!mounted) return;
     setState(() => _busy = true);
     try {
       final x = await ref

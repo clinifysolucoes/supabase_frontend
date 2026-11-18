@@ -168,6 +168,50 @@ class SupabaseGateway {
     }
   }
 
+  /// Liberacao de um administrador para imprimir/exportar: faz o login dele
+  /// numa sessao separada (em memoria, sem tocar na sessao do usuario), chama
+  /// ad.access_authorize com essa sessao e encerra. Devolve o nome do
+  /// administrador.
+  Future<String?> authorizeAsAdmin({
+    required String email,
+    required String password,
+    required String uuRequest,
+  }) async {
+    final admin = SupabaseClient(
+      AppConfig.supabaseUrl,
+      AppConfig.supabaseAnonKey,
+      authOptions: const AuthClientOptions(autoRefreshToken: false),
+    );
+    try {
+      await admin.auth.signInWithPassword(email: email, password: password);
+      final result = await admin
+          .schema('ad')
+          .rpc(
+            'access_authorize',
+            params: {
+              'p_json': {
+                'nr_version': AppConfig.contractVersion,
+                'uu_request': uuRequest,
+              },
+            },
+          );
+      return result is Map ? result['vc_admin']?.toString() : null;
+    } on PostgrestException catch (e) {
+      throw _fromPostgrest(e);
+    } on AuthException catch (e) {
+      throw _fromAuth(e);
+    } on AppError {
+      rethrow;
+    } catch (e) {
+      throw AppError.unexpected(e);
+    } finally {
+      try {
+        await admin.auth.signOut(scope: SignOutScope.local);
+      } catch (_) {}
+      await admin.dispose();
+    }
+  }
+
   /// Envia um arquivo para o Storage pela URL assinada que uma Edge Function
   /// gerou (o app nao tem policy de escrita no Storage).
   Future<void> uploadToSignedUrl({

@@ -17,6 +17,7 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/report_controllers.dart';
 import '../domain/report_models.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// Tela Relatorios: escolhe o relatorio, o periodo e o profissional;
 /// mostra o resumo, o resumo por profissional e as linhas (exporta CSV).
@@ -62,7 +63,7 @@ class ReportsPage extends ConsumerWidget {
                 variant: AppButtonVariant.secondary,
                 onPressed: (result.valueOrNull?.rows.isEmpty ?? true)
                     ? null
-                    : () => _export(context, result.requireValue, q),
+                    : () => _export(context, ref, result.requireValue, q),
               ),
             ],
           ),
@@ -117,10 +118,20 @@ class ReportsPage extends ConsumerWidget {
 
   static Future<void> _export(
     BuildContext context,
+    WidgetRef ref,
     ReportResult r,
     ReportQuery q,
   ) async {
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.export,
+            target: 'Relatório ${r.kind.label}',
+          ) ==
+          null) {
+        return;
+      }
       await FileDownload.saveCsv(
         name:
             'relatorio_${r.kind.code}_${ReportRepository.isoDate(q.from)}_'

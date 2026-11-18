@@ -16,6 +16,7 @@ import '../../finance/domain/finance_models.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../data/patient_repository.dart';
 import '../domain/patient_summary_models.dart';
+import '../../session/presentation/access_guard.dart';
 
 /// Resumo do paciente para as abas da ficha (uma chamada para as tres).
 final patientSummaryProvider = FutureProvider.autoDispose
@@ -207,6 +208,15 @@ class PatientFinanceTab extends StatelessWidget {
     int nrEntry,
   ) async {
     try {
+      if (await ensureAccess(
+            context,
+            ref,
+            kind: AccessKind.print,
+            target: 'Recibo',
+          ) ==
+          null) {
+        return;
+      }
       final doc = await ref.read(financeActionsProvider).receiptOf(nrEntry);
       await FileDownload.savePdf(
         name: ReceiptPdf.fileName(doc.receipt),

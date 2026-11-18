@@ -2125,6 +2125,24 @@ abstract final class Strings {
   static const budgetPriceTable = 'Tabela de preço';
   static const budgetPriceTableNone = 'Valor cobrado hoje';
 
+  static const accessAuthTitle = 'Usuário e senha para imprimir e exportar';
+  static const accessAuthSettingsHint =
+      'Exige o login de um administrador da empresa antes de imprimir ou exportar, deixando no log quem pediu, quem liberou e o quê.';
+  static const accessAuthPrintSetting =
+      'Pedir ao imprimir (orçamentos, documentos, recibos)';
+  static const accessAuthExportSetting =
+      'Pedir ao exportar (relatórios, planilhas e dados)';
+  static const accessAuthPrintTitle = 'Liberar impressão';
+  static const accessAuthExportTitle = 'Liberar exportação';
+  static String accessAuthHint(String target) =>
+      'A clínica exige um administrador para continuar ($target). Informe o e-mail e a senha de um administrador.';
+  static const accessAuthEmail = 'E-mail do administrador';
+  static const accessAuthPassword = 'Senha';
+  static const accessAuthConfirm = 'Liberar';
+  static const accessAuthFill = 'Informe o e-mail e a senha do administrador.';
+  static String accessAuthDone(String admin) =>
+      admin.isEmpty ? 'Liberado.' : 'Liberado por $admin.';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -3018,6 +3036,14 @@ abstract final class Strings {
     'PRICE_TABLE_ITEM_INVALID': 'Preço inválido na linha {Item}.',
     'PRICE_TABLE_VALUE_INVALID': 'Dados da tabela de preço inválidos.',
     'BUDGET_PRICE_TABLE_INVALID': 'Escolha uma tabela de preço ativa.',
+    'ACCESS_REQUEST_INVALID': 'Pedido de liberação inválido.',
+    'ACCESS_REQUEST_FORBIDDEN': 'Sem acesso a esta filial.',
+    'ACCESS_AUTHORIZE_NOT_FOUND': 'Pedido de liberação não encontrado.',
+    'ACCESS_AUTHORIZE_FORBIDDEN':
+        'Esse usuário não é administrador desta empresa (ou precisa entrar com a verificação em duas etapas).',
+    'ACCESS_AUTHORIZE_EXPIRED': 'O pedido de liberação venceu. Tente de novo.',
+    'EXPORT_AUTH_REQUIRED':
+        'A exportação precisa ser liberada por um administrador.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':

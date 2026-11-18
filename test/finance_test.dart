@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:odonto_app/features/session/presentation/access_guard.dart';
 import 'package:odonto_app/core/theme/app_theme.dart';
 import 'package:odonto_app/features/agenda/domain/agenda_models.dart';
 import 'package:odonto_app/features/finance/data/finance_repository.dart';
@@ -906,6 +907,9 @@ OFXHEADER:100
     Widget app() => ProviderScope(
       overrides: [
         financeRepositoryProvider.overrideWithValue(repo),
+        accessRequestProvider.overrideWithValue(
+          (_) async => {'id_required': false},
+        ),
         currentCompanyProvider.overrideWith((ref) => 1),
         currentBranchNumberProvider.overrideWith((ref) => 1),
         canReadProvider.overrideWith((ref, code) => true),
@@ -1365,6 +1369,9 @@ OFXHEADER:100
         ProviderScope(
           overrides: [
             financeRepositoryProvider.overrideWithValue(repo),
+            accessRequestProvider.overrideWithValue(
+              (_) async => {'id_required': false},
+            ),
             currentCompanyProvider.overrideWith((ref) => 1),
             currentBranchNumberProvider.overrideWith((ref) => 1),
             canReadProvider.overrideWith((ref, code) => true),

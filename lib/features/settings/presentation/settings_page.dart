@@ -34,6 +34,7 @@ import '../data/data_export.dart';
 import '../domain/settings_models.dart';
 import '../domain/trash_models.dart';
 import 'security_section.dart';
+import '../../session/presentation/access_guard.dart';
 
 enum _Section {
   clinic,
@@ -1385,6 +1386,14 @@ class _ExportFormState extends ConsumerState<_ExportForm> {
     } else {
       params['id_include_inactive'] = _inactive;
     }
+    final grant = await ensureAccess(
+      context,
+      ref,
+      kind: AccessKind.export,
+      target: 'Exportar ${_label(kind)}',
+    );
+    if (grant == null || !mounted) return;
+    if (grant.uuRequest != null) params['uu_authorization'] = grant.uuRequest;
     setState(() => _busy = kind);
     try {
       final table = await ref
