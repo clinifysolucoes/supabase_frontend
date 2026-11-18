@@ -466,6 +466,45 @@ class ReturnAlert {
   final String? vcReturnAlert;
 }
 
+/// Pendencia do paciente que a filial avisa ou que o administrador liberou
+/// (debt de ad.appointment_save, block de ad.clinical_evolution_save).
+class PatientBlock {
+  const PatientBlock({
+    required this.kind,
+    this.qtEntries = 0,
+    this.amount = 0,
+    this.stage,
+  });
+
+  static PatientBlock? fromJson(Object? json) {
+    if (json is! Map) return null;
+    return PatientBlock(
+      kind: json['vc_kind']?.toString() ?? 'debt',
+      qtEntries: _int(json['qt_entries']),
+      amount: (json['vl_total'] as num?)?.toDouble() ?? 0,
+      stage: json['vc_stage']?.toString(),
+    );
+  }
+
+  /// debt (conta vencida) | open (conta em aberto) | contract (contrato sem
+  /// assinatura).
+  final String kind;
+  final int qtEntries;
+  final double amount;
+
+  /// agenda | checkin | treat.
+  final String? stage;
+
+  /// Tipo da pendencia pela chave do erro (APPOINTMENT_CONTRACT_CONFIRM...).
+  static String kindFromError(String key, Map<String, dynamic> parameters) {
+    final k = parameters['Kind']?.toString();
+    if (k != null) return k;
+    if (key.contains('CONTRACT')) return 'contract';
+    if (key.contains('OPEN')) return 'open';
+    return 'debt';
+  }
+}
+
 /// Item dos cadastros da agenda (categoria, marcador ou cadeira).
 class AgendaTag {
   const AgendaTag({

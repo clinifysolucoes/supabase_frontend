@@ -166,9 +166,9 @@ class AgendaRepository {
     return AppointmentListData.fromJson(json);
   }
 
-  /// Cria e devolve o total vencido do paciente quando a filial avisa (ou o
+  /// Cria e devolve a pendencia do paciente quando a filial avisa (ou o
   /// administrador liberou com [debtOverride]); null sem pendencia.
-  Future<double?> createAppointment({
+  Future<PatientBlock?> createAppointment({
     required int nrCompany,
     required int nrBranch,
     required AppointmentDraft draft,
@@ -184,7 +184,7 @@ class AgendaRepository {
     return _debt(json);
   }
 
-  Future<double?> updateAppointment({
+  Future<PatientBlock?> updateAppointment({
     required int nrCompany,
     required int nrBranch,
     required int nrAppointment,
@@ -202,10 +202,8 @@ class AgendaRepository {
     return _debt(json);
   }
 
-  static double? _debt(Map<String, dynamic> json) {
-    final d = json['debt'];
-    return d is Map ? (d['vl_total'] as num?)?.toDouble() : null;
-  }
+  static PatientBlock? _debt(Map<String, dynamic> json) =>
+      PatientBlock.fromJson(json['debt']);
 }
 
 final agendaRepositoryProvider = Provider<AgendaRepository>(

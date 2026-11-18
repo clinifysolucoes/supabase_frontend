@@ -6,9 +6,7 @@ import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../shared/formatters/dates.dart';
-import '../../../shared/formatters/numbers.dart';
 import '../../../shared/widgets/app_button.dart';
-import '../../../shared/widgets/app_confirm_dialog.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/choice.dart';
@@ -16,6 +14,7 @@ import '../../../shared/widgets/searchable_dropdown.dart';
 import '../application/agenda_controllers.dart';
 import '../data/agenda_repository.dart';
 import '../domain/agenda_models.dart';
+import 'patient_block_flow.dart';
 import 'patient_picker_dialog.dart';
 
 /// Nova consulta / novo compromisso (appointment = null) ou edicao.
@@ -206,47 +205,20 @@ class _AppointmentFormDialogState extends ConsumerState<AppointmentFormDialog> {
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(appointmentsProvider.notifier);
-    Future<double?> run({bool debtOverride = false}) => _isEdit
+    Future<PatientBlock?> run({bool override = false}) => _isEdit
         ? controller.change(
             _a!.nrAppointment,
             draft.toJson(),
-            debtOverride: debtOverride,
+            debtOverride: override,
           )
-        : controller.create(draft, debtOverride: debtOverride);
+        : controller.create(draft, debtOverride: override);
     try {
-      double? debt;
-      try {
-        debt = await run();
-      } on AppError catch (e) {
-        // paciente com conta vencida: o administrador confirma e agenda
-        if ((e.key != 'APPOINTMENT_DEBT_CONFIRM' &&
-                e.key != 'APPOINTMENT_OPEN_CONFIRM') ||
-            !mounted) {
-          rethrow;
-        }
-        final ok = await AppConfirmDialog.show(
-          context,
-          title: Strings.debtConfirmTitle,
-          message: Strings.debtConfirmMessage(
-            Numbers.money(e.parameters['Amount'] as num?),
-          ),
-          confirmLabel: Strings.debtConfirmAction,
-          destructive: false,
-        );
-        if (!ok) {
-          if (mounted) setState(() => _saving = false);
-          return;
-        }
-        debt = await run(debtOverride: true);
+      final r = await runWithBlockConfirm(context, run);
+      if (!r.done) {
+        if (mounted) setState(() => _saving = false);
+        return;
       }
-      if (debt != null) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(Strings.debtWarning(Numbers.money(debt))),
-            backgroundColor: AppColors.warning,
-          ),
-        );
-      }
+      if (r.block != null) showBlockWarning(messenger, r.block!);
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {

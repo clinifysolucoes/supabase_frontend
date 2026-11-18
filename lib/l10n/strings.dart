@@ -2058,6 +2058,34 @@ abstract final class Strings {
   static String resendHours(int h) =>
       h == 1 ? 'A cada 1 hora' : 'A cada $h horas';
 
+  static const blocksTitle =
+      'Outros bloqueios (contrato, check-in e tratamento)';
+  static const blocksHint =
+      'Contrato pendente = documento do tipo Contrato sem assinatura do paciente ou do responsável. O check-in é marcar a chegada (Em espera); o tratamento é iniciar o atendimento ou registrar a evolução.';
+  static const blocksAgendaContract = 'Ao agendar: contrato sem assinatura';
+  static const blocksCheckinDebt = 'No check-in: conta vencida';
+  static const blocksCheckinOpen = 'No check-in: conta em aberto';
+  static const blocksCheckinContract = 'No check-in: contrato sem assinatura';
+  static const blocksTreatDebt = 'No tratamento: conta vencida';
+  static const blocksTreatOpen = 'No tratamento: conta em aberto';
+  static const blocksTreatContract = 'No tratamento: contrato sem assinatura';
+
+  static String _blockWhat(String kind) => switch (kind) {
+    'contract' => 'contrato sem assinatura',
+    'open' => 'contas em aberto',
+    _ => 'contas vencidas',
+  };
+  static String blockConfirmTitle(String kind) =>
+      'Paciente com ${_blockWhat(kind)}';
+  static String blockConfirmMessage(String kind, String amount) =>
+      kind == 'contract'
+      ? 'Este paciente tem contrato sem assinatura. Continuar mesmo assim?'
+      : 'Este paciente tem $amount em ${_blockWhat(kind)}. Continuar mesmo assim?';
+  static const blockConfirmAction = 'Continuar mesmo assim';
+  static String blockWarning(String kind, String amount) => kind == 'contract'
+      ? 'Salvo. Atenção: o paciente tem contrato sem assinatura.'
+      : 'Salvo. Atenção: o paciente tem $amount em ${_blockWhat(kind)}.';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -2930,6 +2958,18 @@ abstract final class Strings {
         'Paciente com contas em aberto: só o administrador da empresa pode agendar.',
     'APPOINTMENT_OPEN_CONFIRM':
         'Paciente com contas em aberto: confirme para agendar.',
+    'APPOINTMENT_CONTRACT_BLOCKED':
+        'Paciente com contrato sem assinatura: colha a assinatura antes de continuar.',
+    'APPOINTMENT_CONTRACT_APPROVAL':
+        'Paciente com contrato sem assinatura: só o administrador da empresa pode continuar.',
+    'APPOINTMENT_CONTRACT_CONFIRM':
+        'Paciente com contrato sem assinatura: confirme para continuar.',
+    'CLINICAL_EVOLUTION_BLOCKED':
+        'Paciente com pendência (contas ou contrato): o tratamento está bloqueado.',
+    'CLINICAL_EVOLUTION_APPROVAL':
+        'Paciente com pendência (contas ou contrato): só o administrador da empresa pode registrar.',
+    'CLINICAL_EVOLUTION_CONFIRM':
+        'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
         'Multa e juros não podem ser reduzidos (Configurações › Financeiro).',
     'FIN_LATE_EDIT_ADMIN': 'Só o administrador pode reduzir multa e juros.',

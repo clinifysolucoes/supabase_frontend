@@ -94,6 +94,7 @@ class BranchSettings {
     this.idColorByCategory = false,
     this.itAgendaMode = 1,
     this.agendaCatalog = const AgendaCatalog(),
+    this.blockRules = const {},
     this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
@@ -145,6 +146,7 @@ class BranchSettings {
       itLateEdit: i('it_late_edit', 0),
       idColorByCategory: s['id_color_by_category'] == true,
       itAgendaMode: i('it_agenda_mode', 1),
+      blockRules: {for (final k in BlockRules.keys) k: i(k, DebtRule.none)},
       agendaCatalog: AgendaCatalog.fromJson(
         (j['agenda_catalog'] as Map?)?.cast<String, dynamic>() ?? const {},
       ),
@@ -200,6 +202,12 @@ class BranchSettings {
 
   /// Categorias, marcadores e cadeiras da agenda.
   final AgendaCatalog agendaCatalog;
+
+  /// Bloqueios do contrato (agenda), do check-in e do tratamento
+  /// (chave da coluna -> DebtRule).
+  final Map<String, int> blockRules;
+
+  int blockRule(String key) => blockRules[key] ?? DebtRule.none;
 
   /// Fusos do Brasil (ad.branch.vc_timezone).
   static const timezones = [
@@ -285,6 +293,26 @@ abstract final class PatientRequired {
 }
 
 /// Paciente com conta vencida ao agendar (od.branch_setting.it_debt_rule).
+/// Bloqueios por momento (colunas it_*_rule de od.branch_setting).
+abstract final class BlockRules {
+  static const contract = 'it_contract_rule';
+  static const checkinDebt = 'it_checkin_debt_rule';
+  static const checkinOpen = 'it_checkin_open_rule';
+  static const checkinContract = 'it_checkin_contract_rule';
+  static const treatDebt = 'it_treat_debt_rule';
+  static const treatOpen = 'it_treat_open_rule';
+  static const treatContract = 'it_treat_contract_rule';
+  static const keys = [
+    contract,
+    checkinDebt,
+    checkinOpen,
+    checkinContract,
+    treatDebt,
+    treatOpen,
+    treatContract,
+  ];
+}
+
 abstract final class DebtRule {
   static const none = 1;
   static const warn = 2;

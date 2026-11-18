@@ -17,6 +17,7 @@ import '../../session/domain/screen_codes.dart';
 import '../application/agenda_controllers.dart';
 import '../domain/agenda_models.dart';
 import 'appointment_form_dialog.dart';
+import 'patient_block_flow.dart';
 
 /// Detalhe de uma consulta ou compromisso: quem, quando, com quem, situacao
 /// (troca na hora), editar, cancelar e abrir a ficha do paciente.
@@ -73,11 +74,17 @@ class _AppointmentDetailsDialogState
   Future<void> _setStatus(int status) async {
     if (_busy || status == _status) return;
     setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(appointmentsProvider.notifier).change(_a.nrAppointment, {
-        'it_status': status,
-      });
-      if (mounted) setState(() => _status = status);
+      final r = await runWithBlockConfirm(
+        context,
+        ({bool override = false}) =>
+            ref.read(appointmentsProvider.notifier).change(_a.nrAppointment, {
+              'it_status': status,
+            }, debtOverride: override),
+      );
+      if (r.done && mounted) setState(() => _status = status);
+      if (r.block != null) showBlockWarning(messenger, r.block!);
     } catch (e) {
       if (mounted) AppSnack.error(context, describeError(e));
     } finally {

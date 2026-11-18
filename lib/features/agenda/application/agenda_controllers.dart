@@ -128,8 +128,8 @@ class AppointmentsController
     await future;
   }
 
-  /// Cria; devolve o total vencido do paciente quando a filial so avisa.
-  Future<double?> create(
+  /// Cria; devolve a pendencia do paciente quando a filial so avisa.
+  Future<PatientBlock?> create(
     AppointmentDraft draft, {
     bool debtOverride = false,
   }) async {
@@ -149,7 +149,7 @@ class AppointmentsController
   }
 
   /// Alteracao parcial (inclusive so a situacao: `{'it_status': 2}`).
-  Future<double?> change(
+  Future<PatientBlock?> change(
     int nrAppointment,
     Map<String, dynamic> changes, {
     bool debtOverride = false,

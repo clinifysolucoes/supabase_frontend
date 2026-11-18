@@ -853,6 +853,9 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
   final _formKey = GlobalKey<FormState>();
   late int _rule = widget.settings.itDebtRule;
   late int _openRule = widget.settings.itOpenRule;
+  late final Map<String, int> _blocks = {
+    for (final k in BlockRules.keys) k: widget.settings.blockRule(k),
+  };
   late int _lateEdit = widget.settings.itLateEdit;
   late bool _budgetRequest = widget.settings.idBudgetRequestApproval;
   late bool _budgetBelowMin = widget.settings.idBudgetAdminBelowMin;
@@ -931,6 +934,7 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
       await ref.read(settingsProvider.notifier).save({
         'it_debt_rule': _rule,
         'it_open_rule': _openRule,
+        ..._blocks,
         'it_late_edit': _lateEdit,
         'id_budget_request_approval': _budgetRequest,
         'id_budget_admin_below_min': _budgetBelowMin,
@@ -1039,6 +1043,50 @@ class _FinanceFormState extends ConsumerState<_FinanceForm> {
               ],
             ),
           ),
+          _subtitle(context, Strings.blocksTitle),
+          const Text(
+            Strings.blocksHint,
+            style: TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          for (final (key, label) in const [
+            (BlockRules.contract, Strings.blocksAgendaContract),
+            (BlockRules.checkinDebt, Strings.blocksCheckinDebt),
+            (BlockRules.checkinOpen, Strings.blocksCheckinOpen),
+            (BlockRules.checkinContract, Strings.blocksCheckinContract),
+            (BlockRules.treatDebt, Strings.blocksTreatDebt),
+            (BlockRules.treatOpen, Strings.blocksTreatOpen),
+            (BlockRules.treatContract, Strings.blocksTreatContract),
+          ])
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Wrap(
+                spacing: AppSpacing.md,
+                runSpacing: AppSpacing.xs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(width: 300, child: Text(label)),
+                  SizedBox(
+                    width: 280,
+                    child: DropdownButtonFormField<int>(
+                      isExpanded: true,
+                      initialValue: _blocks[key],
+                      decoration: const InputDecoration(isDense: true),
+                      items: [
+                        for (final r in DebtRule.all)
+                          DropdownMenuItem(
+                            value: r,
+                            child: Text(_ruleLabel(r)),
+                          ),
+                      ],
+                      onChanged: can
+                          ? (v) => setState(() => _blocks[key] = v ?? 1)
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           _subtitle(context, Strings.settingsCash),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
