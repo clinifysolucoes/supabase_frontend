@@ -21,6 +21,7 @@ import '../../pricing/application/pricing_controllers.dart';
 import '../../pricing/domain/pricing_models.dart';
 import '../application/budget_controllers.dart';
 import '../domain/budget_models.dart';
+import '../../pricing/presentation/price_tables_tab.dart';
 
 /// Novo orcamento ou edicao (em aberto / aguardando). Devolve o nr_budget.
 class BudgetFormDialog extends ConsumerStatefulWidget {
@@ -80,6 +81,8 @@ class _BudgetFormDialogState extends ConsumerState<BudgetFormDialog> {
   );
   late final _notes = TextEditingController(text: widget.budget?.vcNotes ?? '');
   late int? _method = widget.budget?.itPaymentMethod;
+  late int? _priceTable = widget.budget?.nrPriceTable;
+  bool _tableInit = false;
   bool _percent = false;
   late final List<BudgetItem> _items = [...?widget.budget?.items];
   late final List<Key> _keys = [for (final _ in _items) UniqueKey()];
@@ -123,12 +126,40 @@ class _BudgetFormDialogState extends ConsumerState<BudgetFormDialog> {
         BudgetItem(
           nrProcedure: p.nrProcedure,
           vcDescription: p.vcName,
-          vlUnit: p.vlCurrentPrice ?? p.pricing?.vlPrice ?? 0,
+          vlUnit: _tablePrice(p) ?? p.vlCurrentPrice ?? p.pricing?.vlPrice ?? 0,
         ),
       );
       _keys.add(UniqueKey());
     });
   }
+
+  List<PriceTable> get _tables =>
+      ref.read(priceTablesProvider).valueOrNull ?? const [];
+
+  double? _tablePrice(Procedure p) {
+    for (final t in _tables) {
+      if (t.nrPriceTable == _priceTable) return t.priceOf(p.nrProcedure);
+    }
+    return null;
+  }
+
+  /// Troca a tabela e reprecifica os itens com procedimento.
+  void _setTable(int? nr, List<Procedure> procedures) => setState(() {
+    _priceTable = nr;
+    for (var i = 0; i < _items.length; i++) {
+      final it = _items[i];
+      if (it.nrProcedure == null) continue;
+      final p = procedures.where((x) => x.nrProcedure == it.nrProcedure);
+      if (p.isEmpty) continue;
+      final unit =
+          _tablePrice(p.first) ??
+          p.first.vlCurrentPrice ??
+          p.first.pricing?.vlPrice ??
+          it.vlUnit;
+      _items[i] = it.copyWith(vlUnit: unit);
+      _keys[i] = UniqueKey();
+    }
+  });
 
   void _addFree() => setState(() {
     _items.add(const BudgetItem(vcDescription: Strings.budgetFreeItem));
@@ -157,6 +188,7 @@ class _BudgetFormDialogState extends ConsumerState<BudgetFormDialog> {
       'qt_installments': int.tryParse(_installments.text.trim()) ?? 1,
       'it_payment_method': _method,
       'vc_notes': _notes.text.trim(),
+      'nr_price_table': _priceTable,
       'items': [for (final i in _items) i.toJson()],
     };
     try {
@@ -181,6 +213,21 @@ class _BudgetFormDialogState extends ConsumerState<BudgetFormDialog> {
   @override
   Widget build(BuildContext context) {
     final mobile = context.isMobile;
+    final tables = ref.watch(priceTablesProvider).valueOrNull;
+    // orcamento novo comeca na tabela padrao
+    if (!_tableInit && tables != null) {
+      _tableInit = true;
+      if (widget.budget == null && _priceTable == null) {
+        _priceTable = tables
+            .where((t) => t.idDefault && t.isActive)
+            .firstOrNull
+            ?.nrPriceTable;
+      }
+    }
+    final usableTables = [
+      for (final t in tables ?? const <PriceTable>[])
+        if (t.isActive || t.nrPriceTable == _priceTable) t,
+    ];
     final procedures = ref
         .watch(proceduresProvider)
         .valueOrNull
@@ -288,6 +335,41 @@ class _BudgetFormDialogState extends ConsumerState<BudgetFormDialog> {
                               setState(() => _nrProfessional = c.value),
                         ),
                       ),
+                      if (usableTables.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        DropdownButtonFormField<int?>(
+                          isExpanded: true,
+                          initialValue: _priceTable,
+                          decoration: const InputDecoration(
+                            labelText: Strings.budgetPriceTable,
+                            prefixIcon: Icon(Icons.request_quote_outlined),
+                          ),
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text(Strings.budgetPriceTableNone),
+                            ),
+                            for (final t in usableTables)
+                              DropdownMenuItem(
+                                value: t.nrPriceTable,
+                                child: Text(
+                                  t.vcName,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                          onChanged: _saving
+                              ? null
+                              : (v) => _setTable(
+                                  v,
+                                  ref
+                                          .read(proceduresProvider)
+                                          .valueOrNull
+                                          ?.procedures ??
+                                      const [],
+                                ),
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
                         label: Strings.budgetTitle,

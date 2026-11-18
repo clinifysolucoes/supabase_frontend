@@ -12,6 +12,7 @@ import 'materials_tab.dart';
 import 'params_tab.dart';
 import 'procedures_tab.dart';
 import 'specialties_tab.dart';
+import 'price_tables_tab.dart';
 
 /// Precificacao: Especialidades (procedimentos agrupados, lucro por
 /// especialidade e alerta do valor cobrado), Procedimentos (preco calculado), Materiais (custo por
@@ -39,7 +40,7 @@ class PricingPage extends ConsumerWidget {
     return AppShell(
       section: AppSection.pricing,
       child: DefaultTabController(
-        length: 4,
+        length: 5,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
@@ -92,6 +93,10 @@ class PricingPage extends ConsumerWidget {
                         label: Strings.tabMaterials,
                       ),
                       _CompactTab(
+                        icon: Icons.request_quote_outlined,
+                        label: Strings.tabPriceTables,
+                      ),
+                      _CompactTab(
                         icon: Icons.tune_rounded,
                         label: Strings.tabParams,
                       ),
@@ -106,6 +111,7 @@ class PricingPage extends ConsumerWidget {
                     SpecialtiesTab(),
                     ProceduresTab(),
                     MaterialsTab(),
+                    PriceTablesTab(),
                     ParamsTab(),
                   ],
                 ),

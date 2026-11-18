@@ -88,6 +88,7 @@ class BudgetSummary {
   final int nrBudget;
   final int nrPatient;
   final String vcPatient;
+
   final String? vcProfessional;
   final String? vcTitle;
   final DateTime dtBudget;
@@ -235,6 +236,8 @@ class Budget {
     this.itStatus = BudgetStatus.open,
     this.idDiscountApproved = false,
     this.vcUserDiscount,
+    this.nrPriceTable,
+    this.vcPriceTable,
     this.items = const [],
     this.entries = const [],
     this.issuer = const ReceiptIssuer(),
@@ -265,6 +268,8 @@ class Budget {
       qtInstallments: _i(b['qt_installments']),
       itPaymentMethod: _i(b['it_payment_method']),
       vcNotes: _s(b['vc_notes']),
+      nrPriceTable: (b['nr_price_table'] as num?)?.toInt(),
+      vcPriceTable: _s(b['vc_price_table']),
       itStatus: _i(b['it_status']) ?? BudgetStatus.open,
       idDiscountApproved: b['id_discount_approved'] == true,
       vcUserDiscount: _s(b['vc_user_discount']),
@@ -285,6 +290,9 @@ class Budget {
     );
   }
 
+  /// Tabela de preco particular do orcamento (null = valor cobrado hoje).
+  final int? nrPriceTable;
+  final String? vcPriceTable;
   final int nrBudget;
   final int nrPatient;
   final String vcPatient;
