@@ -2175,6 +2175,14 @@ abstract final class Strings {
   static const alignerEventText = 'Anotação no histórico (opcional)';
   static const alignerHistory = 'Histórico';
 
+  static const ntReview = 'Avaliação no Google';
+  static const ntReviewHint =
+      'Depois do atendimento, pede ao paciente para avaliar a clínica no Google (no máximo uma vez a cada 180 dias).';
+  static const ntReviewUrl = 'Link de avaliação no Google';
+  static const ntReviewUrlHint =
+      'No Perfil da Empresa no Google, use "Pedir avaliações" e copie o link (https://g.page/r/...).';
+  static const ntReviewHours = 'Horas depois da consulta';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -3086,6 +3094,10 @@ abstract final class Strings {
     'ALIGNER_SYSTEM_REQUIRED': 'Informe o sistema ou fabricante.',
     'ALIGNER_PENDING_REQUIRED': 'Descreva a pendência.',
     'ALIGNER_STATUS_INVALID': 'Situação inválida.',
+    'NOTIFY_REVIEW_URL_INVALID':
+        'O link de avaliação precisa começar com https:// e não pode ter espaços.',
+    'NOTIFY_REVIEW_URL_REQUIRED':
+        'Informe o link de avaliação no Google para ligar o pedido de avaliação.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
