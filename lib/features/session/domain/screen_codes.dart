@@ -15,4 +15,5 @@ abstract final class ScreenCodes {
   static const prosthetic = 'PROSTHETIC';
   static const stock = 'STOCK';
   static const referrals = 'REFERRALS';
+  static const aligners = 'ALIGNERS';
 }
