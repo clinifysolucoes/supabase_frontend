@@ -26,6 +26,7 @@ enum AppSection {
   prosthetic,
   stock,
   referrals,
+  aligners,
 }
 
 class _Destination {
@@ -105,6 +106,15 @@ const _prosthetic = _Destination(
   route: '/protese',
 );
 
+const _aligners = _Destination(
+  section: AppSection.aligners,
+  code: ScreenCodes.aligners,
+  icon: Icons.sentiment_satisfied_alt_outlined,
+  selectedIcon: Icons.sentiment_satisfied_alt_rounded,
+  label: Strings.aligners,
+  route: '/alinhadores',
+);
+
 const _finance = _Destination(
   section: AppSection.finance,
   code: ScreenCodes.finance,
@@ -158,6 +168,7 @@ const _mainItems = [
   _patients,
   _budgets,
   _prosthetic,
+  _aligners,
   _finance,
   _stock,
   _referrals,

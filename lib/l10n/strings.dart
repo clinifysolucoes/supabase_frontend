@@ -2143,6 +2143,38 @@ abstract final class Strings {
   static String accessAuthDone(String admin) =>
       admin.isEmpty ? 'Liberado.' : 'Liberado por $admin.';
 
+  static const aligners = 'Casos de Alinhadores';
+  static const alignersSubtitle =
+      'Casos de alinhadores dos pacientes: situação, pendências da clínica e do fabricante, alinhador atual e previsão de término.';
+  static const alignerNew = 'Novo caso';
+  static const alignerEdit = 'Caso de alinhadores';
+  static const alignerAll = 'Todos';
+  static const alignerStarted = 'Iniciados';
+  static const alignerPendingClinic = 'Pendências da clínica';
+  static const alignerPendingCompany = 'Pendências da empresa';
+  static const alignerTreatment = 'Em tratamento';
+  static const alignerFinished = 'Finalizados';
+  static const alignerCancelled = 'Cancelados';
+  static const alignerSearch = 'Buscar paciente, sistema ou nº do caso';
+  static const alignerEmpty = 'Nenhum caso de alinhadores.';
+  static const alignerCaseNumberShort = 'Caso';
+  static String alignerProgress(int current, int total) =>
+      'Alinhador $current de $total';
+  static String alignerDates(String start, String forecast) =>
+      'Início $start · previsão de término $forecast';
+  static String alignerFinishedOn(String date) => 'Finalizado em $date';
+  static const alignerSystem = 'Sistema / fabricante';
+  static const alignerCaseNumber = 'Nº do caso no fabricante';
+  static const alignerQty = 'Alinhadores';
+  static const alignerCurrent = 'Atual';
+  static const alignerDays = 'Troca (dias)';
+  static const alignerStart = 'Início';
+  static const alignerStartInvalid = 'Informe a data de início (dd/mm/aaaa).';
+  static const alignerStatus = 'Situação';
+  static const alignerPending = 'Pendência';
+  static const alignerEventText = 'Anotação no histórico (opcional)';
+  static const alignerHistory = 'Histórico';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -3044,6 +3076,16 @@ abstract final class Strings {
     'ACCESS_AUTHORIZE_EXPIRED': 'O pedido de liberação venceu. Tente de novo.',
     'EXPORT_AUTH_REQUIRED':
         'A exportação precisa ser liberada por um administrador.',
+    'ALIGNER_FORBIDDEN': 'Sem permissão nos casos de alinhadores.',
+    'ALIGNER_NOT_FOUND': 'Caso de alinhadores não encontrado.',
+    'ALIGNER_VALUE_INVALID':
+        'Confira os números (alinhadores, atual e dias de troca) e as datas.',
+    'ALIGNER_PATIENT_INVALID': 'Escolha um paciente ativo.',
+    'ALIGNER_PROFESSIONAL_INVALID': 'Escolha um profissional ativo.',
+    'ALIGNER_BUDGET_INVALID': 'O orçamento não é deste paciente.',
+    'ALIGNER_SYSTEM_REQUIRED': 'Informe o sistema ou fabricante.',
+    'ALIGNER_PENDING_REQUIRED': 'Descreva a pendência.',
+    'ALIGNER_STATUS_INVALID': 'Situação inválida.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':

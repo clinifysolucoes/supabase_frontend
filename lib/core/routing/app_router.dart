@@ -26,6 +26,7 @@ import '../../features/online_booking/presentation/online_booking_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
 import '../../features/users/presentation/users_page.dart';
 import '../../shared/widgets/splash_page.dart';
+import '../../features/aligners/presentation/aligners_page.dart';
 
 abstract final class AppRoutes {
   static const splash = '/';
@@ -47,6 +48,7 @@ abstract final class AppRoutes {
   static const prosthetic = '/protese';
   static const stock = '/estoque';
   static const referrals = '/indicacoes';
+  static const aligners = '/alinhadores';
 
   /// Pagina publica de agendamento (sem login).
   static const onlineBooking = '/agendar';
@@ -203,6 +205,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ProstheticPage(),
       ),
       GoRoute(path: AppRoutes.stock, builder: (_, __) => const StockPage()),
+      GoRoute(
+        path: AppRoutes.aligners,
+        builder: (_, __) => const AlignersPage(),
+      ),
       GoRoute(
         path: AppRoutes.referrals,
         builder: (_, __) => const ReferralsPage(),
