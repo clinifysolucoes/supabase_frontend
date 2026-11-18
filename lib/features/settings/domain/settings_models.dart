@@ -95,6 +95,9 @@ class BranchSettings {
     this.itAgendaMode = 1,
     this.agendaCatalog = const AgendaCatalog(),
     this.blockRules = const {},
+    this.idRecordSessions = false,
+    this.idRecordReturn = false,
+    this.idRecordTime = false,
     this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
@@ -147,6 +150,9 @@ class BranchSettings {
       idColorByCategory: s['id_color_by_category'] == true,
       itAgendaMode: i('it_agenda_mode', 1),
       blockRules: {for (final k in BlockRules.keys) k: i(k, DebtRule.none)},
+      idRecordSessions: s['id_record_sessions'] == true,
+      idRecordReturn: s['id_record_return'] == true,
+      idRecordTime: s['id_record_time'] == true,
       agendaCatalog: AgendaCatalog.fromJson(
         (j['agenda_catalog'] as Map?)?.cast<String, dynamic>() ?? const {},
       ),
@@ -208,6 +214,11 @@ class BranchSettings {
   final Map<String, int> blockRules;
 
   int blockRule(String key) => blockRules[key] ?? DebtRule.none;
+
+  /// Prontuario: sessoes, retorno automatico e tempo de execucao.
+  final bool idRecordSessions;
+  final bool idRecordReturn;
+  final bool idRecordTime;
 
   /// Fusos do Brasil (ad.branch.vc_timezone).
   static const timezones = [

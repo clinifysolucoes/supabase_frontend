@@ -75,6 +75,8 @@ class ProcedureDraft {
     this.pcProfit,
     this.itStatus,
     this.materials = const [],
+    this.qtSessions = 1,
+    this.qtReturnDays,
   });
 
   final String? vcCode;
@@ -88,9 +90,13 @@ class ProcedureDraft {
   final double? pcProfit;
   final int? itStatus;
   final List<ProcedureMaterial> materials;
+  final int qtSessions;
+  final int? qtReturnDays;
 
   Map<String, dynamic> toJson() => {
     'vc_code': vcCode,
+    'qt_sessions': qtSessions,
+    'qt_return_days': qtReturnDays,
     'vc_name': vcName,
     'nr_specialty': nrSpecialty,
     'qt_minutes': qtMinutes,

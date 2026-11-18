@@ -15,6 +15,7 @@ import '../application/clinical_record_controllers.dart';
 import '../domain/clinical_record_models.dart';
 import 'record_common.dart';
 import '../../agenda/presentation/patient_block_flow.dart';
+import '../../agenda/domain/agenda_models.dart';
 
 /// Aba Evolucao: tratamentos a fazer (orcamentos aprovados) e o historico
 /// de atendimentos.
@@ -32,6 +33,7 @@ class EvolutionTab extends ConsumerWidget {
         nrPatient: nrPatient,
         pending: r.pendingItems,
         item: item,
+        recordTime: r.idTime,
       );
       return ListView(
         children: [
@@ -128,6 +130,8 @@ class _EvolutionCard extends StatelessWidget {
       if (e.vcTooth != null && e.vcTooth!.isNotEmpty)
         '${Strings.tooth} ${e.vcTooth}',
       if (e.vcProcedure != null) e.vcProcedure!,
+      if (e.nrSession != null) Strings.evolutionSession(e.nrSession!),
+      if (e.qtMinutes != null) Strings.minutesShort(e.qtMinutes!),
     ];
     return Card(
       child: Padding(
@@ -206,22 +210,31 @@ class EvolutionDialog extends ConsumerStatefulWidget {
     required this.nrPatient,
     required this.pending,
     this.item,
+    this.recordTime = false,
   });
 
   final int nrPatient;
   final List<TreatmentItem> pending;
   final TreatmentItem? item;
 
+  /// A filial registra o tempo de execucao.
+  final bool recordTime;
+
   static Future<void> show(
     BuildContext context, {
     required int nrPatient,
     required List<TreatmentItem> pending,
     TreatmentItem? item,
+    bool recordTime = false,
   }) => showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) =>
-        EvolutionDialog(nrPatient: nrPatient, pending: pending, item: item),
+    builder: (_) => EvolutionDialog(
+      nrPatient: nrPatient,
+      pending: pending,
+      item: item,
+      recordTime: recordTime,
+    ),
   );
 
   @override
@@ -232,6 +245,7 @@ class _EvolutionDialogState extends ConsumerState<EvolutionDialog> {
   final _formKey = GlobalKey<FormState>();
   final _text = TextEditingController();
   late final _tooth = TextEditingController(text: widget.item?.vcTooth ?? '');
+  final _minutes = TextEditingController();
   late TreatmentItem? _item = widget.item;
   int? _nrProfessional;
   bool _saving = false;
@@ -240,6 +254,7 @@ class _EvolutionDialogState extends ConsumerState<EvolutionDialog> {
   void dispose() {
     _text.dispose();
     _tooth.dispose();
+    _minutes.dispose();
     super.dispose();
   }
 
@@ -247,27 +262,41 @@ class _EvolutionDialogState extends ConsumerState<EvolutionDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
+    Map<String, dynamic>? saved;
     try {
-      final r = await runWithBlockConfirm(
-        context,
-        ({bool override = false}) => ref
-            .read(clinicalRecordActionsProvider)
-            .addEvolution(widget.nrPatient, {
-              'vc_text': _text.text.trim(),
-              'vc_tooth': _tooth.text.trim(),
-              'nr_professional': ?_nrProfessional,
-              'nr_budget': ?_item?.nrBudget,
-              'nr_item': ?_item?.nrItem,
-              if (override) 'id_block_override': true,
-            }),
-      );
+      final r = await runWithBlockConfirm(context, ({
+        bool override = false,
+      }) async {
+        saved = await ref.read(clinicalRecordActionsProvider).addEvolution(
+          widget.nrPatient,
+          {
+            'vc_text': _text.text.trim(),
+            'vc_tooth': _tooth.text.trim(),
+            'nr_professional': ?_nrProfessional,
+            'nr_budget': ?_item?.nrBudget,
+            'nr_item': ?_item?.nrItem,
+            if (override) 'id_block_override': true,
+            if (widget.recordTime && int.tryParse(_minutes.text.trim()) != null)
+              'qt_minutes': int.parse(_minutes.text.trim()),
+          },
+        );
+        return PatientBlock.fromJson(saved?['block']);
+      });
       if (!r.done) {
         if (mounted) setState(() => _saving = false);
         return;
       }
       if (r.block != null) showBlockWarning(messenger, r.block!);
       if (!mounted) return;
-      AppSnack.success(context, Strings.evolutionSaved);
+      final ret = DateTime.tryParse(
+        saved?['dt_return_alert']?.toString() ?? '',
+      );
+      AppSnack.success(
+        context,
+        ret == null
+            ? Strings.evolutionSaved
+            : Strings.evolutionSavedReturn(Dates.format(ret)),
+      );
       Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
@@ -348,6 +377,22 @@ class _EvolutionDialogState extends ConsumerState<EvolutionDialog> {
                   controller: _tooth,
                   maxLength: 40,
                 ),
+                if (widget.recordTime) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  SizedBox(
+                    width: 220,
+                    child: AppTextField(
+                      label: Strings.evolutionMinutes,
+                      controller: _minutes,
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if ((v ?? '').trim().isEmpty) return null;
+                        final n = int.tryParse(v!.trim());
+                        return n == null || n < 1 || n > 600 ? '1 – 600' : null;
+                      },
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 AppTextField(
                   label: Strings.evolutionText,

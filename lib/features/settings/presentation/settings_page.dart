@@ -733,6 +733,9 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
   };
 
   late bool _auto = widget.settings.idAutoRecordNumber;
+  late bool _sessions = widget.settings.idRecordSessions;
+  late bool _return = widget.settings.idRecordReturn;
+  late bool _time = widget.settings.idRecordTime;
   late final _next = TextEditingController(
     text: '${widget.settings.nrNextRecord}',
   );
@@ -756,6 +759,9 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
       await ref.read(settingsProvider.notifier).save({
         'id_auto_record_number': _auto,
         'nr_next_record': next,
+        'id_record_sessions': _sessions,
+        'id_record_return': _return,
+        'id_record_time': _time,
         'vc_patient_required': [
           for (final o in PatientRequired.all)
             if (_required.contains(o)) o,
@@ -795,6 +801,28 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
               keyboardType: TextInputType.number,
             ),
           ),
+        _subtitle(context, Strings.settingsRecordGeneral),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.settingsRecordSessions),
+          subtitle: const Text(Strings.settingsRecordSessionsHint),
+          value: _sessions,
+          onChanged: can ? (v) => setState(() => _sessions = v) : null,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.settingsRecordReturn),
+          subtitle: const Text(Strings.settingsRecordReturnHint),
+          value: _return,
+          onChanged: can ? (v) => setState(() => _return = v) : null,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.settingsRecordTime),
+          subtitle: const Text(Strings.settingsRecordTimeHint),
+          value: _time,
+          onChanged: can ? (v) => setState(() => _time = v) : null,
+        ),
         _subtitle(context, Strings.settingsRequired),
         const Text(
           Strings.settingsRequiredFixedHint,

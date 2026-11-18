@@ -175,6 +175,8 @@ class ClinicalEvolution {
     this.nrBudget,
     this.nrItem,
     this.vcUser,
+    this.nrSession,
+    this.qtMinutes,
   });
 
   factory ClinicalEvolution.fromJson(Map<String, dynamic> j) =>
@@ -188,6 +190,8 @@ class ClinicalEvolution {
         nrBudget: (j['nr_budget'] as num?)?.toInt(),
         nrItem: (j['nr_item'] as num?)?.toInt(),
         vcUser: j['vc_user'] as String?,
+        nrSession: (j['nr_session'] as num?)?.toInt(),
+        qtMinutes: (j['qt_minutes'] as num?)?.toInt(),
       );
 
   final int nrEvolution;
@@ -199,6 +203,10 @@ class ClinicalEvolution {
   final int? nrBudget;
   final int? nrItem;
   final String? vcUser;
+
+  /// Sessao do item do orcamento e tempo de execucao (quando a filial usa).
+  final int? nrSession;
+  final int? qtMinutes;
 }
 
 /// Item de orcamento aprovado (a fazer ou realizado).
@@ -209,6 +217,8 @@ class TreatmentItem {
     required this.vcDescription,
     this.vcTooth,
     this.dtDone,
+    this.qtSessions = 1,
+    this.qtSessionsDone = 0,
   });
 
   factory TreatmentItem.fromJson(Map<String, dynamic> j) => TreatmentItem(
@@ -217,6 +227,8 @@ class TreatmentItem {
     vcDescription: j['vc_description'] as String? ?? '',
     vcTooth: j['vc_tooth'] as String?,
     dtDone: _date(j['dt_done']),
+    qtSessions: (j['qt_sessions'] as num?)?.toInt() ?? 1,
+    qtSessionsDone: (j['qt_sessions_done'] as num?)?.toInt() ?? 0,
   );
 
   final int nrBudget;
@@ -225,8 +237,13 @@ class TreatmentItem {
   final String? vcTooth;
   final DateTime? dtDone;
 
+  /// Sessoes previstas e ja realizadas do item.
+  final int qtSessions;
+  final int qtSessionsDone;
+
   String get label =>
-      '$vcDescription${vcTooth == null || vcTooth!.isEmpty ? '' : ' · $vcTooth'} (orç. $nrBudget)';
+      '$vcDescription${vcTooth == null || vcTooth!.isEmpty ? '' : ' · $vcTooth'} (orç. $nrBudget)'
+      '${qtSessions > 1 ? ' · sessão ${qtSessionsDone + 1}/$qtSessions' : ''}';
 }
 
 /// Condicao marcada no dente.
@@ -374,10 +391,14 @@ class PatientClinicalRecord {
     this.doneItems = const [],
     this.canCreate = false,
     this.canUpdate = false,
+    this.idSessions = false,
+    this.idReturn = false,
+    this.idTime = false,
   });
 
   factory PatientClinicalRecord.fromJson(Map<String, dynamic> j) {
     final perm = (j['permission'] as Map?) ?? const {};
+    final rs = (j['record_settings'] as Map?) ?? const {};
     return PatientClinicalRecord(
       alerts: [
         for (final a in _list(j['alerts']))
@@ -397,6 +418,9 @@ class PatientClinicalRecord {
       doneItems: _list(j['done_items']).map(TreatmentItem.fromJson).toList(),
       canCreate: perm['id_create'] as bool? ?? false,
       canUpdate: perm['id_update'] as bool? ?? false,
+      idSessions: rs['id_sessions'] == true,
+      idReturn: rs['id_return'] == true,
+      idTime: rs['id_time'] == true,
     );
   }
 
@@ -408,6 +432,11 @@ class PatientClinicalRecord {
   final List<TreatmentItem> doneItems;
   final bool canCreate;
   final bool canUpdate;
+
+  /// Configuracoes do prontuario: sessoes, retorno e tempo de execucao.
+  final bool idSessions;
+  final bool idReturn;
+  final bool idTime;
 
   List<ToothMark> marksOf(String tooth) =>
       marks.where((m) => m.vcTooth == tooth).toList();

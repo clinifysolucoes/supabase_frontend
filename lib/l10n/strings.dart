@@ -2086,6 +2086,28 @@ abstract final class Strings {
       ? 'Salvo. Atenção: o paciente tem contrato sem assinatura.'
       : 'Salvo. Atenção: o paciente tem $amount em ${_blockWhat(kind)}.';
 
+  static String evolutionSession(int n) => 'Sessão $n';
+  static const evolutionMinutes = 'Tempo de execução (min)';
+  static String evolutionSavedReturn(String date) =>
+      'Evolução registrada. Retorno marcado para $date.';
+  static const procedureSessions = 'Sessões previstas';
+  static const procedureSessionsHelp =
+      'Com sessões ligadas no prontuário, o item só fica realizado na última.';
+  static const procedureReturnDays = 'Retorno em';
+  static const procedureReturnDaysHelp =
+      'Dias depois de concluir (vazio = sem retorno).';
+  static const daysSuffix = 'dias';
+  static const settingsRecordGeneral = 'Prontuário';
+  static const settingsRecordSessions = 'Sessões de procedimento';
+  static const settingsRecordSessionsHint =
+      'Procedimentos com mais de uma sessão (ex.: manutenção) ficam pendentes até a última sessão.';
+  static const settingsRecordReturn = 'Retorno de procedimentos';
+  static const settingsRecordReturnHint =
+      'Ao concluir um procedimento com "Retorno em" preenchido, cria o alerta de retorno do paciente.';
+  static const settingsRecordTime = 'Registro de tempo';
+  static const settingsRecordTimeHint =
+      'Pede o tempo de execução de cada procedimento na evolução.';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -2968,6 +2990,10 @@ abstract final class Strings {
         'Paciente com pendência (contas ou contrato): o tratamento está bloqueado.',
     'CLINICAL_EVOLUTION_APPROVAL':
         'Paciente com pendência (contas ou contrato): só o administrador da empresa pode registrar.',
+    'CLINICAL_EVOLUTION_MINUTES_INVALID':
+        'Informe o tempo de execução entre 1 e 600 minutos.',
+    'PROCEDURE_SESSIONS_INVALID':
+        'Sessões entre 1 e 60 e retorno entre 1 e 730 dias.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
