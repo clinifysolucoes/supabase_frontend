@@ -13,6 +13,8 @@ class WhatsappSettings {
     this.vcLanguage = 'pt_BR',
     this.idReminder = true,
     this.qtReminderHours = 24,
+    this.qtResend = 0,
+    this.qtResendHours = 4,
     this.vcTplReminder = 'lembrete_consulta',
     this.idBooked = false,
     this.vcTplBooked = 'consulta_agendada',
@@ -38,6 +40,8 @@ class WhatsappSettings {
       vcLanguage: s['vc_language'] as String? ?? 'pt_BR',
       idReminder: s['id_reminder'] as bool? ?? true,
       qtReminderHours: _int(s['qt_reminder_hours'], 24),
+      qtResend: _int(s['qt_resend'], 0),
+      qtResendHours: _int(s['qt_resend_hours'], 4),
       vcTplReminder: s['vc_tpl_reminder'] as String? ?? 'lembrete_consulta',
       idBooked: s['id_booked'] as bool? ?? false,
       vcTplBooked: s['vc_tpl_booked'] as String? ?? 'consulta_agendada',
@@ -64,6 +68,10 @@ class WhatsappSettings {
   final String vcLanguage;
   final bool idReminder;
   final int qtReminderHours;
+
+  /// Reenvios do lembrete sem confirmacao (0 a 3) e horas entre eles.
+  final int qtResend;
+  final int qtResendHours;
   final String vcTplReminder;
   final bool idBooked;
   final String vcTplBooked;

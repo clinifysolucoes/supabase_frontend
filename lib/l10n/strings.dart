@@ -2049,6 +2049,15 @@ abstract final class Strings {
   static const reportMarkers = 'Por marcador';
   static const reportNoCategory = 'Sem categoria';
 
+  static const resendTitle = 'Reenviar o lembrete se o paciente não confirmar';
+  static const resendHint =
+      'Muita gente esquece de responder. Os reenvios saem só entre 07:00 e 22:00 e param quando o paciente confirma.';
+  static const resendOff = 'Não reenviar';
+  static String resendTimes(int n) => n == 1 ? '1 vez' : '$n vezes';
+  static const resendEvery = 'Intervalo';
+  static String resendHours(int h) =>
+      h == 1 ? 'A cada 1 hora' : 'A cada $h horas';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';

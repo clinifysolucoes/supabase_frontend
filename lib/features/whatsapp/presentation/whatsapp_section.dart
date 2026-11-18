@@ -12,6 +12,7 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../profiles/application/profiles_controller.dart';
 import '../data/whatsapp_repository.dart';
 import '../domain/whatsapp_models.dart';
+import '../../notify/presentation/resend_fields.dart';
 
 final whatsappSettingsProvider = FutureProvider.autoDispose<WhatsappSettings>((
   ref,
@@ -80,6 +81,8 @@ class _WhatsappFormState extends ConsumerState<_WhatsappForm> {
   final _token = TextEditingController();
   late bool _reminder = s.idReminder;
   late final _hours = TextEditingController(text: '${s.qtReminderHours}');
+  late int _resend = s.qtResend;
+  late int _resendHours = s.qtResendHours;
   late final _tplReminder = TextEditingController(text: s.vcTplReminder);
   late bool _booked = s.idBooked;
   late final _tplBooked = TextEditingController(text: s.vcTplBooked);
@@ -131,6 +134,8 @@ class _WhatsappFormState extends ConsumerState<_WhatsappForm> {
         if (_token.text.trim().isNotEmpty) 'vc_token': _token.text.trim(),
         'id_reminder': _reminder,
         'qt_reminder_hours': int.tryParse(_hours.text.trim()),
+        'qt_resend': _resend,
+        'qt_resend_hours': _resendHours,
         'vc_tpl_reminder': _tplReminder.text.trim(),
         'id_booked': _booked,
         'vc_tpl_booked': _tplBooked.text.trim(),
@@ -301,11 +306,23 @@ class _WhatsappFormState extends ConsumerState<_WhatsappForm> {
               value: _reminder,
               onChanged: (v) => setState(() => _reminder = v),
               template: _tplReminder,
-              extra: AppTextField(
-                label: Strings.waReminderHours,
-                controller: _hours,
-                enabled: can,
-                keyboardType: TextInputType.number,
+              extra: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppTextField(
+                    label: Strings.waReminderHours,
+                    controller: _hours,
+                    enabled: can,
+                    keyboardType: TextInputType.number,
+                  ),
+                  ResendFields(
+                    resend: _resend,
+                    hours: _resendHours,
+                    enabled: can,
+                    onResend: (v) => setState(() => _resend = v),
+                    onHours: (v) => setState(() => _resendHours = v),
+                  ),
+                ],
               ),
             ),
             _alert(
