@@ -27,6 +27,7 @@ import '../../features/settings/presentation/settings_page.dart';
 import '../../features/users/presentation/users_page.dart';
 import '../../shared/widgets/splash_page.dart';
 import '../../features/aligners/presentation/aligners_page.dart';
+import '../../features/radiology/presentation/radiology_page.dart';
 
 abstract final class AppRoutes {
   static const splash = '/';
@@ -49,6 +50,7 @@ abstract final class AppRoutes {
   static const stock = '/estoque';
   static const referrals = '/indicacoes';
   static const aligners = '/alinhadores';
+  static const radiology = '/exames-imagem';
 
   /// Pagina publica de agendamento (sem login).
   static const onlineBooking = '/agendar';
@@ -208,6 +210,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.aligners,
         builder: (_, __) => const AlignersPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.radiology,
+        builder: (_, __) => const RadiologyPage(),
       ),
       GoRoute(
         path: AppRoutes.referrals,

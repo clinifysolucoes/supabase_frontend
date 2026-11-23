@@ -2175,6 +2175,55 @@ abstract final class Strings {
   static const alignerEventText = 'Anotação no histórico (opcional)';
   static const alignerHistory = 'Histórico';
 
+  static const radiology = 'Exames de Imagem';
+  static const radiologySubtitle =
+      'Pedidos de exame de imagem aos centros radiológicos: situação, datas e o link do laudo.';
+  static const rxNew = 'Novo pedido';
+  static const rxEdit = 'Pedido de exame de imagem';
+  static const rxRequested = 'Solicitados';
+  static const rxRequestedOne = 'Solicitado';
+  static const rxScheduledOne = 'Agendado';
+  static const rxDoneOne = 'Realizado';
+  static const rxCancelledOne = 'Cancelado';
+  static const rxScheduled = 'Agendados';
+  static const rxDone = 'Realizados';
+  static const rxReport = 'Laudo recebido';
+  static const rxCancelled = 'Cancelados';
+  static const rxSearch = 'Buscar paciente, exame ou região';
+  static const rxEmpty = 'Nenhum pedido de exame de imagem.';
+  static const rxRegionShort = 'Região';
+  static const rxNoCenter = 'Centro não informado';
+  static String rxRequestedOn(String d) => 'Pedido em $d';
+  static String rxScheduledOn(String d) => 'agendado para $d';
+  static String rxDoneOn(String d) => 'realizado em $d';
+  static String rxReportOn(String d) => 'laudo em $d';
+  static const rxCopyLink = 'Copiar link';
+  static const rxLinkCopied = 'Link copiado.';
+  static const rxExams = 'Exames';
+  static const rxOtherExam = 'Outro exame';
+  static const rxAddExam = 'Adicionar exame';
+  static const rxExamsRequired = 'Escolha pelo menos um exame.';
+  static const rxDateInvalid = 'Confira as datas (dd/mm/aaaa).';
+  static const rxRegion = 'Dentes ou região';
+  static const rxCenter = 'Centro radiológico';
+  static const rxRequestDate = 'Data do pedido';
+  static const rxScheduledDate = 'Agendado para';
+  static const rxReportUrl = 'Link do laudo / imagens';
+  static const rxReportUrlHint =
+      'Link do portal do centro (https://). O arquivo do laudo pode ir para os arquivos do paciente.';
+  static const rxNotes = 'Indicação clínica e observações';
+  static const rxCenters = 'Centros radiológicos';
+  static const rxCentersHint =
+      'Centros parceiros para onde vão os pedidos. A integração automática depende de contrato e chave de cada centro.';
+  static const rxCentersEmpty = 'Nenhum centro cadastrado.';
+  static const rxCenterNew = 'Novo centro';
+  static const rxCenterName = 'Nome do centro';
+  static const rxAddress = 'Endereço';
+  static const rxIntegrationAuto = 'Integração automática';
+  static const rxIntegrationHint =
+      'Preparada para receber laudos e imagens do centro; só funciona depois do contrato e da chave do centro.';
+  static const rxExternalCode = 'Código da clínica no centro';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -3086,6 +3135,22 @@ abstract final class Strings {
     'ALIGNER_SYSTEM_REQUIRED': 'Informe o sistema ou fabricante.',
     'ALIGNER_PENDING_REQUIRED': 'Descreva a pendência.',
     'ALIGNER_STATUS_INVALID': 'Situação inválida.',
+    'RADIOLOGY_FORBIDDEN': 'Sem permissão nos exames de imagem.',
+    'RADIOLOGY_NOT_FOUND': 'Pedido de exame não encontrado.',
+    'RADIOLOGY_CLOSED': 'Pedido cancelado não pode ser alterado.',
+    'RADIOLOGY_VALUE_INVALID': 'Confira os campos e as datas do pedido.',
+    'RADIOLOGY_PATIENT_INVALID': 'Escolha um paciente ativo.',
+    'RADIOLOGY_CENTER_INVALID': 'Escolha um centro radiológico ativo.',
+    'RADIOLOGY_PROFESSIONAL_INVALID': 'Escolha um profissional ativo.',
+    'RADIOLOGY_EXAMS_REQUIRED': 'Escolha pelo menos um exame.',
+    'RADIOLOGY_STATUS_INVALID': 'Situação inválida.',
+    'RADIOLOGY_URL_INVALID':
+        'O link precisa começar com https:// e não pode ter espaços.',
+    'RADIOLOGY_CENTER_NOT_FOUND': 'Centro radiológico não encontrado.',
+    'RADIOLOGY_CENTER_NAME_REQUIRED': 'Informe o nome do centro.',
+    'RADIOLOGY_CENTER_NAME_EXISTS': 'Já existe um centro com esse nome.',
+    'RADIOLOGY_CENTER_PHONE_INVALID': 'Telefone inválido (DDD + número).',
+    'RADIOLOGY_CENTER_EMAIL_INVALID': 'E-mail inválido.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
