@@ -737,6 +737,7 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
   late bool _sessions = widget.settings.idRecordSessions;
   late bool _return = widget.settings.idRecordReturn;
   late bool _time = widget.settings.idRecordTime;
+  late bool _credit = widget.settings.idCreditCheck;
   late final _next = TextEditingController(
     text: '${widget.settings.nrNextRecord}',
   );
@@ -763,6 +764,7 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
         'id_record_sessions': _sessions,
         'id_record_return': _return,
         'id_record_time': _time,
+        'id_credit_check': _credit,
         'vc_patient_required': [
           for (final o in PatientRequired.all)
             if (_required.contains(o)) o,
@@ -823,6 +825,13 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
           subtitle: const Text(Strings.settingsRecordTimeHint),
           value: _time,
           onChanged: can ? (v) => setState(() => _time = v) : null,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(Strings.settingsCreditCheck),
+          subtitle: const Text(Strings.settingsCreditCheckHint),
+          value: _credit,
+          onChanged: can ? (v) => setState(() => _credit = v) : null,
         ),
         _subtitle(context, Strings.settingsRequired),
         const Text(

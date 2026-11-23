@@ -98,6 +98,7 @@ class BranchSettings {
     this.idRecordSessions = false,
     this.idRecordReturn = false,
     this.idRecordTime = false,
+    this.idCreditCheck = false,
     this.qtBudgetValidDays = 30,
     this.nrNextReceipt = 1,
     this.itMfaPolicy = 0,
@@ -155,6 +156,7 @@ class BranchSettings {
       idRecordSessions: s['id_record_sessions'] == true,
       idRecordReturn: s['id_record_return'] == true,
       idRecordTime: s['id_record_time'] == true,
+      idCreditCheck: s['id_credit_check'] == true,
       agendaCatalog: AgendaCatalog.fromJson(
         (j['agenda_catalog'] as Map?)?.cast<String, dynamic>() ?? const {},
       ),
@@ -223,6 +225,9 @@ class BranchSettings {
   final bool idRecordSessions;
   final bool idRecordReturn;
   final bool idRecordTime;
+
+  /// Consulta de credito (SPC/Serasa) na ficha do paciente.
+  final bool idCreditCheck;
 
   /// Fusos do Brasil (ad.branch.vc_timezone).
   static const timezones = [
