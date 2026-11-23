@@ -18,11 +18,13 @@ abstract final class NotifyKind {
   static const reminder = 1;
   static const booked = 2;
   static const returnAlert = 4;
+  static const review = 5;
 
   static String label(int k) => switch (k) {
     reminder => Strings.waReminder,
     booked => Strings.waBooked,
     returnAlert => Strings.waReturn,
+    review => Strings.ntReview,
     _ => '-',
   };
 }
@@ -55,6 +57,7 @@ const notifyFields = [
   '{{profissional}}',
   '{{retorno}}',
   '{{link}}',
+  '{{avaliacao}}',
 ];
 
 class NotifySettings {
@@ -73,6 +76,10 @@ class NotifySettings {
     this.vcTplReminder = '',
     this.vcTplBooked = '',
     this.vcTplReturn = '',
+    this.idReview = false,
+    this.vcReviewUrl,
+    this.qtReviewHours = 2,
+    this.vcTplReview = '',
     this.vcClinic,
     this.totals = const {},
     this.canUpdate = false,
@@ -100,6 +107,10 @@ class NotifySettings {
       vcTplReminder: s['vc_tpl_reminder'] as String? ?? '',
       vcTplBooked: s['vc_tpl_booked'] as String? ?? '',
       vcTplReturn: s['vc_tpl_return'] as String? ?? '',
+      idReview: s['id_review'] as bool? ?? false,
+      vcReviewUrl: s['vc_review_url'] as String?,
+      qtReviewHours: _int(s['qt_review_hours'], 2),
+      vcTplReview: s['vc_tpl_review'] as String? ?? '',
       vcClinic: s['vc_clinic'] as String?,
       totals: t,
       canUpdate:
@@ -124,6 +135,12 @@ class NotifySettings {
   final String vcTplReminder;
   final String vcTplBooked;
   final String vcTplReturn;
+
+  /// Avaliacao no Google depois do atendimento.
+  final bool idReview;
+  final String? vcReviewUrl;
+  final int qtReviewHours;
+  final String vcTplReview;
   final String? vcClinic;
 
   /// (canal, situacao) -> quantidade nos ultimos 30 dias.
@@ -141,6 +158,7 @@ String notifyPreview(String tpl, {String? clinic}) {
     '{{profissional}}': 'Dra. Ana',
     '{{retorno}}': 'Limpeza semestral.',
     '{{link}}': 'https://…/confirmar/…',
+    '{{avaliacao}}': 'https://g.page/r/…/review',
   };
   var t = tpl;
   sample.forEach((k, v) => t = t.replaceAll(k, v));

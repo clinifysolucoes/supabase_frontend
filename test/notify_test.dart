@@ -22,6 +22,10 @@ final _settings = {
         'Olá, {{nome}}! Consulta na {{clinica}} em {{data}} às {{hora}}. Confirme: {{link}}',
     'vc_tpl_booked': 'Olá, {{nome}}! Marcada para {{data}}.',
     'vc_tpl_return': 'Olá, {{nome}}! {{retorno}}',
+    'id_review': true,
+    'vc_review_url': 'https://g.page/r/abc/review',
+    'qt_review_hours': 3,
+    'vc_tpl_review': 'Avalie a {{clinica}}: {{avaliacao}}',
     'vc_clinic': 'Clínica Sorriso',
     'id_saved': true,
   },
@@ -69,6 +73,9 @@ void main() {
     expect(s.idEmail, isTrue);
     expect(s.totals[(1, 2)], 3);
     expect(s.canUpdate, isTrue);
+    expect(s.idReview, isTrue);
+    expect(s.qtReviewHours, 3);
+    expect(NotifyKind.label(NotifyKind.review), Strings.ntReview);
     expect(
       notifyPreview(s.vcTplBooked, clinic: s.vcClinic),
       'Olá, Maria! Marcada para 15/03.',
@@ -109,6 +116,13 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('E-mail · Enviada: 3'), findsOneWidget);
+    expect(find.text(Strings.ntReviewUrl), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Prévia: Avalie a Clínica Sorriso: https://g.page/r/',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Pagina de confirmacao: confirmada e link invalido', (

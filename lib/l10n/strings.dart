@@ -2223,6 +2223,13 @@ abstract final class Strings {
   static const rxIntegrationHint =
       'Preparada para receber laudos e imagens do centro; só funciona depois do contrato e da chave do centro.';
   static const rxExternalCode = 'Código da clínica no centro';
+  static const ntReview = 'Avaliação no Google';
+  static const ntReviewHint =
+      'Depois do atendimento, pede ao paciente para avaliar a clínica no Google (no máximo uma vez a cada 180 dias).';
+  static const ntReviewUrl = 'Link de avaliação no Google';
+  static const ntReviewUrlHint =
+      'No Perfil da Empresa no Google, use "Pedir avaliações" e copie o link (https://g.page/r/...).';
+  static const ntReviewHours = 'Horas depois da consulta';
 
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
@@ -3151,6 +3158,10 @@ abstract final class Strings {
     'RADIOLOGY_CENTER_NAME_EXISTS': 'Já existe um centro com esse nome.',
     'RADIOLOGY_CENTER_PHONE_INVALID': 'Telefone inválido (DDD + número).',
     'RADIOLOGY_CENTER_EMAIL_INVALID': 'E-mail inválido.',
+    'NOTIFY_REVIEW_URL_INVALID':
+        'O link de avaliação precisa começar com https:// e não pode ter espaços.',
+    'NOTIFY_REVIEW_URL_REQUIRED':
+        'Informe o link de avaliação no Google para ligar o pedido de avaliação.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
