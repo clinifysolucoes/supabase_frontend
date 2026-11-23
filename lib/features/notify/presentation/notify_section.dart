@@ -60,6 +60,10 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
   late bool _return = s.idReturn;
   late final _tplReturn = TextEditingController(text: s.vcTplReturn);
   late final _sendHour = TextEditingController(text: '${s.qtSendHour}');
+  late bool _review = s.idReview;
+  late final _reviewUrl = TextEditingController(text: s.vcReviewUrl ?? '');
+  late final _reviewHours = TextEditingController(text: '${s.qtReviewHours}');
+  late final _tplReview = TextEditingController(text: s.vcTplReview);
   bool _saving = false;
 
   @override
@@ -72,6 +76,9 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
       _tplBooked,
       _tplReturn,
       _sendHour,
+      _reviewUrl,
+      _reviewHours,
+      _tplReview,
     ]) {
       c.dispose();
     }
@@ -99,6 +106,10 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
         'id_return': _return,
         'vc_tpl_return': _tplReturn.text,
         'qt_send_hour': int.tryParse(_sendHour.text.trim()),
+        'id_review': _review,
+        'vc_review_url': _reviewUrl.text.trim(),
+        'qt_review_hours': int.tryParse(_reviewHours.text.trim()),
+        'vc_tpl_review': _tplReview.text,
       });
       ref.invalidate(notifySettingsProvider);
       if (mounted) AppSnack.success(context, Strings.savedSuccess);
@@ -116,6 +127,7 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
     required ValueChanged<bool> onChanged,
     required TextEditingController template,
     Widget? extra,
+    double extraWidth = 220,
   }) {
     final can = s.canUpdate;
     return Padding(
@@ -132,7 +144,7 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
           ),
           if (value) ...[
             if (extra != null) ...[
-              SizedBox(width: 220, child: extra),
+              SizedBox(width: extraWidth, child: extra),
               const SizedBox(height: AppSpacing.sm),
             ],
             AppTextField(
@@ -273,6 +285,37 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
                 controller: _sendHour,
                 enabled: can,
                 keyboardType: TextInputType.number,
+              ),
+            ),
+            _alert(
+              title: Strings.ntReview,
+              hint: Strings.ntReviewHint,
+              value: _review,
+              onChanged: (v) => setState(() => _review = v),
+              template: _tplReview,
+              extraWidth: 520,
+              extra: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppTextField(
+                    label: Strings.ntReviewUrl,
+                    helperText: Strings.ntReviewUrlHint,
+                    controller: _reviewUrl,
+                    enabled: can,
+                    keyboardType: TextInputType.url,
+                    maxLength: 500,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SizedBox(
+                    width: 220,
+                    child: AppTextField(
+                      label: Strings.ntReviewHours,
+                      controller: _reviewHours,
+                      enabled: can,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
               ),
             ),
             if (can)
