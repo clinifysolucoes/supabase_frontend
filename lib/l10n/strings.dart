@@ -2231,6 +2231,25 @@ abstract final class Strings {
       'No Perfil da Empresa no Google, use "Pedir avaliações" e copie o link (https://g.page/r/...).';
   static const ntReviewHours = 'Horas depois da consulta';
 
+  static const creditTitle = 'Consulta de crédito';
+  static const creditRun = 'Consultar CPF';
+  static const creditNone = 'Nenhuma consulta de crédito.';
+  static const creditPending = 'Consulta em andamento';
+  static const creditClean = 'Nada consta';
+  static const creditRestricted = 'Com restrições';
+  static const creditError = 'Não foi possível consultar';
+  static const creditDone = 'Consulta concluída.';
+  static String creditScore(int s) => 'Score $s';
+  static String creditDebts(int qt, String value) =>
+      '$qt restrição(ões) · $value';
+  static const creditConsentHint =
+      'A consulta usa o CPF do cadastro no birô de crédito (SPC/Serasa) e pode ter custo por consulta. Pela LGPD, é preciso a autorização do paciente.';
+  static const creditConsent =
+      'O paciente autorizou a consulta do CPF no birô de crédito.';
+  static const settingsCreditCheck = 'Consulta de crédito (SPC/Serasa)';
+  static const settingsCreditCheckHint =
+      'Mostra na ficha do paciente o botão para consultar o CPF, com a autorização do paciente. Só funciona depois de contratado o birô de crédito.';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -3162,6 +3181,21 @@ abstract final class Strings {
         'O link de avaliação precisa começar com https:// e não pode ter espaços.',
     'NOTIFY_REVIEW_URL_REQUIRED':
         'Informe o link de avaliação no Google para ligar o pedido de avaliação.',
+    'CREDIT_FORBIDDEN': 'Sem permissão para consultar o crédito do paciente.',
+    'CREDIT_DISABLED':
+        'A consulta de crédito está desligada (Configurações > Pacientes).',
+    'CREDIT_CONSENT_REQUIRED': 'Confirme a autorização do paciente.',
+    'CREDIT_PROVIDER_INVALID': 'Birô de crédito inválido.',
+    'CREDIT_PATIENT_INVALID': 'Paciente não encontrado ou inativo.',
+    'CREDIT_DOCUMENT_REQUIRED':
+        'O paciente precisa ter um CPF válido no cadastro.',
+    'CREDIT_PENDING': 'Já existe uma consulta em andamento para este paciente.',
+    'CREDIT_NOT_CONFIGURED':
+        'Consulta ainda não contratada: falta configurar o birô de crédito.',
+    'CREDIT_PROVIDER_NOT_IMPLEMENTED':
+        'A integração com o birô de crédito ainda não foi concluída.',
+    'CREDIT_PROVIDER_ERROR': 'O birô de crédito não respondeu. Tente de novo.',
+    'CREDIT_BACKEND_ERROR': 'Não foi possível registrar a consulta.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':

@@ -36,6 +36,7 @@ import '../../specialty_charts/presentation/perio_tab.dart';
 import '../../specialty_charts/presentation/specialty_charts_tab.dart';
 import '../../agenda/domain/agenda_models.dart';
 import 'patient_widgets.dart';
+import '../../credit/presentation/credit_check_card.dart';
 
 /// Ficha do paciente: cabecalho (avatar, nome, CPF, idade, situacao, acoes),
 /// abas (Visao geral + modulos futuros) e, na Visao geral, o card
@@ -654,6 +655,7 @@ class _Overview extends StatelessWidget {
                 onDelete: canUpdate ? onDeleteNote : null,
               ),
       ),
+      CreditCheckCard(nrPatient: record.patient.nrPatient),
     ];
 
     return SingleChildScrollView(
