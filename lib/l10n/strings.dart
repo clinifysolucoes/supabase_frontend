@@ -2250,6 +2250,81 @@ abstract final class Strings {
   static const settingsCreditCheckHint =
       'Mostra na ficha do paciente o botão para consultar o CPF, com a autorização do paciente. Só funciona depois de contratado o birô de crédito.';
 
+  static const tabInvoices = 'Notas fiscais';
+  static const settingsInvoice = 'Nota fiscal';
+  static const nfDraft = 'Rascunho';
+  static const nfDrafts = 'Rascunhos';
+  static const nfProcessing = 'Processando';
+  static const nfIssued = 'Emitida';
+  static const nfIssuedMany = 'Emitidas';
+  static const nfError = 'Erro';
+  static const nfErrors = 'Com erro';
+  static const nfCancelled = 'Cancelada';
+  static const nfCancelledMany = 'Canceladas';
+  static String nfIssuedValue(String v) => 'Emitido: $v';
+  static const nfSearch = 'Buscar tomador, número ou descrição';
+  static const nfNew = 'Nova nota';
+  static const nfEdit = 'Nota fiscal';
+  static const nfEmpty = 'Nenhuma nota fiscal.';
+  static const nfNumber = 'NFS-e';
+  static String nfCompetence(String d) => 'competência $d';
+  static String nfIss(String v) => 'ISS $v';
+  static const nfIssue = 'Emitir';
+  static const nfResend = 'Reenviar';
+  static const nfIssuedNow = 'Nota fiscal emitida.';
+  static const nfCancelledNow = 'Nota fiscal cancelada.';
+  static const nfSendError = 'O emissor não aceitou a nota.';
+  static const nfDiscard = 'Descartar';
+  static const nfDiscardConfirm =
+      'Descartar este rascunho? Ele fica nas canceladas e não pode ser emitido.';
+  static const nfCopyPdf = 'Copiar link do PDF';
+  static const nfCancel = 'Cancelar nota';
+  static const nfCancelReason = 'Motivo do cancelamento';
+  static const nfCancelReasonHint =
+      'De 15 a 255 caracteres (vai para a prefeitura).';
+  static const nfValue = 'Valor do serviço';
+  static const nfValueRequired = 'Informe o valor do serviço.';
+  static const nfCompetenceLabel = 'Competência';
+  static const nfTodayHint = 'dd/mm/aaaa (vazio = hoje)';
+  static const nfDescription = 'Descrição do serviço';
+  static const nfDescriptionHint =
+      'Em branco usa o modelo de Configurações > Nota fiscal.';
+  static const nfTaker = 'Tomador';
+  static const nfTakerHint =
+      'Em branco usa o paciente (ou o responsável, se for menor de idade).';
+  static const nfTakerName = 'Nome do tomador';
+  static const nfTakerDocument = 'CPF ou CNPJ do tomador';
+  static const nfSetupTitle = 'Para emitir NFS-e falta:';
+  static const nfDisabled = 'Ligar a emissão em Configurações > Nota fiscal';
+  static const nfMissingCnpj = 'CNPJ da clínica (Configurações > Clínica)';
+  static const nfMissingCityRegistration =
+      'Inscrição municipal (Configurações > Clínica)';
+  static const nfMissingTaxRegime =
+      'Regime tributário (Configurações > Clínica)';
+  static const nfMissingAddress =
+      'Endereço completo da clínica (Configurações > Clínica)';
+  static const nfMissingIbge =
+      'Código IBGE da cidade (Configurações > Nota fiscal)';
+  static const nfMissingSettings =
+      'Salvar os dados fiscais em Configurações > Nota fiscal';
+  static const nfSettingsHint =
+      'Dados fiscais para emitir NFS-e dos atendimentos. O emissor de notas é contratado pelo sistema; enquanto não estiver configurado, as notas ficam com erro e podem ser reenviadas depois.';
+  static const nfEnabled = 'Emitir nota fiscal de serviço (NFS-e)';
+  static const nfEnabledHint =
+      'Mostra a emissão na aba Notas fiscais do Financeiro.';
+  static const nfIbge = 'Código IBGE da cidade';
+  static const nfIbgeHint = '7 dígitos (Curitiba = 4106902)';
+  static const nfServiceCode = 'Item da LC 116';
+  static const nfServiceCodeHint = '4.12 = odontologia';
+  static const nfCityServiceCode = 'Código de tributação municipal';
+  static const nfCnae = 'CNAE';
+  static const nfIssRate = 'Alíquota do ISS';
+  static const nfRpsSeries = 'Série do RPS';
+  static const nfIssWithheld = 'ISS retido pelo tomador';
+  static const nfDescriptionTemplate = 'Modelo da descrição';
+  static const nfDescriptionTemplateHint =
+      'Campos: {{paciente}}, {{data}}, {{clinica}}';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';
@@ -3196,6 +3271,31 @@ abstract final class Strings {
         'A integração com o birô de crédito ainda não foi concluída.',
     'CREDIT_PROVIDER_ERROR': 'O birô de crédito não respondeu. Tente de novo.',
     'CREDIT_BACKEND_ERROR': 'Não foi possível registrar a consulta.',
+    'INVOICE_FORBIDDEN': 'Sem permissão nas notas fiscais.',
+    'INVOICE_NOT_FOUND': 'Nota fiscal não encontrada.',
+    'INVOICE_LOCKED':
+        'Esta nota já foi enviada ao emissor e não pode ser alterada.',
+    'INVOICE_VALUE_INVALID': 'Confira o valor, a data e a descrição da nota.',
+    'INVOICE_PATIENT_INVALID': 'Escolha um paciente ativo.',
+    'INVOICE_ENTRY_INVALID': 'A conta a receber não é deste paciente.',
+    'INVOICE_ENTRY_EXISTS': 'Esta conta a receber já tem nota fiscal.',
+    'INVOICE_TAKER_INVALID': 'Confira o nome e o CPF/CNPJ do tomador.',
+    'INVOICE_EMAIL_INVALID': 'E-mail do tomador inválido.',
+    'INVOICE_IBGE_INVALID': 'O código IBGE tem 7 dígitos.',
+    'INVOICE_TEMPLATE_INVALID': 'Escreva o modelo da descrição.',
+    'INVOICE_DISABLED':
+        'A emissão de nota fiscal está desligada (Configurações > Nota fiscal).',
+    'INVOICE_SETUP_INCOMPLETE': 'Faltam dados para emitir a nota: {Missing}.',
+    'INVOICE_STATUS_INVALID': 'A situação da nota não permite esta ação.',
+    'INVOICE_CANCEL_REASON_REQUIRED':
+        'Escreva o motivo do cancelamento (15 a 255 caracteres).',
+    'INVOICE_NOT_CONFIGURED':
+        'Emissor de notas ainda não contratado: a nota pode ser reenviada depois.',
+    'INVOICE_PROVIDER_NOT_IMPLEMENTED':
+        'A integração com o emissor de notas ainda não foi concluída.',
+    'INVOICE_PROVIDER_ERROR':
+        'O emissor de notas não respondeu. Tente de novo.',
+    'INVOICE_BACKEND_ERROR': 'Não foi possível registrar a nota.',
     'CLINICAL_EVOLUTION_CONFIRM':
         'Paciente com pendência (contas ou contrato): confirme para registrar.',
     'FIN_LATE_EDIT_FORBIDDEN':
