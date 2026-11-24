@@ -10,6 +10,8 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_snack.dart';
 import '../application/credit_controllers.dart';
 import '../domain/credit_models.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
 
 /// Card "Consulta de credito" da ficha do paciente: a ultima consulta, o
 /// botao para consultar (com a autorizacao do paciente) e o historico.
@@ -55,6 +57,11 @@ class CreditCheckCard extends ConsumerWidget {
                   ),
               ],
             ),
+            if (d.idEnabled)
+              const IntegrationBanner(
+                codes: [IntegrationCode.credit],
+                pendingText: Strings.intCreditPending,
+              ),
             const SizedBox(height: AppSpacing.sm),
             if (d.checks.isEmpty)
               const Text(

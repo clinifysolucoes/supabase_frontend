@@ -36,6 +36,9 @@ import '../domain/trash_models.dart';
 import 'security_section.dart';
 import '../../session/presentation/access_guard.dart';
 import '../../invoice/presentation/invoice_settings_section.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
+import '../../integrations/presentation/integrations_section.dart';
 
 enum _Section {
   clinic,
@@ -47,6 +50,7 @@ enum _Section {
   notify,
   finance,
   invoice,
+  integrations,
   security,
   export,
   trash,
@@ -76,6 +80,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.notify => Strings.settingsNotify,
     _Section.finance => Strings.settingsFinance,
     _Section.invoice => Strings.settingsInvoice,
+    _Section.integrations => Strings.settingsIntegrations,
     _Section.security => Strings.settingsSecurity,
     _Section.export => Strings.settingsExport,
     _Section.trash => Strings.settingsTrash,
@@ -91,6 +96,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.notify => Icons.mark_email_unread_outlined,
     _Section.finance => Icons.account_balance_wallet_outlined,
     _Section.invoice => Icons.receipt_long_outlined,
+    _Section.integrations => Icons.hub_outlined,
     _Section.security => Icons.shield_outlined,
     _Section.export => Icons.file_download_outlined,
     _Section.trash => Icons.restore_from_trash_outlined,
@@ -190,6 +196,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         settings: s,
                       ),
                       _Section.invoice => const InvoiceSettingsSection(),
+                      _Section.integrations => IntegrationsSection(
+                        onOpen: (t) => setState(
+                          () => _section = switch (t) {
+                            IntegrationTarget.notify => _Section.notify,
+                            IntegrationTarget.whatsapp => _Section.whatsapp,
+                            IntegrationTarget.patients => _Section.patients,
+                            IntegrationTarget.invoice => _Section.invoice,
+                          },
+                        ),
+                      ),
                       _Section.security => SecuritySection(
                         key: ValueKey(s.itMfaPolicy),
                         settings: s,
@@ -837,6 +853,10 @@ class _PatientsFormState extends ConsumerState<_PatientsForm> {
           subtitle: const Text(Strings.settingsCreditCheckHint),
           value: _credit,
           onChanged: can ? (v) => setState(() => _credit = v) : null,
+        ),
+        const IntegrationBanner(
+          codes: [IntegrationCode.credit],
+          pendingText: Strings.intCreditPending,
         ),
         _subtitle(context, Strings.settingsRequired),
         const Text(

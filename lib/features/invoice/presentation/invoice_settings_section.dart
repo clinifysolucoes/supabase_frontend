@@ -12,6 +12,8 @@ import '../../../shared/widgets/app_snack.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../application/invoice_controllers.dart';
 import '../domain/invoice_models.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
 
 /// Configuracoes > Nota fiscal: dados fiscais da NFS-e da filial e o que
 /// ainda falta (dados da clinica e desta configuracao) para emitir.
@@ -138,6 +140,10 @@ class _InvoiceSettingsFormState extends ConsumerState<InvoiceSettingsForm> {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.muted,
               ),
+            ),
+            const IntegrationBanner(
+              codes: [IntegrationCode.invoice],
+              pendingText: Strings.intInvoicePending,
             ),
             if (s.missing.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),

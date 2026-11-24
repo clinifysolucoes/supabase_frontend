@@ -13,6 +13,8 @@ import '../../profiles/application/profiles_controller.dart';
 import '../data/whatsapp_repository.dart';
 import '../domain/whatsapp_models.dart';
 import '../../notify/presentation/resend_fields.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
 
 final whatsappSettingsProvider = FutureProvider.autoDispose<WhatsappSettings>((
   ref,
@@ -239,6 +241,11 @@ class _WhatsappFormState extends ConsumerState<_WhatsappForm> {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.muted,
               ),
+            ),
+            const IntegrationBanner(
+              codes: [IntegrationCode.whatsapp],
+              pendingText: Strings.intWhatsappPending,
+              extra: Strings.intWhatsappExtra,
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
