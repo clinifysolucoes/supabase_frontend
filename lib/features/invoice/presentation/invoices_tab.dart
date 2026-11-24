@@ -20,6 +20,8 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/invoice_controllers.dart';
 import '../domain/invoice_models.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
 
 Color _statusColor(InvoiceStatus s) => switch (s) {
   InvoiceStatus.draft => AppColors.primary,
@@ -43,6 +45,10 @@ class InvoicesTab extends ConsumerWidget {
     final d = async.valueOrNull;
     return ListView(
       children: [
+        const IntegrationBanner(
+          codes: [IntegrationCode.invoice],
+          pendingText: Strings.intInvoicePending,
+        ),
         if (d != null && !d.isReady) _SetupBanner(data: d),
         Wrap(
           spacing: AppSpacing.sm,

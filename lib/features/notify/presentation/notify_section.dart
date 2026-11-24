@@ -12,6 +12,8 @@ import '../../profiles/application/profiles_controller.dart';
 import '../data/notify_repository.dart';
 import '../domain/notify_models.dart';
 import 'resend_fields.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
 
 /// Configuracoes > SMS e e-mail: canais, alertas, textos e historico.
 class NotifySection extends ConsumerWidget {
@@ -190,6 +192,11 @@ class _NotifyFormState extends ConsumerState<NotifyForm> {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.muted,
               ),
+            ),
+            const IntegrationBanner(
+              codes: [IntegrationCode.email, IntegrationCode.sms],
+              pendingText: Strings.intNotifyPending,
+              extra: Strings.intNotifyExtra,
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

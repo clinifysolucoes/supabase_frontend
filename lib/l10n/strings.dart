@@ -2330,6 +2330,65 @@ abstract final class Strings {
   static const nfDescriptionTemplateHint =
       'Campos: {{paciente}}, {{data}}, {{clinica}}';
 
+  static const settingsIntegrations = 'Integrações';
+  static const intHint =
+      'Serviços externos que o sistema usa. Os que estão aguardando configuração já têm as telas prontas e passam a funcionar assim que o serviço for contratado e as chaves forem cadastradas.';
+  static const intReady = 'Pronto';
+  static const intPending = 'Aguardando configuração';
+  static const intPreparing = 'Em preparação';
+  static const intUnknown = 'Não verificado';
+  static const intContract = 'Por contrato';
+  static const intOpen = 'Abrir a configuração';
+  static String intMissing(String names) => 'Falta cadastrar: $names';
+  static const intPendingTitle = 'Aguardando configuração';
+  static const intPreparingTitle = 'Em preparação';
+  static const intPreparingText =
+      'As chaves já estão cadastradas; falta concluir a integração com o provedor. Até lá, nada é enviado.';
+  static const intUnknownTitle = 'Configuração não verificada';
+  static const intUnknownText =
+      'Não foi possível verificar se esta integração já está configurada. Ela pode não funcionar ainda.';
+  static const intEmail = 'E-mail (Resend)';
+  static const intEmailText =
+      'Lembretes, confirmação por link, avisos de agendamento, retorno e avaliação.';
+  static const intSms = 'SMS (Zenvia)';
+  static const intSmsText = 'Os mesmos alertas do e-mail, por SMS.';
+  static const intReview = 'Avaliação no Google';
+  static const intReviewText =
+      'Pede a avaliação depois do atendimento, por e-mail ou SMS.';
+  static const intWhatsapp = 'WhatsApp (Meta)';
+  static const intWhatsappText =
+      'Lembretes com Confirmar/Remarcar, agendamento, aniversário e retorno.';
+  static const intCredit = 'Consulta de crédito (SPC/Serasa)';
+  static const intCreditText =
+      'Consulta o CPF do paciente com a autorização dele.';
+  static const intInvoice = 'Nota fiscal de serviço (NFS-e)';
+  static const intInvoiceText = 'Emite e cancela a NFS-e dos atendimentos.';
+  static const intRadiology = 'Centros radiológicos';
+  static const intRadiologyText =
+      'Recebimento automático de laudos e imagens dos centros parceiros.';
+  static const intRadiologyWhere =
+      'Em Exames de Imagem > Centros radiológicos; cada centro tem o próprio contrato.';
+  static const intPrice = 'Pesquisa de preço de materiais';
+  static const intPriceText =
+      'Busca o preço de mercado dos materiais na Precificação.';
+  static const intPriceWhere = 'Em Precificação > Materiais.';
+  static const intNotifyPending =
+      'O envio por e-mail e SMS usa contas do sistema que ainda não foram configuradas. Você já pode deixar os textos e os alertas prontos: eles passam a ser enviados assim que as contas forem ligadas.';
+  static const intNotifyExtra =
+      'A avaliação no Google usa estes mesmos canais.';
+  static const intWhatsappPending =
+      'O envio pelo WhatsApp ainda não foi configurado no sistema. Você já pode deixar os alertas e os textos prontos.';
+  static const intWhatsappExtra =
+      'Depois, cada clínica conecta o próprio número do WhatsApp Business (Meta).';
+  static const intCreditPending =
+      'A consulta de crédito depende da contratação de um birô (Serasa, SPC ou Boa Vista). Até lá, as consultas ficam registradas como "não contratada".';
+  static const intInvoicePending =
+      'A emissão depende da contratação de um emissor de notas (Focus NFe, NFE.io, eNotas ou PlugNotas). Você já pode preencher os dados fiscais e criar rascunhos; as notas são enviadas depois.';
+  static const intRadiologyPending =
+      'A integração automática depende do contrato e da chave deste centro. Até lá, os pedidos e laudos são controlados à mão.';
+  static const intPricePending =
+      'A pesquisa de preço ainda não foi configurada no sistema. Você pode informar o preço à mão.';
+
   // Fichas por especialidade e periograma
   static const delete = 'Excluir';
   static const tabCharts = 'Fichas';

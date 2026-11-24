@@ -19,6 +19,7 @@ import '../../session/application/permissions.dart';
 import '../../session/domain/screen_codes.dart';
 import '../application/radiology_controllers.dart';
 import '../domain/radiology_models.dart';
+import '../../integrations/presentation/integration_banner.dart';
 
 Color _statusColor(RadiologyStatus s) => switch (s) {
   RadiologyStatus.requested => AppColors.primary,
@@ -804,6 +805,11 @@ class _RadiologyCenterFormDialogState
                 value: _auto,
                 onChanged: _saving ? null : (v) => setState(() => _auto = v),
               ),
+              if (_auto)
+                const IntegrationNotice(
+                  title: Strings.intPendingTitle,
+                  text: Strings.intRadiologyPending,
+                ),
               if (_auto)
                 AppTextField(
                   label: Strings.rxExternalCode,

@@ -10,6 +10,8 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_empty_state.dart';
 import '../application/pricing_controllers.dart';
 import '../domain/pricing_models.dart';
+import '../../integrations/presentation/integration_banner.dart';
+import '../../integrations/domain/integration_models.dart';
 
 /// Pesquisa de preco de mercado (Edge Function material-price-lookup).
 /// Devolve a oferta escolhida ou null.
@@ -114,6 +116,13 @@ class _PriceLookupSheetState extends ConsumerState<PriceLookupSheet> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: IntegrationBanner(
+            codes: [IntegrationCode.priceLookup],
+            pendingText: Strings.intPricePending,
           ),
         ),
         Padding(
