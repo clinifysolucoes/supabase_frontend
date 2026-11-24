@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../core/theme/app_theme.dart';
@@ -347,6 +348,24 @@ class _InvoiceCard extends ConsumerWidget {
                     onPressed: () => _discard(context, ref),
                   ),
                 ],
+                if (i.status == InvoiceStatus.issued && i.vcPdfUrl != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                    label: const Text(Strings.nfOpenPdf),
+                    onPressed: () async {
+                      final uri = Uri.tryParse(i.vcPdfUrl!);
+                      final ok =
+                          uri != null &&
+                          uri.scheme == 'https' &&
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                      if (!ok && context.mounted) {
+                        AppSnack.error(context, Strings.nfOpenPdfError);
+                      }
+                    },
+                  ),
                 if (i.status == InvoiceStatus.issued && i.vcPdfUrl != null)
                   TextButton.icon(
                     icon: const Icon(Icons.copy_rounded, size: 18),

@@ -24,6 +24,7 @@ import 'entry_form_dialog.dart';
 import 'payment_details_fields.dart';
 import 'finance_widgets.dart';
 import '../../session/presentation/access_guard.dart';
+import '../../invoice/application/invoice_controllers.dart';
 
 /// Detalhes de um lancamento e as acoes possiveis na situacao dele:
 /// editar, pagar/receber, desfazer, cancelar e reabrir.
@@ -119,6 +120,26 @@ abstract final class EntryActions {
         await _receiptPdf(context, ref, entry);
       case 'RECEIPT_CANCEL':
         await _cancelReceipt(context, ref, entry);
+      case 'INVOICE':
+        await createInvoice(context, ref, entry);
+    }
+  }
+
+  /// Rascunho de NFS-e ligado a conta a receber (valor pago ou da conta,
+  /// competencia na data do pagamento); a emissao fica na aba Notas fiscais.
+  static Future<void> createInvoice(
+    BuildContext context,
+    WidgetRef ref,
+    FinEntry entry,
+  ) async {
+    try {
+      await ref.read(invoiceSaveProvider)('I', null, {
+        'nr_patient': entry.nrPatient,
+        'nr_entry': entry.nrEntry,
+      });
+      if (context.mounted) AppSnack.success(context, Strings.nfDraftCreated);
+    } catch (e) {
+      if (context.mounted) AppSnack.error(context, describeError(e));
     }
   }
 
@@ -450,6 +471,12 @@ class _EntryDetailsDialog extends StatelessWidget {
             onPressed: () => pop('RECEIPT_PDF'),
             icon: const Icon(Icons.picture_as_pdf_outlined),
             label: const Text(Strings.receiptDownload),
+          ),
+        if (receivable && !e.isCancelled && e.nrPatient != null && canCreate)
+          OutlinedButton.icon(
+            onPressed: () => pop('INVOICE'),
+            icon: const Icon(Icons.request_page_outlined),
+            label: const Text(Strings.nfFromEntry),
           ),
         if (receivable && e.isPaid && e.nrReceipt == null && canCreate)
           OutlinedButton.icon(

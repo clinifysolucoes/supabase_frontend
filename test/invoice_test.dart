@@ -90,6 +90,8 @@ void main() {
     expect(find.textContaining('Carla Mae'), findsOneWidget);
     expect(find.text(Strings.nfResend), findsOneWidget);
     expect(find.text(Strings.nfCancel), findsOneWidget);
+    expect(find.text(Strings.nfOpenPdf), findsOneWidget);
+    expect(find.text(Strings.nfCopyPdf), findsOneWidget);
     expect(find.textContaining('ainda não contratado'), findsOneWidget);
 
     await tester.tap(find.text(Strings.nfNew));
