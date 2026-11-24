@@ -2278,6 +2278,11 @@ abstract final class Strings {
   static const nfDiscardConfirm =
       'Descartar este rascunho? Ele fica nas canceladas e não pode ser emitido.';
   static const nfCopyPdf = 'Copiar link do PDF';
+  static const nfOpenPdf = 'Abrir PDF';
+  static const nfOpenPdfError = 'Não foi possível abrir o PDF.';
+  static const nfFromEntry = 'Nota fiscal';
+  static const nfDraftCreated =
+      'Rascunho da nota fiscal criado em Financeiro > Notas fiscais.';
   static const nfCancel = 'Cancelar nota';
   static const nfCancelReason = 'Motivo do cancelamento';
   static const nfCancelReasonHint =
