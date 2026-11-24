@@ -35,6 +35,7 @@ import '../domain/settings_models.dart';
 import '../domain/trash_models.dart';
 import 'security_section.dart';
 import '../../session/presentation/access_guard.dart';
+import '../../invoice/presentation/invoice_settings_section.dart';
 
 enum _Section {
   clinic,
@@ -45,6 +46,7 @@ enum _Section {
   whatsapp,
   notify,
   finance,
+  invoice,
   security,
   export,
   trash,
@@ -73,6 +75,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.whatsapp => Strings.settingsWhatsapp,
     _Section.notify => Strings.settingsNotify,
     _Section.finance => Strings.settingsFinance,
+    _Section.invoice => Strings.settingsInvoice,
     _Section.security => Strings.settingsSecurity,
     _Section.export => Strings.settingsExport,
     _Section.trash => Strings.settingsTrash,
@@ -87,6 +90,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _Section.whatsapp => Icons.chat_outlined,
     _Section.notify => Icons.mark_email_unread_outlined,
     _Section.finance => Icons.account_balance_wallet_outlined,
+    _Section.invoice => Icons.receipt_long_outlined,
     _Section.security => Icons.shield_outlined,
     _Section.export => Icons.file_download_outlined,
     _Section.trash => Icons.restore_from_trash_outlined,
@@ -185,6 +189,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         key: ValueKey(s.hashCode),
                         settings: s,
                       ),
+                      _Section.invoice => const InvoiceSettingsSection(),
                       _Section.security => SecuritySection(
                         key: ValueKey(s.itMfaPolicy),
                         settings: s,

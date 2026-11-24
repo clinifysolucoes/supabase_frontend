@@ -20,6 +20,7 @@ import 'receivables_tab.dart';
 import 'registers_tab.dart';
 import 'dre_tab.dart';
 import 'statement_tab.dart';
+import '../../invoice/presentation/invoices_tab.dart';
 
 /// Financeiro da filial: visao geral, a pagar, a receber, extrato, fluxo de
 /// caixa e cadastros (contas, plano de contas, fornecedores).
@@ -52,7 +53,7 @@ class FinancePageBody extends ConsumerStatefulWidget {
 
 class _FinancePageBodyState extends ConsumerState<FinancePageBody>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 11, vsync: this);
+  late final TabController _tabs = TabController(length: 12, vsync: this);
 
   static const _items = [
     (Icons.space_dashboard_outlined, Strings.tabFinOverview),
@@ -66,6 +67,7 @@ class _FinancePageBodyState extends ConsumerState<FinancePageBody>
     (Icons.show_chart_rounded, Strings.tabCashflow),
     (Icons.analytics_outlined, Strings.tabDre),
     (Icons.tune_rounded, Strings.tabFinRegisters),
+    (Icons.receipt_long_outlined, Strings.tabInvoices),
   ];
 
   @override
@@ -145,6 +147,7 @@ class _FinancePageBodyState extends ConsumerState<FinancePageBody>
                       const CashflowTab(),
                       const DreTab(),
                       const RegistersTab(),
+                      const InvoicesTab(),
                     ],
                   )
                 : const FinanceOverviewTab(),
